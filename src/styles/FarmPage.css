@@ -1,0 +1,109 @@
+.farm-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.farm-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 40px;
+}
+
+.farm-grid {
+  display: grid;
+  grid-template-columns: repeat(10, 32px);
+  gap: 2px;
+  width: calc(32px * 10 + 2px * 9);
+}
+
+.farm-cell {
+  position: relative;
+  overflow: hidden;
+
+  width: 32px;
+  height: 32px;
+  border: 1px solid #ccc;
+  background: #eee;
+  color: #fff;
+  font-size: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+}
+
+.farm-cell img {
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+}
+
+.farm-cell-label {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+
+  padding: 2px 4px;
+  font-size: 10px;
+  background: transparent;
+  color: #000000;
+  border-radius: 3px;
+}
+
+.farm-cell--planted {
+  background: #4caf50;
+}
+
+.farm-info {
+  flex: 1;
+  min-width: 280px;
+}
+
+.farm-check {
+  color: #4caf50;
+  font-size: 18px;
+  line-height: 1;
+}
+
+/* модалка */
+.farm-modal-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.farm-modal {
+  background: #fff;
+  padding: 20px;
+  min-width: 320px;
+  border-radius: 8px;
+}
+
+.farm-modal-autobuy {
+  margin-top: 10px;
+}
+
+.farm-modal-error {
+  color: red;
+}
+
+.plant-row {
+  display: flex;
+  align-items: center;
+  padding: 6px 8px;
+  border: 1px solid #ccc;
+  border-radius: 4px;
+  margin-bottom: 4px;
+  cursor: pointer;
+  background: #fff;
+}
+
+.plant-row--selected {
+  border-color: #4caf50;
+  background: #e8f5e9;
+}

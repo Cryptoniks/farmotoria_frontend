@@ -1,0 +1,70 @@
+/* === ЛЕВОЕ МЕНЮ: ОБЩИЙ КОНТЕЙНЕР === */
+
+.left-menu-nav {
+  color: #000;
+  font-weight: 400;
+  font-size: 16px;
+}
+
+/* Заголовок "Игровое меню" можно при желании настроить отдельно */
+.left-menu-nav h3 {
+  margin-top: 0;
+  margin-bottom: 12px;
+}
+
+/* === СПИСКИ МЕНЮ === */
+
+.left-menu {
+  list-style: none;
+  padding-left: 0;
+  margin: 0;
+}
+
+.left-menu-sub {
+  list-style: none;
+  padding-left: 16px;
+  margin: 4px 0 0;
+}
+
+.left-menu-nav .left-menu > li,
+.left-menu-nav .left-menu-sub > li {
+  margin: 4px 0;
+}
+
+/* === ССЫЛКИ В МЕНЮ (перекрываем глобальное a) === */
+
+.left-menu-nav .left-menu a {
+  display: block;
+  color: #1a3c6b;
+  font-size: 16px;
+  font-weight: 400;
+  text-decoration: none;
+  line-height: 1.4;
+}
+
+.left-menu-nav .left-menu a:hover {
+  text-decoration: underline;
+  color: #1a3c6b;
+}
+
+/* === КНОПКА "ФЕРМА" — ВЫГЛЯДИТ КАК ПУНКТ МЕНЮ === */
+
+.left-menu-toggle {
+  display: block;
+  background: none;
+  border: none;
+  padding: 0;
+  margin: 4px 0;
+  cursor: pointer;
+
+  color: #1a3c6b;
+  font-size: 16px;
+  font-weight: 400;
+  font-family: inherit;
+  text-align: left;
+  line-height: 1.4;
+}
+
+.left-menu-toggle:focus {
+  outline: none;
+}

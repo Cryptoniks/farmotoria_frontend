@@ -1,0 +1,23 @@
+.register-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.register-form {
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.register-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.register-status {
+  margin-top: 8px;
+  font-size: 14px;
+}

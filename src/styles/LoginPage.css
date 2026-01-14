@@ -1,0 +1,23 @@
+.login-page {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-form {
+  max-width: 400px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.login-form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.login-status {
+  margin-top: 8px;
+  font-size: 14px;
+}

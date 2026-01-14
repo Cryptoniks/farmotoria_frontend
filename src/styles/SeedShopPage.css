@@ -1,0 +1,103 @@
+.seed-shop {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.seed-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.seed-item {
+  padding: 8px 12px;
+  border-radius: 8px;
+  border: 1px solid #e0e0e0;
+  background: #fafafa;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.seed-info {
+  max-width: 70%;
+  font-size: 14px;
+}
+
+.seed-controls {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.seed-controls input {
+  width: 60px;
+}
+
+.seed-status {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.seed-shop-page h2 {
+  margin-bottom: 16px;
+}
+
+.seed-shop-table {
+  width: 100%;
+  border-collapse: collapse;
+}
+
+.seed-shop-table th,
+.seed-shop-table td {
+  padding: 8px 12px;
+  border-bottom: 1px solid #eee;
+}
+
+.seed-shop-table th {
+  text-align: left;
+  background: #f8f8f8;
+}
+
+.seed-shop-table tbody tr:nth-child(even) {
+  background: #fafafa;
+}
+
+.seed-shop-status {
+  margin-top: 12px;
+  color: #444;
+}
+.shop-tabs {
+  display: flex;
+  gap: 10px;
+  margin-bottom: 20px;
+  padding: 10px 0;
+  border-bottom: 2px solid #ddd;
+}
+
+.tab {
+  padding: 10px 20px;
+  border: none;
+  background: #f5f5f5;
+  cursor: pointer;
+  border-radius: 6px 6px 0 0;
+  transition: all 0.3s ease;
+}
+
+.tab:hover {
+  background: #e0e0e0;
+}
+
+.tab-active {
+  padding: 10px 20px;
+  border: none;
+  background: #007bff;
+  color: white;
+  cursor: default;
+  border-radius: 6px 6px 0 0;
+}
+
+.tab-content {
+  min-height: 300px;
+}
