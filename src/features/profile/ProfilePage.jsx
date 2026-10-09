@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api } from "../../shared/services/api";
 import { useNavigate } from "react-router-dom";
-import "../styles/ProfilePage.css";
+import "../../styles/ProfilePage.css";
 
 function ProfilePage() {
   const [profile, setProfile] = useState(null);
@@ -15,7 +15,6 @@ function ProfilePage() {
   useEffect(() => {
     const access = localStorage.getItem("access");
     if (!access) {
-      setStatus("Необходимо войти.");
       navigate("/login");
       return;
     }
@@ -71,13 +70,8 @@ function ProfilePage() {
     ? new Date(profile.date_joined).toLocaleString()
     : "";
 
-  // Расчёт прогресса уровня профиля
-  const expPrev = profile.level > 1 ? (50 * profile.level * (profile.level - 1)) / 2 : 0;
-  const expNextTotal = profile.exp_next ?? 0;
-  const expInLevel = Math.max(0, profile.exp - expPrev);
-  const expNeed = Math.max(1, expNextTotal - expPrev); // защита от деления на 0
-  const levelProgress = Math.min(100, Math.round((expInLevel / expNeed) * 100));
-  const expLeft = Math.max(0, expNeed - expInLevel);
+  // Прогресс уровня профиля (от бэкенда)
+  const levelProgress = profile.exp_progress ?? 0;
 
 
   return (
@@ -85,16 +79,16 @@ function ProfilePage() {
       {/* Верхняя карточка профиля */}
       <section className="profile-card">
         <div className="profile-card-left">
-          <div className="profile-avatar-circle">LVL {profile.level}</div>
+          <div className="profile-avatar-circle">Уровень {profile.level}</div>
 
           <div className="profile-level-bar">
             <div
               className="profile-level-bar-fill"
               style={{ width: `${levelProgress}%` }}
             />
-          </div>
-          <div className="profile-level-text">
-            {expInLevel.toLocaleString()} / {expNeed.toLocaleString()} EXP
+            <div className="profile-level-text">
+              {profile.exp} / {profile.exp_to_next}
+            </div>
           </div>
           <div className="profile-coins">
             💰 {profile.coins_balance.toLocaleString()} монет

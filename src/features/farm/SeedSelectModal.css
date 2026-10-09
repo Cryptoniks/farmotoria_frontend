@@ -1,0 +1,360 @@
+.seed-modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+}
+
+.seed-modal-content {
+  background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+  border-radius: 16px;
+  width: 90%;
+  max-width: 500px;
+  max-height: 80vh;
+  overflow: hidden;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.5);
+  border: 2px solid #4caf50;
+}
+
+.seed-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 16px 20px;
+  background: rgba(76, 175, 80, 0.2);
+  border-bottom: 1px solid rgba(76, 175, 80, 0.3);
+}
+
+.seed-modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+  color: #4caf50;
+}
+
+.seed-modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #888;
+  line-height: 1;
+  padding: 0;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  transition: all 0.2s;
+}
+
+.seed-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
+}
+
+.seed-modal-body {
+  padding: 20px;
+  overflow-y: auto;
+  max-height: calc(80vh - 70px);
+}
+
+.seed-loading,
+.seed-error {
+  text-align: center;
+  padding: 40px;
+  color: #888;
+}
+
+.seed-error {
+  color: #ff6b6b;
+}
+
+.seeds-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+  gap: 12px;
+}
+
+.seed-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.seed-card:hover {
+  background: rgba(76, 175, 80, 0.2);
+  border-color: #4caf50;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(76, 175, 80, 0.3);
+}
+
+.seed-card-icon {
+  font-size: 32px;
+  margin-bottom: 8px;
+}
+
+.seed-card-name {
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 8px;
+  font-size: 14px;
+}
+
+.seed-card-price {
+  color: #ffd700;
+  font-size: 14px;
+  font-weight: 500;
+}
+
+.seed-card-time {
+  color: #888;
+  font-size: 12px;
+  margin-top: 4px;
+}
+
+/* Таймер и сбор урожая */
+.growing-timer,
+.harvest-ready {
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.05);
+  border-radius: 12px;
+  border: 2px solid;
+}
+
+.growing-timer {
+  border-color: #4caf50;
+  background: rgba(76, 175, 80, 0.1);
+}
+
+.harvest-ready {
+  border-color: #ffd700;
+  background: rgba(255, 215, 0, 0.1);
+}
+
+.timer-icon,
+.harvest-icon {
+  font-size: 40px;
+}
+
+.timer-info,
+.harvest-text {
+  flex: 1;
+}
+
+.timer-title,
+.harvest-title {
+  font-size: 14px;
+  color: #888;
+  margin-bottom: 4px;
+}
+
+.timer-seed,
+.harvest-seed {
+  font-size: 18px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.timer-countdown {
+  text-align: center;
+}
+
+.timer-value {
+  font-size: 24px;
+  font-weight: bold;
+  color: #4caf50;
+  font-family: monospace;
+}
+
+.timer-label {
+  font-size: 12px;
+  color: #888;
+}
+
+.timer-cycle {
+  font-size: 12px;
+  color: #2196f3;
+  margin-top: 4px;
+}
+
+.timer-total {
+  font-size: 11px;
+  color: #ff9800;
+  margin-top: 8px;
+  padding-top: 8px;
+  border-top: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.harvest-btn {
+  padding: 12px 24px;
+  background: linear-gradient(135deg, #ffd700, #ffb300);
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-weight: bold;
+  font-size: 16px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.harvest-btn:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 12px rgba(255, 215, 0, 0.4);
+}
+
+.shop-title {
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 16px;
+  text-align: center;
+}
+
+/* Рецепты переработки */
+.recipes-section {
+  margin: 16px 0;
+}
+
+.recipes-title {
+  font-size: 16px;
+  color: #888;
+  margin-bottom: 12px;
+  text-align: center;
+}
+
+.recipe-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 12px;
+  padding: 16px;
+  margin-bottom: 12px;
+}
+
+.recipe-name {
+  font-size: 16px;
+  font-weight: 600;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.recipe-time {
+  font-size: 12px;
+  color: #888;
+  margin-bottom: 8px;
+}
+
+.recipe-inputs {
+  font-size: 12px;
+  color: #ff9800;
+  margin-bottom: 4px;
+}
+
+.recipe-outputs {
+  font-size: 12px;
+  color: #4caf50;
+  margin-bottom: 4px;
+}
+
+.recipe-ingredient {
+  display: inline-block;
+  margin-right: 8px;
+}
+
+.recipe-total-time {
+  font-size: 12px;
+  color: #2196f3;
+  margin-bottom: 8px;
+}
+
+/* Кнопки действий с посадками */
+.plot-actions {
+  display: flex;
+  gap: 12px;
+  margin-top: 16px;
+}
+
+.action-btn {
+  flex: 1;
+  padding: 12px 16px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.accelerate-btn {
+  background: linear-gradient(135deg, #2196f3, #1976d2);
+  color: #fff;
+}
+
+.accelerate-btn:hover {
+  background: linear-gradient(135deg, #42a5f5, #2196f3);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(33, 150, 243, 0.4);
+}
+
+.fertilize-btn {
+  background: linear-gradient(135deg, #8bc34a, #689f38);
+  color: #fff;
+}
+
+.fertilize-btn:hover {
+  background: linear-gradient(135deg, #9ccc65, #8bc34a);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(139, 195, 74, 0.4);
+}
+
+/* Кнопки остановки и продажи */
+.action-buttons {
+  margin: 16px 0;
+}
+
+.stop-btn {
+  background: linear-gradient(135deg, #f44336, #d32f2f);
+  color: #fff;
+  padding: 12px 24px;
+  font-size: 16px;
+  width: 100%;
+}
+
+.stop-btn:hover {
+  background: linear-gradient(135deg, #ef5350, #f44336);
+}
+
+.modal-footer {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid rgba(255,255,255,0.1);
+}
+
+.sell-btn {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+  color: #fff;
+  padding: 10px 20px;
+  font-size: 14px;
+  width: 100%;
+}
+
+.sell-btn:hover:not(:disabled) {
+  background: linear-gradient(135deg, #ffa726, #ff9800);
+}
+
+.sell-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}

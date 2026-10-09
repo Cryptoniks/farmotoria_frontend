@@ -1,7 +1,7 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { api } from "../api";
-import "../styles/LoginPage.css";
+import { api } from "../../shared/services/api";
+import "../../styles/LoginPage.css";
 
 function LoginPage({ onLoginSuccess }) {
   const [username, setUsername] = useState("");
@@ -10,15 +10,18 @@ function LoginPage({ onLoginSuccess }) {
 
   const navigate = useNavigate();
 
+  useEffect(() => {
+    // если уже залогинен — сразу в профиль
+    const access = localStorage.getItem("access");
+    if (access) navigate("/profile");
+  }, [navigate]);
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setStatus("Отправка...");
 
     try {
-      const res = await api.post("/api/auth/token/", {
-        username,
-        password,
-      });
+      const res = await api.post("/api/auth/token/", { username, password });
 
       localStorage.setItem("access", res.data.access);
       localStorage.setItem("refresh", res.data.refresh);
@@ -28,7 +31,13 @@ function LoginPage({ onLoginSuccess }) {
       navigate("/profile");
     } catch (err) {
       console.error(err);
-      setStatus("Ошибка входа");
+
+      // более понятные сообщения
+      const detail =
+        err?.response?.data?.detail ||
+        (err?.response?.status === 401 ? "Неверный логин или пароль" : null);
+
+      setStatus(detail || "Ошибка входа");
     }
   };
 
@@ -42,6 +51,7 @@ function LoginPage({ onLoginSuccess }) {
             value={username}
             onChange={(e) => setUsername(e.target.value)}
             required
+            autoComplete="username"
           />
         </div>
 
@@ -52,6 +62,7 @@ function LoginPage({ onLoginSuccess }) {
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             required
+            autoComplete="current-password"
           />
         </div>
 

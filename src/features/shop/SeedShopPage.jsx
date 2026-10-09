@@ -1,13 +1,14 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api } from "../../shared/services/api";
 import { useNavigate } from "react-router-dom";
-import PlantIcon from "../components/PlantIcon";
-import "../styles/SeedShopPage.css";
+import PlantIcon from "../../components/PlantIcon";
+import "../../styles/SeedShopPage.css";
 
 const CATEGORIES = [
-  { id: "seeds", name: "🌱 Семена", category: "Seeds" },
-  { id: "resources", name: "⚒️ Ресурсы", category: "Resources" },
-  { id: "products", name: "🌾 Продукты", category: "Products" }
+  { id: "seeds", name: "🌱 Семена", category: "Семена" },
+  { id: "harvest", name: "🌾 Сельхозпродукция", category: "Сельхозпродукция" },
+  { id: "resources", name: "⚒️ Ресурсы", category: "Ресурсы" },
+  { id: "products", name: "🏭 Продукты", category: "Продукты" }
 ];
 
 function SeedShopPage({ setCoinsBalance }) {
@@ -29,7 +30,7 @@ function SeedShopPage({ setCoinsBalance }) {
     const category = CATEGORIES.find(cat => cat.id === activeTab);
     if (!category) return;
 
-    setLoading(true);
+    setLoading(() => true);
     api
       .get(`/api/shop/${category.category}/`, {
         headers: { Authorization: `Bearer ${access}` },
@@ -67,8 +68,6 @@ function SeedShopPage({ setCoinsBalance }) {
       setStatus(err.response?.data?.detail || "❌ Недостаточно монет");
     }
   };
-
-  const activeCategory = CATEGORIES.find(cat => cat.id === activeTab);
 
   return (
     <div className="seed-shop">
@@ -121,7 +120,7 @@ function SeedShopPage({ setCoinsBalance }) {
                   </td>
                   <td>{item.description || "—"}</td>
                   <td style={{ fontWeight: "bold", color: "#10b981" }}>
-                    {item.price_coins}₽
+                    {item.buy_price}₽
                   </td>
                   <td>
                     <input
@@ -144,7 +143,7 @@ function SeedShopPage({ setCoinsBalance }) {
                       className="buy-btn"
                     >
                       Купить ×{quantities[item.id] ?? 1}<br />
-                      <small>{item.price_coins * (quantities[item.id] ?? 1)}₽</small>
+                      <small>{item.buy_price * (quantities[item.id] ?? 1)}₽</small>
                     </button>
                   </td>
                 </tr>

@@ -1,11 +1,12 @@
 import { useEffect, useState } from "react";
-import { api } from "../api";
+import { api } from "../../shared/services/api";
 import { useNavigate } from "react-router-dom";
-import "../styles/InventoryPage.css";
-import PlantIcon from "../components/PlantIcon";
+import "../../styles/InventoryPage.css";
+import PlantIcon from "../../components/PlantIcon";
 
 function InventoryPage() {
   const [items, setItems] = useState([]);
+  const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
   const navigate = useNavigate();
 
@@ -21,12 +22,15 @@ function InventoryPage() {
         headers: { Authorization: `Bearer ${access}` },
       })
       .then((res) => {
-        console.log("🛒 INVENTORY API:", res.data);  // ✅ DEBUG
-        setItems(res.data);
+        console.log("🛒 INVENTORY API:", res.data);
+        setItems(res.data || []);
       })
       .catch((err) => {
         console.error("❌ Inventory error:", err.response?.data);
         setStatus("Ошибка загрузки инвентаря");
+      })
+      .finally(() => {
+        setLoading(false);
       });
   }, [navigate]);
 
@@ -43,20 +47,26 @@ function InventoryPage() {
 
   const getItemTypeLabel = (item) => {
     const shopItem = item.item;
-    if (shopItem?.is_seed) return "🌱 Семена";
-    if (shopItem?.is_harvest) return "🌾 Урожай"; 
-    return "📦 Продукт";
+    if (shopItem?.is_seed) return { icon: "🌱", label: "Семена", color: "#4caf50" };
+    if (shopItem?.is_harvest) return { icon: "🌾", label: "Сельхозпродукция", color: "#4caf50" };
+    if (shopItem?.is_resource) return { icon: "⚒️", label: "Ресурсы", color: "#ff9800" };
+    return { icon: "🏭", label: "Продукты", color: "#2196f3" };
   };
 
-  if (items.length === 0 && !status) {
-    return <div className="inventory-page"><p>Загрузка инвентаря...</p></div>;
+  // Состояние загрузки
+  if (loading) {
+    return (
+      <div className="inventory-page">
+        <p>Загрузка инвентаря...</p>
+      </div>
+    );
   }
 
   return (
     <div className="inventory-page">
       <h2>Инвентарь ({items.length} предметов)</h2>
 
-      {items.length === 0 && <p>Инвентарь пуст.</p>}
+      {items.length === 0 && <p className="inventory-empty">Инвентарь пуст</p>}
 
       {items.length > 0 && (
         <table className="inventory-table">
@@ -80,7 +90,11 @@ function InventoryPage() {
                   <td style={{ fontWeight: "bold", color: "#10b981" }}>
                     {item.quantity}
                   </td>
-                  <td>{getItemTypeLabel(item)}</td>
+                  <td>
+                    <span style={{ color: getItemTypeLabel(item).color }}>
+                      {getItemTypeLabel(item).icon} {getItemTypeLabel(item).label}
+                    </span>
+                  </td>
                 </tr>
               );
             })}

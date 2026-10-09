@@ -1,0 +1,52 @@
+# Спрайты зданий для Farmotoria
+# Формат: name|slug|building_type|width_tiles|height_tiles|price|рекомендация_по_иконке
+
+# Доступные иконки (нужно добавить в src/assets/buildings/):
+# - barn.png (существующая)
+# - house.png (существующая) 
+# - warehouse.png (существующая)
+# - barn2.png (существующая)
+# - Нужно создать/скачать для остальных
+
+# Список зданий из БД:
+Лесорубка|lumberjack_hut|extraction|2|2|100|логотип лесорубки/топор
+Каменоломня|quarry|extraction|3|3|100|логотип каменоломни/камень
+Рудник|mine|extraction|3|3|100|логотип рудника/кирка
+Водяная мельница|water_mill|extraction|2|2|100|логотип мельницы/вода
+Леспилка|sawmill|processing|3|2|500|логотип лесопилки/пила
+Каменотес|stonecutter_hut|processing|2|2|500|логотип каменотеса/молот
+Кузница|blacksmith|processing|3|3|500|логотип кузницы/наковальня
+Мельница|mill|processing|2|2|500|логотип мельницы/мука
+Пекарня|bakery|production|3|3|1000|логотип пекарни/хлеб
+Завод соусов|sauce_factory|production|4|3|1000|логотип завода/соус
+Завод масла|butter_factory|production|4|3|1000|логотип завода/молоко
+Дом|house|agroproduction|2|3|50|house.png (существует)
+Склад|warehouse|agroproduction|5|5|100|warehouse.png (существует)
+Сарай|barn|agroproduction|2|2|100|barn.png (существует)
+Фермерское поле|farming-field|field|2|2|100|иконка поля/трава
+Курятник|chicken-coop|agroproduction|2|2|500|логотип курятника/курица
+Свинарник|pigsty|agroproduction|3|3|1000|логотип свинарника/свинья
+Коровник|cowshed|agroproduction|4|4|5000|логотип коровника/корова
+Овчарня|sheepfold|agroproduction|3|3|2500|логотип овчарни/овца
+
+# Текущие доступные иконки в src/assets/buildings/:
+# - barn.png
+# - house.png
+# - warehouse.png
+# - barn2.png
+
+# Рекомендации по добавлению иконок:
+# 1. Создать PNG файлы размером 512x512 или类似尺寸
+# 2. Название файла должно совпадать со slug здания
+# 3. Положить в папку src/assets/buildings/<slug>.png
+# 4. Добавить импорт в src/assets/buildings/index.js
+
+# Пример добавления в index.js:
+# import lumberjack_hut from "./lumberjack_hut.png";
+# export const buildingIcons = {
+#   barn,
+#   house,
+#   warehouse,
+#   lumberjack_hut,  // добавить
+#   ...
+# };

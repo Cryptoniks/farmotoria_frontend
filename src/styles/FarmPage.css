@@ -56,6 +56,11 @@
   background: #4caf50;
 }
 
+.farm-cell--building {
+  background: linear-gradient(45deg, #ff6b6b, #ffd93d);
+  border: 2px solid #4ecdc4;
+}
+
 .farm-info {
   flex: 1;
   min-width: 280px;
@@ -106,4 +111,149 @@
 .plant-row--selected {
   border-color: #4caf50;
   background: #e8f5e9;
+}
+
+/* Seed Select Modal */
+.modal-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.6);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+}
+
+.modal-content {
+  background: #fff;
+  border-radius: 12px;
+  padding: 20px;
+  max-width: 480px;
+  width: 90%;
+  max-height: 80vh;
+  overflow-y: auto;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3);
+}
+
+.modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 16px;
+}
+
+.modal-header h2 {
+  margin: 0;
+  font-size: 20px;
+}
+
+.modal-close {
+  background: none;
+  border: none;
+  font-size: 28px;
+  cursor: pointer;
+  color: #666;
+  line-height: 1;
+}
+
+.modal-close:hover {
+  color: #333;
+}
+
+.instruction {
+  color: #666;
+  margin-bottom: 16px;
+}
+
+.plot-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 60px);
+  gap: 8px;
+  margin-bottom: 20px;
+  justify-content: center;
+}
+
+.plot-cell {
+  width: 60px;
+  height: 60px;
+  border: 2px dashed #ccc;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  font-size: 12px;
+  color: #999;
+  background: #f9f9f9;
+  transition: all 0.2s;
+}
+
+.plot-cell:hover {
+  border-color: #4caf50;
+}
+
+.plot-cell.selected {
+  border-style: solid;
+  border-color: #4caf50;
+  background: #e8f5e9;
+  color: #2e7d32;
+}
+
+.seeds-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.seed-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  background: #fafafa;
+}
+
+.seed-info {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.seed-name {
+  font-weight: 600;
+}
+
+.seed-price {
+  color: #f57c00;
+  font-size: 14px;
+}
+
+.seed-time {
+  color: #757575;
+  font-size: 12px;
+}
+
+.plant-btn {
+  padding: 8px 16px;
+  background: #4caf50;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  transition: background 0.2s;
+}
+
+.plant-btn:hover:not(:disabled) {
+  background: #43a047;
+}
+
+.plant-btn:disabled {
+  background: #bdbdbd;
+  cursor: not-allowed;
 }
