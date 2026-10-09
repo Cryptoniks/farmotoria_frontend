@@ -8,7 +8,7 @@ export const TILE_H = 8;
 export const CHUNK_SIZE = 10;
 export const MAX_SIZE = 250;
 export const START_UNLOCKED = 50;
-export const DEBUG_BUILDING_BOX = typeof import !== 'undefined' && import.meta?.env?.DEV;
+export const DEBUG_BUILDING_BOX = typeof process !== 'undefined' && process.env?.NODE_ENV !== 'production';
 export const DRAG_THRESHOLD_PX = 6;
 
 /** Convert grid row/col to isometric screen position (top corner) */
