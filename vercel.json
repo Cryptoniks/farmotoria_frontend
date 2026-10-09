@@ -7,7 +7,7 @@
   "rewrites": [
     {
       "source": "/api/(.*)",
-      "destination": "https://your-backend.onrender.com/api/$1"
+      "destination": "https://farmotoria-backend.onrender.com/api/$1"
     }
   ],
   "headers": [
