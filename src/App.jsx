@@ -84,7 +84,7 @@ function App() {
           {isAuthenticated && (
             <>
               <Route path="/profile" element={<ProfilePage />} />
-              <Route path="/farm" element={<IsoFarmPixi />} />
+              <Route path="/farm" element={<IsoFarmPixi setCoinsBalance={setCoinsBalance} />} />
               <Route path="/inventory" element={<InventoryPage />} />
               <Route path="/shop/seeds" element={<SeedShopPage setCoinsBalance={setCoinsBalance} />} />
               <Route path="/market" element={<MarketPage setCoinsBalance={setCoinsBalance} />} />

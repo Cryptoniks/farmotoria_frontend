@@ -10,10 +10,7 @@ import BuildMenu from "./BuildMenu";
 
 const IsoFarmControls = ({
   coins,
-  fieldCfg,
   err,
-  selectedId,
-  setSelectedId,
   catalog,
   buildingToPlace,
   setBuildingToPlace,
@@ -53,6 +50,8 @@ const IsoFarmControls = ({
   stopProcessing,
   collectProcessing,
   load,
+  isFullscreen,
+  onToggleFullscreen,
 }) => {
   const handleSaveMoves = async () => {
     const changes = Object.entries(moveChanges).map(([id, change]) => ({
@@ -120,19 +119,8 @@ const IsoFarmControls = ({
         </div>
       )}
 
-      {/* Controls bar */}
-      <div style={{ display: "flex", gap: 12, alignItems: "center", flexWrap: "wrap" }}>
-        <div>Coins: <b>{coins}</b></div>
-
-        <select value={selectedId} onChange={(e) => setSelectedId(e.target.value)}>
-          <option value="">— выбрать здание —</option>
-          {catalog.map((b) => (
-            <option key={b.id} value={b.id}>
-              {b.name} ({b.width}x{b.height}) — {b.price}
-            </option>
-          ))}
-        </select>
-
+      {/* Статус поверх карты: режим размещения/перемещения и ошибки */}
+      <div style={{ position: "absolute", top: 12, left: 12, right: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", zIndex: 100, pointerEvents: "none" }}>
         {buildingToPlace && (
           <span style={{
             background: "#ff9800",
@@ -140,7 +128,7 @@ const IsoFarmControls = ({
             padding: "4px 8px",
             borderRadius: 4,
             fontSize: 12,
-            marginLeft: 8,
+            pointerEvents: "auto",
           }}>
             🎯 Размещение: {buildingToPlace.name} (кликните на поле) •
             <button
@@ -166,7 +154,7 @@ const IsoFarmControls = ({
             padding: "4px 8px",
             borderRadius: 4,
             fontSize: 12,
-            marginLeft: 8,
+            pointerEvents: "auto",
           }}>
             📦 Перемещение: {movingBuilding.name} (кликните на поле) •
             <button
@@ -185,13 +173,11 @@ const IsoFarmControls = ({
           </span>
         )}
 
-        {fieldCfg && (
-          <div style={{ opacity: 0.85, fontSize: 12 }}>
-            Chunk: {fieldCfg.chunk_size}×{fieldCfg.chunk_size} • Max: {fieldCfg.max_size}×{fieldCfg.max_size} • Next chunk cost: {fieldCfg.next_chunk_cost}
-          </div>
+        {err && (
+          <span style={{ background: "rgba(198, 40, 40, 0.92)", color: "#fff", padding: "4px 8px", borderRadius: 4, fontSize: 12 }}>
+            {err}
+          </span>
         )}
-
-        {err && <div style={{ color: "crimson" }}>{err}</div>}
       </div>
 
       {/* Action buttons */}
@@ -277,11 +263,31 @@ const IsoFarmControls = ({
             </button>
           </>
         )}
-      </div>
-
-      <div style={{ fontSize: 12, opacity: 0.75 }}>
-        Управление: ЛКМ drag — панорама, ЛКМ click — действие (покупка/постройка/посадка), колесо — zoom.
-        На фермерском поле: клик откроет окно посадки семян.
+        <button
+          onClick={onToggleFullscreen}
+          title={isFullscreen ? "Свернуть (Esc)" : "На весь экран"}
+          aria-label={isFullscreen ? "Свернуть" : "На весь экран"}
+          style={{
+            background: "linear-gradient(135deg, #546e7a 0%, #37474f 100%)",
+            border: "none",
+            color: "white",
+            width: 48,
+            borderRadius: "12px",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+          }}
+        >
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round">
+            {isFullscreen ? (
+              <path d="M9 4v5H4M15 4v5h5M9 20v-5H4M15 20v-5h5" />
+            ) : (
+              <path d="M4 9V4h5M20 9V4h-5M4 15v5h5M20 15v5h-5" />
+            )}
+          </svg>
+        </button>
       </div>
 
       {/* Modals */}
