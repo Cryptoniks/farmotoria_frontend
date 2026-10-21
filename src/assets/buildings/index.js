@@ -1,10 +1,6 @@
-import barn from "./barn.png";
-import house from "./house.png";
-import warehouse from "./warehouse.png";
+// Иконки зданий. Ключ — BuildingType.slug из API.
+import barn from "./barn.webp";
+import house from "./house.webp";
+import warehouse from "./warehouse.webp";
 
-// ✅ Маппинг по API slug (BuildingType.slug)
-export const buildingIcons = {
-  barn,
-  house,
-  warehouse,
-};
+export const buildingIcons = { barn, house, warehouse };

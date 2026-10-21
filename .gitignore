@@ -27,3 +27,11 @@ dist-ssr
 backup/
 *.bak
 *.backup
+
+# Переменные окружения (кроме примеров и публичного .env.production)
+.env
+.env.local
+.vercel
+
+# Папка скрипта очистки
+_to_delete/

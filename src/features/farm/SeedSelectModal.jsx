@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { api } from "../../shared/services/api";
+import PlantIcon from "../../components/PlantIcon";
 import "./SeedSelectModal.css";
 
 export default function SeedSelectModal({ isOpen, onClose, buildingId, plots, onPlant, onHarvest, onSell }) {
@@ -10,6 +11,18 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, plots, on
   
   // Фильтруем посадки для текущего здания
   const buildingPlots = plots?.filter(p => p.building_id === buildingId) || [];
+
+  // Иконки: семя — при посадке и росте, готовый продукт — когда урожай созрел
+  const seedOf = (plot) => {
+    const seed = seeds.find((s) => s.id === plot?.seed_id);
+    return seed ? { name: seed.name, slug: seed.slug } : { name: plot?.seed_name, slug: "" };
+  };
+  const harvestOf = (plot) => {
+    const seed = seeds.find((s) => s.id === plot?.seed_id);
+    return seed?.harvest_slug
+      ? { name: seed.harvest_name, slug: seed.harvest_slug }
+      : seedOf(plot);
+  };
   const hasGrowing = buildingPlots.some(p => p.status === "growing");
   const growingPlot = buildingPlots.find(p => p.status === "growing");
   const readyPlot = buildingPlots.find(p => p.status === "ready");
@@ -123,7 +136,9 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, plots, on
           {/* Если есть готовый урожай - показываем кнопку сбора */}
           {readyPlot && (
             <div className="harvest-ready">
-              <div className="harvest-icon">🌾</div>
+              <div className="harvest-icon">
+                <PlantIcon plant={harvestOf(readyPlot)} size={40} />
+              </div>
               <div className="harvest-text">
                 <div className="harvest-title">Урожай готов!</div>
                 <div className="harvest-seed">{readyPlot.seed_name}</div>
@@ -137,7 +152,9 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, plots, on
           {/* Если растет - показываем таймер */}
           {growingPlot && !readyPlot && timeLeft && (
             <div className="growing-timer">
-              <div className="timer-icon">🌱</div>
+              <div className="timer-icon">
+                <PlantIcon plant={seedOf(growingPlot)} size={40} />
+              </div>
               <div className="timer-info">
                 <div className="timer-title">Растёт...</div>
                 <div className="timer-seed">{growingPlot.seed_name}</div>
@@ -173,7 +190,9 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, plots, on
                 <div className="seeds-grid">
                   {seeds.map((seed) => (
                     <div key={seed.id} className="seed-card" onClick={() => handlePlant(seed.id)}>
-                      <div className="seed-card-icon">🌱</div>
+                      <div className="seed-card-icon">
+                        <PlantIcon plant={seed} size={40} />
+                      </div>
                       <div className="seed-card-name">{seed.name}</div>
                       <div className="seed-card-price">💰 {seed.price_coins}</div>
                       {seed.grow_time_minutes && (

@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { api } from "../../shared/services/api";
-import "../../styles/LoginPage.css";
+import "./LoginPage.css";
 
 function LoginPage({ onLoginSuccess }) {
   const [username, setUsername] = useState("");

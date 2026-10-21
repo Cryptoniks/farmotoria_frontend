@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../shared/services/api";
 import { useNavigate } from "react-router-dom";
-import "../../styles/InventoryPage.css";
+import "./InventoryPage.css";
 import PlantIcon from "../../components/PlantIcon";
 
 function InventoryPage() {

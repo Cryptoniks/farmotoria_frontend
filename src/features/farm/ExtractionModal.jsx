@@ -1,5 +1,6 @@
 import { useState, useEffect, useMemo } from "react";
 import "./SeedSelectModal.css";
+import PlantIcon from "../../components/PlantIcon";
 
 export default function ExtractionModal({ 
   isOpen, 
@@ -171,40 +172,13 @@ export default function ExtractionModal({
     "sheepfold": "🐑",
   };
   
-  // Иконки по slug продукта/результата
-  const productIcons = {
-    // Животноводство
-    "eggs": "🐔",
-    "pork": "🐷",
-    "milk": "🐄",
-    "wool": "🐑",
-    // Переработка
-    "board": "🪵",
-    "iron-ingot": "⛓️",
-    "stone-block": "🪨",
-    "flour": "🌾",
-    "sunflower_oil": "🌻",
-    // Производство
-    "ketchup": "🍅",
-    "bread": "🍞",
-    // Корм
-    "chicken_food": "🌾",
-    "pig_food": "🥕",
-    "cow_food": "🌿",
-    "sheep_food": "🌱",
-  };
-  
   // Функция для получения иконки рецепта
   const getRecipeIcon = (recipe) => {
-    // Для животноводства - иконка по зданию
-    if (isAgroProduction) {
-      return buildingIcons[buildingSlug] || "";
+    // Картинка готового продукта (src/assets/items, src/assets/plants), иначе эмодзи
+    if (recipe?.output_item_slug) {
+      return <PlantIcon plant={{ slug: recipe.output_item_slug, name: recipe.output_item_name }} size={22} />;
     }
-    // Для других типов - по продукту
-    if (recipe?.output_item_slug && productIcons[recipe.output_item_slug]) {
-      return productIcons[recipe.output_item_slug];
-    }
-    return "";
+    return isAgroProduction ? buildingIcons[buildingSlug] || "" : "";
   };
   
   // Иконки типов зданий для заголовка

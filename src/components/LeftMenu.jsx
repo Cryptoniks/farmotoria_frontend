@@ -1,6 +1,6 @@
 // src/components/LeftMenu.jsx
 import { Link } from "react-router-dom";
-import "../styles/LeftMenu.css";
+import "./LeftMenu.css";
 
 export default function LeftMenu() {
   return (

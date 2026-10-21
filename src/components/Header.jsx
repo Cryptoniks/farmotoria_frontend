@@ -1,6 +1,6 @@
 // src/components/Header.jsx
 import { Link } from "react-router-dom";
-import logo from "../assets/logo.png";      // путь к картинке
+import logo from "../assets/logo.webp";
 
 export default function Header({ user, isAuthenticated, coinsBalance, onLogout }) {
   return (

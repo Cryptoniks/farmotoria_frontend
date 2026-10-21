@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import { api } from "../../shared/services/api";
 import { useNavigate } from "react-router-dom";
-import "../../styles/ProfilePage.css";
+import "./ProfilePage.css";
 
 function ProfilePage() {
   const [profile, setProfile] = useState(null);

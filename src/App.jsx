@@ -1,18 +1,20 @@
 // src/App.jsx
 import { BrowserRouter, Routes, Route } from "react-router-dom";
-import { useEffect, useState } from "react";
+import { lazy, Suspense, useEffect, useState } from "react";
 
 import HomePage from "./features/home/HomePage";
 import RegisterPage from "./features/auth/RegisterPage";
 import LoginPage from "./features/auth/LoginPage";
-import ProfilePage from "./features/profile/ProfilePage";
-import InventoryPage from "./features/inventory/InventoryPage";
-import SeedShopPage from "./features/shop/SeedShopPage";
-import MarketPage from "./features/shop/MarketPage";
-import IsoFarmPixi from "./features/farm/IsoFarmPixi";
-
 import { api } from "./shared/services/api";
 import MainLayout from "./layout/MainLayout";
+
+// Игровые страницы грузятся по требованию: Pixi.js (~500 КБ) скачивается только на /farm
+const ProfilePage = lazy(() => import("./features/profile/ProfilePage"));
+const InventoryPage = lazy(() => import("./features/inventory/InventoryPage"));
+const SeedShopPage = lazy(() => import("./features/shop/SeedShopPage"));
+const MarketPage = lazy(() => import("./features/shop/MarketPage"));
+const IsoFarmPixi = lazy(() => import("./features/farm/IsoFarmPixi"));
+
 
 function App() {
   const [isAuthenticated, setIsAuthenticated] = useState(false);
@@ -70,6 +72,7 @@ function App() {
         coinsBalance={coinsBalance}
         onLogout={handleLogout}
       >
+        <Suspense fallback={<div className="page-loading">Загрузка…</div>}>
         <Routes key={isAuthenticated ? "auth" : "guest"}>
           <Route path="/" element={<HomePage />} />
 
@@ -86,6 +89,7 @@ function App() {
             </>
           )}
         </Routes>
+        </Suspense>
       </MainLayout>
     </BrowserRouter>
   );

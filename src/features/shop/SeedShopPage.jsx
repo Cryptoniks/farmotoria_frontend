@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../shared/services/api";
 import { useNavigate } from "react-router-dom";
 import PlantIcon from "../../components/PlantIcon";
-import "../../styles/SeedShopPage.css";
+import "./SeedShopPage.css";
 
 const CATEGORIES = [
   { id: "seeds", name: "🌱 Семена", category: "Семена" },

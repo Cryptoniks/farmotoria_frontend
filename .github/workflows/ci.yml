@@ -1,0 +1,27 @@
+name: CI
+
+# Деплой делает сам Render/Vercel по push в main.
+# Здесь только проверки: тесты, миграции, линтер, сборка фронтенда.
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main, develop]
+
+jobs:
+  frontend:
+    name: Frontend
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+          cache: npm
+          cache-dependency-path: package-lock.json
+      - run: npm ci
+      - run: npm run lint
+      - run: npm run build
+        env:
+          VITE_API_BASE_URL: https://example.onrender.com

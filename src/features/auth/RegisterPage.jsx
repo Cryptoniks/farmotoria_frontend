@@ -1,6 +1,6 @@
 import { useState } from "react";
 import { api } from "../../shared/services/api";
-import "../../styles/RegisterPage.css";
+import "./RegisterPage.css";
 
 function RegisterPage() {
   const [username, setUsername] = useState("");
@@ -33,9 +33,7 @@ function RegisterPage() {
           messages.push(`Email: ${data.email.join(" ")}`);
         }
         if (data.password) {
-          messages.push(
-            "Слишком короткий пароль, введите не менее 6 символов"
-          );
+          messages.push(`Пароль: ${[].concat(data.password).join(" ")}`);
         }
 
         if (messages.length > 0) {

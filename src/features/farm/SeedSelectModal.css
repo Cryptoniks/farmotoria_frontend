@@ -358,3 +358,9 @@
   opacity: 0.5;
   cursor: not-allowed;
 }
+
+.recipe-name img,
+.recipe-name span {
+  vertical-align: middle;
+  margin-right: 4px;
+}

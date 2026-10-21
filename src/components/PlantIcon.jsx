@@ -1,4 +1,5 @@
 import { plantIcons } from "../assets/plants";
+import { itemIcons } from "../assets/items";
 
 // Маппинг slug товаров на эмодзи (фоллбэк если нет картинки)
 const itemEmojis = {
@@ -27,7 +28,7 @@ function PlantIcon({ plant, size = 16 }) {
   }
 
   // Сначала пробуем найти картинку
-  const src = plantIcons[plant.slug];
+  const src = plantIcons[plant.slug] || itemIcons[plant.slug];
   if (src) {
     return (
       <img

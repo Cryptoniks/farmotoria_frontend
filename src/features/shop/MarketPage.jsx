@@ -1,7 +1,7 @@
 import { useEffect, useState, useMemo } from "react";
 import { api } from "../../shared/services/api";
 import { useNavigate } from "react-router-dom";
-import "../../styles/MarketPage.css";
+import "./MarketPage.css";
 import PlantIcon from "../../components/PlantIcon";
 
 const TABS = [
