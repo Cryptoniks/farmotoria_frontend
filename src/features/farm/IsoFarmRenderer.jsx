@@ -209,18 +209,18 @@ const IsoFarmRenderer = (props) => {
         return true;
       }
 
-      /** Что сейчас «держит» курсор: { w, h, excludeId } или null */
+      /** Что сейчас «держит» курсор: { w, h, excludeId, building } или null */
       function ghostTarget() {
         const p = propsRef.current;
         if (p.movingBuilding) {
-          return { ...getBuildingDimensions(p.movingBuilding), excludeId: p.movingBuilding.id };
+          return { ...getBuildingDimensions(p.movingBuilding), excludeId: p.movingBuilding.id, building: p.movingBuilding };
         }
         if (p.moveMode) {
           const picked = currentBuildings().find((b) => b.id === view.pickedId);
-          return picked ? { ...getBuildingDimensions(picked), excludeId: picked.id } : null;
+          return picked ? { ...getBuildingDimensions(picked), excludeId: picked.id, building: picked } : null;
         }
         const placing = p.buildingToPlace || p.selected;
-        return placing ? { ...getBuildingDimensions(placing), excludeId: null } : null;
+        return placing ? { ...getBuildingDimensions(placing), excludeId: null, building: placing } : null;
       }
 
       function availableChunkAt(row, col) {
@@ -383,6 +383,10 @@ const IsoFarmRenderer = (props) => {
 
       function drawGhost() {
         ghost.clear();
+        if (view.ghostNode) {
+          view.ghostNode.destroy({ children: true });
+          view.ghostNode = null;
+        }
         const target = ghostTarget();
         const cell = view.hoverCell;
         if (!target || !cell) return;
@@ -392,6 +396,15 @@ const IsoFarmRenderer = (props) => {
         ghost.poly(poly(f.top, f.right, f.bottom, f.left))
           .fill({ color, alpha: 0.35 })
           .stroke({ width: 1, color, alpha: 0.9 });
+
+        // Само здание полупрозрачным поверх подсветки клеток: та же картинка, что будет на карте
+        const node = drawBuilding({
+          ...target.building, id: -1, w: target.w, h: target.h, row: cell.row, col: cell.col,
+        });
+        node.alpha = 0.75;
+        if (!ok) node.tint = 0xff8a80;
+        ghostLayer.addChild(node);
+        view.ghostNode = node;
       }
 
       function drawAll() {
