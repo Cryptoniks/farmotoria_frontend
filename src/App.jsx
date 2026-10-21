@@ -17,7 +17,9 @@ const IsoFarmPixi = lazy(() => import("./features/farm/IsoFarmPixi"));
 
 
 function App() {
-  const [isAuthenticated, setIsAuthenticated] = useState(false);
+  // Начальное значение берём из токена сразу, иначе при прямом заходе на /farm, /shop/seeds
+  // первая отрисовка идёт без игровых маршрутов ("No routes matched location")
+  const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem("access")));
   const [coinsBalance, setCoinsBalance] = useState(0);
   const [user, setUser] = useState(null);
 

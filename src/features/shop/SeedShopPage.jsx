@@ -4,48 +4,42 @@ import { useNavigate } from "react-router-dom";
 import PlantIcon from "../../components/PlantIcon";
 import "./SeedShopPage.css";
 
+// Вкладки магазина. Товары делятся по флагам из API, а не по названию категории в БД.
 const CATEGORIES = [
-  { id: "seeds", name: "🌱 Семена", category: "Семена" },
-  { id: "harvest", name: "🌾 Сельхозпродукция", category: "Сельхозпродукция" },
-  { id: "resources", name: "⚒️ Ресурсы", category: "Ресурсы" },
-  { id: "products", name: "🏭 Продукты", category: "Продукты" }
+  { id: "seeds", name: "🌱 Семена", match: (item) => item.is_seed },
+  { id: "harvest", name: "🌾 Сельхозпродукция", match: (item) => item.is_harvest },
+  { id: "resources", name: "⚒️ Ресурсы", match: (item) => item.is_resource },
+  { id: "products", name: "🏭 Продукты", match: (item) => !item.is_seed && !item.is_harvest && !item.is_resource },
 ];
 
 function SeedShopPage({ setCoinsBalance }) {
   const [activeTab, setActiveTab] = useState("seeds");
-  const [items, setItems] = useState([]);
+  const [allItems, setAllItems] = useState([]);
   const [loading, setLoading] = useState(true);
   const [status, setStatus] = useState("");
   const [quantities, setQuantities] = useState({});
   const navigate = useNavigate();
 
-  // Загрузка категории при смене вкладки
+  // Весь каталог грузится один раз, вкладки фильтруют его на клиенте
   useEffect(() => {
-    const access = localStorage.getItem("access");
-    if (!access) {
+    if (!localStorage.getItem("access")) {
       navigate("/login");
       return;
     }
 
-    const category = CATEGORIES.find(cat => cat.id === activeTab);
-    if (!category) return;
-
-    setLoading(() => true);
     api
-      .get(`/api/shop/${category.category}/`, {
-        headers: { Authorization: `Bearer ${access}` },
-      })
-      .then((res) => {
-        console.log(`🛒 ${category.name}:`, res.data);
-        setItems(res.data);
-        setStatus(res.data.length === 0 ? "Нет доступных товаров для покупки" : "");
-      })
+      .get("/api/shop/items/")
+      .then((res) => setAllItems(res.data))
       .catch((err) => {
         console.error(err);
         setStatus("Ошибка загрузки товаров");
       })
       .finally(() => setLoading(false));
-  }, [activeTab, navigate]);
+  }, [navigate]);
+
+  const category = CATEGORIES.find((cat) => cat.id === activeTab);
+  const items = allItems.filter(category.match);
+  const emptyText = status || "Нет доступных товаров для покупки";
 
   const handleBuy = async (itemId) => {
     const access = localStorage.getItem("access");
@@ -91,7 +85,7 @@ function SeedShopPage({ setCoinsBalance }) {
         {loading ? (
           <p>Загрузка товаров...</p>
         ) : items.length === 0 ? (
-          <p>{status}</p>
+          <p>{emptyText}</p>
         ) : (
           <table className="seed-shop-table">
             <thead>
