@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 256 192" width="512" height="384">
+  <polygon points="0.00,127.73 128.00,191.73 128.00,189.17 0.00,125.17" fill="#7f6343" stroke="#2b2118" stroke-width="1.0" stroke-linejoin="round" />
+  <polygon points="128.00,191.73 256.00,127.73 256.00,125.17 128.00,189.17" fill="#664f35" stroke="#2b2118" stroke-width="1.0" stroke-linejoin="round" />
+  <polygon points="128.00,61.17 256.00,125.17 128.00,189.17 0.00,125.17" fill="#987750" stroke="#2b2118" stroke-width="1.0" stroke-linejoin="round" />
+  <ellipse cx="110.93" cy="133.28" rx="27.15" ry="13.58" fill="#5d4033" stroke="#2b2118" stroke-width="0.8" />
+  <polygon points="87.47,92.11 162.13,129.44 162.13,102.13 87.47,64.80" fill="#b07d51" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
+  <polygon points="162.13,129.44 202.67,109.17 202.67,81.87 162.13,102.13" fill="#8d6441" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
+  <polygon points="128.00,44.53 202.67,81.87 162.13,102.13 87.47,64.80" fill="#d49661" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
+  <g transform="matrix(42.667,21.333,0.000,-42.667,87.47,92.11)"><rect x="0.6" y="0" width="0.4" height="0.42" fill="#3e2723" stroke="#2b2118" stroke-width="1" vector-effect="non-scaling-stroke"/></g>
+  <polygon points="128.00,39.41 212.91,81.87 187.52,79.63 102.61,37.17" fill="#725044" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
+  <polygon points="162.13,102.13 202.67,81.87 182.40,77.07" fill="#8d6441" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
+  <polygon points="77.23,64.80 162.13,107.25 187.52,79.63 102.61,37.17" fill="#604339" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
+  <line x1="245.33" y1="126.67" x2="245.33" y2="114.72" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="228.57" y1="135.05" x2="228.57" y2="123.10" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="211.81" y1="143.43" x2="211.81" y2="131.48" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="195.05" y1="151.81" x2="195.05" y2="139.86" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="178.29" y1="160.19" x2="178.29" y2="148.24" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="161.52" y1="168.57" x2="161.52" y2="156.62" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="144.76" y1="176.95" x2="144.76" y2="165.01" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="128.00" y1="185.33" x2="128.00" y2="173.39" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="245.33" y1="121.29" x2="128.00" y2="179.96" stroke="#8d6e63" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="245.33" y1="115.91" x2="128.00" y2="174.58" stroke="#8d6e63" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="86.61" y1="107.04" x2="86.61" y2="111.73" stroke="#c2185b" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="96.00" y1="107.04" x2="96.00" y2="111.73" stroke="#c2185b" stroke-width="1.6" stroke-linecap="round"/>
+  <ellipse cx="91.73" cy="104.91" rx="8.53" ry="4.69" fill="#f8a5b8" stroke="#2b2118" stroke-width="1"/>
+  <ellipse cx="100.69" cy="102.35" rx="3.41" ry="2.77" fill="#f48fb1" stroke="#2b2118" stroke-width="1"/>
+  <line x1="71.68" y1="127.31" x2="71.68" y2="132.00" stroke="#c2185b" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="81.07" y1="127.31" x2="81.07" y2="132.00" stroke="#c2185b" stroke-width="1.6" stroke-linecap="round"/>
+  <ellipse cx="76.80" cy="125.17" rx="8.53" ry="4.69" fill="#f8a5b8" stroke="#2b2118" stroke-width="1"/>
+  <ellipse cx="85.76" cy="122.61" rx="3.41" ry="2.77" fill="#f48fb1" stroke="#2b2118" stroke-width="1"/>
+  <line x1="146.35" y1="141.17" x2="146.35" y2="145.87" stroke="#c2185b" stroke-width="1.6" stroke-linecap="round"/>
+  <line x1="155.73" y1="141.17" x2="155.73" y2="145.87" stroke="#c2185b" stroke-width="1.6" stroke-linecap="round"/>
+  <ellipse cx="151.47" cy="139.04" rx="8.53" ry="4.69" fill="#f8a5b8" stroke="#2b2118" stroke-width="1"/>
+  <ellipse cx="160.43" cy="136.48" rx="3.41" ry="2.77" fill="#f48fb1" stroke="#2b2118" stroke-width="1"/>
+  <line x1="10.67" y1="126.67" x2="10.67" y2="114.72" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="27.43" y1="135.05" x2="27.43" y2="123.10" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="44.19" y1="143.43" x2="44.19" y2="131.48" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="60.95" y1="151.81" x2="60.95" y2="139.86" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="77.71" y1="160.19" x2="77.71" y2="148.24" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="94.48" y1="168.57" x2="94.48" y2="156.62" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="111.24" y1="176.95" x2="111.24" y2="165.01" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="128.00" y1="185.33" x2="128.00" y2="173.39" stroke="#634d45" stroke-width="2.2" stroke-linecap="round"/>
+  <line x1="10.67" y1="121.29" x2="128.00" y2="179.96" stroke="#8d6e63" stroke-width="1.8" stroke-linecap="round"/>
+  <line x1="10.67" y1="115.91" x2="128.00" y2="174.58" stroke="#8d6e63" stroke-width="1.8" stroke-linecap="round"/>
+</svg>

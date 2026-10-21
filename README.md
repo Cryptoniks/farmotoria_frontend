@@ -31,7 +31,17 @@ src/
 ├── components/      # Header, LeftMenu, PlantIcon, …
 ├── layout/
 ├── shared/services/api.js   # axios + автообновление JWT
-└── assets/          # иконки WebP: plants/<slug>.webp, buildings/<slug>.webp
+└── assets/          # иконки по slug: plants/, items/, buildings/ (.svg, .webp или .png)
+tools/
+└── gen_buildings.py # генератор изометрических SVG зданий
 ```
 
 Иконка культуры общая для семени (`wheat`) и урожая (`wheat_harvest`). Для товаров без картинки показывается эмодзи (`components/PlantIcon.jsx`).
+
+Картинки зданий (`src/assets/buildings/<slug>.svg`) рисует `tools/gen_buildings.py`. Поменяли цвета или детали — перегенерируйте все (нужен только Python 3):
+
+```bash
+python tools/gen_buildings.py
+```
+
+Здание без картинки на карте рисуется цветным блоком с подписью.
