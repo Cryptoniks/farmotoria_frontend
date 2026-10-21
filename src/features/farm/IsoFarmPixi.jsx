@@ -3,22 +3,42 @@
  * Uses useIsoFarmEngine hook and renders IsoFarmRenderer + IsoFarmControls.
  */
 
-import React, { useEffect, useRef } from "react";
+import React from "react";
 import { useIsoFarmEngine } from "./useIsoFarmEngine";
 import IsoFarmRenderer from "./IsoFarmRenderer";
 import IsoFarmControls from "./IsoFarmControls";
+import { api } from "../../shared/services/api";
+
+// Здания с рецептами: окно показывает список рецептов из /api/processing/recipes/
+const RECIPE_BUILDING_TYPES = ["processing", "production", "agroproduction"];
 
 const IsoFarmPixi = () => {
   const engine = useIsoFarmEngine();
-  const syncBuildingsRef = useRef(null);
-  const syncFieldsRef = useRef(null);
 
-  // Expose sync functions for external access
-  useEffect(() => {
-    // These will be set by IsoFarmRenderer
-    window.syncBuildingsRef = syncBuildingsRef;
-    window.syncFieldsRef = syncFieldsRef;
-  }, []);
+  // Клик по зданию: поле — окно посадки, остальное — окно добычи/переработки
+  const handleBuildingClick = async (building) => {
+    if (building.building_type === "field") {
+      engine.setClickedBuilding(building);
+      engine.setSeedModalOpen(true);
+      return;
+    }
+    engine.setExtractionBuilding(building);
+    engine.setProcessingRecipes([]);
+    engine.setExtractionModalOpen(true);
+    if (RECIPE_BUILDING_TYPES.includes(building.building_type)) {
+      try {
+        const res = await api.get(`/api/processing/recipes/?building_type=${building.slug}`);
+        engine.setProcessingRecipes(res.data);
+      } catch (e) {
+        console.error("Failed to load recipes:", e);
+      }
+    }
+  };
+
+  const handlePlaceBuilding = async (row, col) => {
+    await engine.tryPlaceBuilding(row, col);
+    engine.setSelectedId("");
+  };
 
   return (
     <div style={{ display: "grid", gap: 12 }}>
@@ -37,7 +57,6 @@ const IsoFarmPixi = () => {
         moveMode={engine.moveMode}
         setMoveMode={engine.setMoveMode}
         moveChanges={engine.moveChanges}
-        initialBuildingsPos={engine.initialBuildingsPos}
         setMoveChanges={engine.setMoveChanges}
         setInitialBuildingsPos={engine.setInitialBuildingsPos}
         hoveredBuilding={engine.hoveredBuilding}
@@ -59,13 +78,9 @@ const IsoFarmPixi = () => {
         plots={engine.plots}
         extractionProcesses={engine.extractionProcesses}
         processingProcesses={engine.processingProcesses}
-        selected={engine.selected}
         tryPlantSeed={engine.tryPlantSeed}
         loadPlots={engine.loadPlots}
         tryRemoveBuilding={engine.tryRemoveBuilding}
-        tryBuyChunk={engine.tryBuyChunk}
-        tryPlaceBuilding={engine.tryPlaceBuilding}
-        tryMoveBuilding={engine.tryMoveBuilding}
         startExtraction={engine.startExtraction}
         stopExtraction={engine.stopExtraction}
         collectExtraction={engine.collectExtraction}
@@ -84,20 +99,17 @@ const IsoFarmPixi = () => {
           plots={engine.plots}
           availableChunks={engine.availableChunks}
           coins={engine.coins}
-          hoveredBuilding={engine.hoveredBuilding}
           setHoveredBuilding={engine.setHoveredBuilding}
           selected={engine.selected}
           buildingToPlace={engine.buildingToPlace}
           movingBuilding={engine.movingBuilding}
           moveMode={engine.moveMode}
-          onPlantSeed={engine.tryPlantSeed}
-          onHarvest={engine.loadPlots}
-          onRemoveBuilding={engine.tryRemoveBuilding}
+          moveChanges={engine.moveChanges}
+          setMoveChanges={engine.setMoveChanges}
+          onBuildingClick={handleBuildingClick}
           onBuyChunk={engine.tryBuyChunk}
-          onPlaceBuilding={engine.tryPlaceBuilding}
+          onPlaceBuilding={handlePlaceBuilding}
           onMoveBuilding={engine.tryMoveBuilding}
-          syncBuildingsRef={syncBuildingsRef}
-          syncFieldsRef={syncFieldsRef}
         />
       </div>
     </div>

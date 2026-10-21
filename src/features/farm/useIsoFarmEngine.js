@@ -51,6 +51,10 @@ export function useIsoFarmEngine() {
   useEffect(() => { moveModeRef.current = moveMode; }, [moveMode]);
   useEffect(() => { movingBuildingRef.current = movingBuilding; }, [movingBuilding]);
 
+  const setProcessingRecipes = useCallback((recipes) => {
+    setState(prev => ({ ...prev, processingRecipes: recipes || [] }));
+  }, []);
+
   const selected = state.catalog.find((b) => String(b.id) === String(selectedId)) || null;
 
   const unlockedSet = new Set(
@@ -381,9 +385,8 @@ export function useIsoFarmEngine() {
     setMoveChanges,
     initialBuildingsPos,
     setInitialBuildingsPos,
-    processingRecipes,
     setProcessingRecipes,
-    
+
     // Actions
     load,
     loadPlots,

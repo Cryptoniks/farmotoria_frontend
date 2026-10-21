@@ -22,7 +22,6 @@ const IsoFarmControls = ({
   moveMode,
   setMoveMode,
   moveChanges,
-  initialBuildingsPos,
   setMoveChanges,
   setInitialBuildingsPos,
   hoveredBuilding,
@@ -44,13 +43,9 @@ const IsoFarmControls = ({
   plots,
   extractionProcesses,
   processingProcesses,
-  selected,
   tryPlantSeed,
   loadPlots,
   tryRemoveBuilding,
-  tryBuyChunk,
-  tryPlaceBuilding,
-  tryMoveBuilding,
   startExtraction,
   stopExtraction,
   collectExtraction,
@@ -87,16 +82,8 @@ const IsoFarmControls = ({
     }
   };
 
+  // Здания на сервере не двигались: несохранённые перемещения живут только в moveChanges
   const handleCancelMoves = () => {
-    setBuildings?.((prev) =>
-      prev.map((b) => {
-        const initial = initialBuildingsPos[b.id];
-        if (initial) {
-          return { ...b, row: initial.row, col: initial.col };
-        }
-        return b;
-      })
-    );
     setMoveMode(false);
     setMoveChanges({});
     setInitialBuildingsPos({});

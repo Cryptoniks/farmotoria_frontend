@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect } from "react";
 import "./SeedSelectModal.css";
 import PlantIcon from "../../components/PlantIcon";
 
@@ -181,14 +181,6 @@ export default function ExtractionModal({
     return isAgroProduction ? buildingIcons[buildingSlug] || "" : "";
   };
   
-  // Иконки типов зданий для заголовка
-  const typeIcons = {
-    "production": "⚙️",
-    "processing": "🏭",
-    "extraction": "⛏️",
-    "agroproduction": buildingIcons[buildingSlug] || "🐄",
-  };
-  const typeIcon = typeIcons[building?.building_type] || "🏭";
   
   const modalTitle = isProduction
     ? `⚙️ Производство${buildingName ? ` - ${buildingName}` : ""}`
