@@ -1,9 +1,23 @@
 /* Окна Магазина, Рынка, хранилищ и блок уровня здания.
    Основа окна — классы seed-modal-* из SeedSelectModal.css. */
 
-/* Двойной класс: SeedSelectModal.css может попасть в сборку позже и перебить max-width */
+/* Магазин, Рынок, хранилища: окно фиксированного размера, чтобы при смене вкладок и фильтров
+   оно не меняло высоту — прокручивается только содержимое.
+   Двойной класс: SeedSelectModal.css может попасть в сборку позже и перебить размеры. */
 .seed-modal-content.farm-modal-wide {
   max-width: 760px;
+  height: min(640px, 85vh);
+  max-height: none;
+  display: flex;
+  flex-direction: column;
+}
+
+.seed-modal-content.farm-modal-wide .seed-modal-body {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  overflow-y: auto;
+  scrollbar-gutter: stable; /* полоса прокрутки не сдвигает список по ширине */
 }
 
 .farm-modal-tabs {
