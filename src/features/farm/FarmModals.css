@@ -1,0 +1,234 @@
+/* Окна Магазина, Рынка, хранилищ и блок уровня здания.
+   Основа окна — классы seed-modal-* из SeedSelectModal.css. */
+
+/* Двойной класс: SeedSelectModal.css может попасть в сборку позже и перебить max-width */
+.seed-modal-content.farm-modal-wide {
+  max-width: 760px;
+}
+
+.farm-modal-tabs {
+  display: flex;
+  gap: 6px;
+  flex-wrap: wrap;
+  margin-bottom: 12px;
+}
+
+.farm-modal-tab {
+  background: rgba(255, 255, 255, 0.06);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  color: #cfd8dc;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.farm-modal-tab.active {
+  background: rgba(76, 175, 80, 0.25);
+  border-color: #4caf50;
+  color: #fff;
+}
+
+.farm-modal-storage-line {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  font-size: 13px;
+  color: #b0bec5;
+  margin-bottom: 12px;
+}
+
+.farm-modal-storage-line b {
+  color: #fff;
+}
+
+.farm-modal-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.farm-modal-row {
+  display: grid;
+  grid-template-columns: 36px 1fr auto auto;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #eceff1;
+}
+
+.farm-modal-row.empty {
+  opacity: 0.45;
+}
+
+.farm-modal-name {
+  font-size: 14px;
+  font-weight: 600;
+}
+
+.farm-modal-sub {
+  font-size: 12px;
+  color: #90a4ae;
+}
+
+.farm-modal-qty {
+  width: 64px;
+  padding: 5px 6px;
+  border-radius: 6px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+}
+
+.farm-modal-actions {
+  display: flex;
+  gap: 6px;
+  align-items: center;
+}
+
+.farm-modal-btn {
+  border: none;
+  border-radius: 8px;
+  padding: 6px 12px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  white-space: nowrap;
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+.farm-modal-btn.sell {
+  background: linear-gradient(135deg, #ff9800, #f57c00);
+}
+
+.farm-modal-btn.ghost {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.farm-modal-btn:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+}
+
+.farm-modal-status {
+  margin-top: 12px;
+  font-size: 13px;
+  color: #a5d6a7;
+}
+
+.farm-modal-error,
+.farm-modal-status.error {
+  margin-top: 8px;
+  font-size: 13px;
+  color: #ef9a9a;
+}
+
+.farm-modal-empty {
+  color: #90a4ae;
+  font-size: 14px;
+  padding: 12px 0;
+}
+
+/* Полоса заполненности хранилища */
+.capacity-bar {
+  height: 14px;
+  border-radius: 7px;
+  background: rgba(255, 255, 255, 0.1);
+  overflow: hidden;
+  margin: 6px 0 4px;
+}
+
+.capacity-bar-fill {
+  height: 100%;
+  background: linear-gradient(90deg, #66bb6a, #43a047);
+  transition: width 0.3s;
+}
+
+.capacity-bar-fill.warn {
+  background: linear-gradient(90deg, #ffca28, #ffa000);
+}
+
+.capacity-bar-fill.full {
+  background: linear-gradient(90deg, #ef5350, #c62828);
+}
+
+.capacity-caption {
+  display: flex;
+  justify-content: space-between;
+  font-size: 13px;
+  color: #cfd8dc;
+  margin-bottom: 12px;
+}
+
+/* Уровень здания */
+.building-level {
+  margin-top: 16px;
+  padding: 12px;
+  border-radius: 10px;
+  background: rgba(33, 150, 243, 0.1);
+  border: 1px solid rgba(33, 150, 243, 0.3);
+  color: #e3f2fd;
+}
+
+.building-level-head {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+}
+
+.building-level-badge {
+  font-weight: 700;
+  font-size: 16px;
+}
+
+.building-level-max {
+  font-size: 12px;
+  color: #90caf9;
+}
+
+.building-level-bonuses {
+  margin-top: 6px;
+  font-size: 13px;
+  line-height: 1.5;
+}
+
+.building-level-next {
+  color: #a5d6a7;
+}
+
+.building-level-note {
+  margin-top: 6px;
+  font-size: 13px;
+  color: #90caf9;
+}
+
+.upgrade-btn {
+  margin-top: 10px;
+  width: 100%;
+  border: none;
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #2196f3, #1565c0);
+}
+
+.upgrade-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
+@media (max-width: 560px) {
+  .farm-modal-row {
+    grid-template-columns: 32px 1fr;
+  }
+  .farm-modal-row > :nth-child(3),
+  .farm-modal-row > :nth-child(4) {
+    grid-column: 2;
+  }
+}

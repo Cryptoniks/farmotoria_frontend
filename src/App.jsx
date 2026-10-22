@@ -1,5 +1,5 @@
 // src/App.jsx
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
 import { lazy, Suspense, useEffect, useState } from "react";
 
 import HomePage from "./features/home/HomePage";
@@ -10,14 +10,11 @@ import MainLayout from "./layout/MainLayout";
 
 // Игровые страницы грузятся по требованию: Pixi.js (~500 КБ) скачивается только на /farm
 const ProfilePage = lazy(() => import("./features/profile/ProfilePage"));
-const InventoryPage = lazy(() => import("./features/inventory/InventoryPage"));
-const SeedShopPage = lazy(() => import("./features/shop/SeedShopPage"));
-const MarketPage = lazy(() => import("./features/shop/MarketPage"));
 const IsoFarmPixi = lazy(() => import("./features/farm/IsoFarmPixi"));
 
 
 function App() {
-  // Начальное значение берём из токена сразу, иначе при прямом заходе на /farm, /shop/seeds
+  // Начальное значение берём из токена сразу, иначе при прямом заходе на /farm, /profile
   // первая отрисовка идёт без игровых маршрутов ("No routes matched location")
   const [isAuthenticated, setIsAuthenticated] = useState(() => Boolean(localStorage.getItem("access")));
   const [coinsBalance, setCoinsBalance] = useState(0);
@@ -85,9 +82,10 @@ function App() {
             <>
               <Route path="/profile" element={<ProfilePage />} />
               <Route path="/farm" element={<IsoFarmPixi setCoinsBalance={setCoinsBalance} />} />
-              <Route path="/inventory" element={<InventoryPage />} />
-              <Route path="/shop/seeds" element={<SeedShopPage setCoinsBalance={setCoinsBalance} />} />
-              <Route path="/market" element={<MarketPage setCoinsBalance={setCoinsBalance} />} />
+              {/* Магазин, Рынок и Инвентарь теперь здания на ферме — старые адреса ведут туда */}
+              {["/shop/*", "/market", "/inventory"].map((path) => (
+                <Route key={path} path={path} element={<Navigate to="/farm" replace />} />
+              ))}
             </>
           )}
         </Routes>

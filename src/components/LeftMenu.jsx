@@ -15,17 +15,6 @@ export default function LeftMenu() {
           <Link to="/farm">Ферма</Link>
         </li>
 
-        <li>
-          <Link to="/inventory">Инвентарь</Link>
-        </li>
-
-        <li>
-          <Link to="/shop/seeds">Магазин</Link>
-        </li>
-
-        <li>
-          <Link to="/market">Рынок</Link>
-        </li>
       </ul>
     </nav>
   );

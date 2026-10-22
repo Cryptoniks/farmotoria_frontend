@@ -27,7 +27,8 @@ npm run build        # сборка в dist/
 
 ```
 src/
-├── features/        # страницы со своими стилями: auth, farm, home, inventory, profile, shop
+├── features/        # страницы со своими стилями: auth, farm, home, profile
+│                    #   farm/ — карта и окна зданий: Магазин, Рынок, хранилища, уровни
 ├── components/      # Header, LeftMenu, PlantIcon, …
 ├── layout/
 ├── shared/services/api.js   # axios + автообновление JWT

@@ -524,7 +524,75 @@ def sheepfold():
     return b
 
 
+def awning(b, r, c0, c1, z, depth=0.35, drop=0.18, colors=("#e53935", "#fafafa")):
+    """Полосатый навес над передней гранью (r = const) от колонки c0 до c1."""
+    n = max(2, int((c1 - c0) / 0.25))
+    step = (c1 - c0) / n
+    for i in range(n):
+        a, bb = c0 + i * step, c0 + (i + 1) * step
+        b.poly([b.P(r, a, z), b.P(r, bb, z), b.P(r + depth, bb, z - drop), b.P(r + depth, a, z - drop)],
+               colors[i % 2], sw=0.8)
+
+
+def crate(b, r, c, fill, size=0.32):
+    """Ящик с товаром: деревянная коробка и горка продукции сверху."""
+    b.box(r, c, r + size, c + size, 0.06, 0.26, "#b0884f")
+    b.ellipse_ground(r + size / 2, c + size / 2, size * 0.32, 0.29, fill, sw=0.8)
+
+
+def shop():
+    b = B(3, 3, 2.0)
+    b.plate("#c8b08a")
+    wall, roof = "#fff3e0", "#2e7d32"
+    b.box(0.3, 0.3, 1.9, 2.6, 0.06, 1.0, wall)
+    b.on_face("front", 1.9, 0.3, 0.06,
+              f'<rect x="0.2" y="0.12" width="0.95" height="0.5" fill="#9ad7ff" stroke="{OUT}" stroke-width="1.2" NS/>'
+              f'<circle cx="0.45" cy="0.3" r="0.08" fill="#e53935" NS/>'
+              f'<circle cx="0.7" cy="0.27" r="0.08" fill="#ffb300" NS/>'
+              f'<circle cx="0.95" cy="0.3" r="0.08" fill="#7cb342" NS/>'
+              f'<rect x="1.45" y="0" width="0.4" height="0.65" fill="#6d4c41" stroke="{OUT}" stroke-width="1.1" NS/>'
+              f'<rect x="0.55" y="0.78" width="1.2" height="0.18" fill="#2e7d32" stroke="{OUT}" stroke-width="1" NS/>'
+              f'<path d="M0.7,0.92 L0.78,0.82 L1.0,0.82 L0.96,0.88 L0.76,0.88" fill="none" stroke="#fff" stroke-width="1.4" NS/>')
+    b.window("side", 1.9, 2.6, 0.06, 0.45, 0.35, 0.4, 0.3)
+    b.gable(0.3, 0.3, 1.9, 2.6, 1.0, 1.55, roof, wall, axis="c")
+    awning(b, 1.9, 0.4, 2.5, 0.78)
+    for i, fill in enumerate(["#e53935", "#ffb300", "#7cb342"]):
+        crate(b, 2.25, 0.45 + i * 0.45, fill)
+    return b
+
+
+def market():
+    b = B(4, 3, 1.6)
+    b.plate("#d7c49e")
+    stalls = [
+        (0.35, 0.3, ("#1e88e5", "#fafafa"), ["#e53935", "#ffb300"]),
+        (0.35, 2.15, ("#43a047", "#fafafa"), ["#8d6e63", "#fafafa"]),
+        (1.75, 1.2, ("#e53935", "#fff59d"), ["#7cb342", "#ff7043"]),
+    ]
+    for r, c, cols, goods in stalls:
+        w = 1.4
+        for rr, cc in [(r, c), (r, c + w), (r + 0.8, c), (r + 0.8, c + w)]:
+            b.line(b.P(rr, cc, 0.06), b.P(rr, cc, 0.95), "#5d4037", 2.2)
+        b.box(r + 0.45, c + 0.05, r + 0.8, c + w - 0.05, 0.06, 0.4, "#a1887f")
+        for i, fill in enumerate(goods * 2):
+            b.ellipse_ground(r + 0.62, c + 0.25 + i * 0.3, 0.1, 0.42, fill, sw=0.7)
+        n = 6
+        for i in range(n):
+            a, bb = c + i * w / n, c + (i + 1) * w / n
+            b.poly([b.P(r - 0.05, a, 1.05), b.P(r - 0.05, bb, 1.05), b.P(r + 0.95, bb, 0.85), b.P(r + 0.95, a, 0.85)],
+                   cols[i % 2], sw=0.8)
+    # вывеска с весами
+    b.line(b.P(1.4, 3.75, 0.06), b.P(1.4, 3.75, 1.2), "#5d4037", 2.4)
+    b.on_face("side", 1.65, 3.78, 0.95,
+              f'<rect x="0" y="0" width="0.5" height="0.32" fill="#fff8e1" stroke="{OUT}" stroke-width="1" NS/>'
+              f'<line x1="0.25" y1="0.05" x2="0.25" y2="0.27" stroke="{OUT}" stroke-width="1.2" NS/>'
+              f'<line x1="0.1" y1="0.24" x2="0.4" y2="0.24" stroke="{OUT}" stroke-width="1.2" NS/>'
+              f'<path d="M0.05,0.14 L0.15,0.14 L0.1,0.22 Z M0.35,0.14 L0.45,0.14 L0.4,0.22 Z" fill="#ffb300" stroke="{OUT}" stroke-width="0.7" NS/>')
+    return b
+
+
 BUILDINGS = {
+    "shop": shop, "market": market,
     "house": house, "warehouse": warehouse, "barn": barn,
     "lumberjack_hut": lumberjack_hut, "quarry": quarry, "mine": mine, "water_mill": water_mill,
     "sawmill": sawmill, "stonecutter_hut": stonecutter_hut, "blacksmith": blacksmith, "mill": mill,

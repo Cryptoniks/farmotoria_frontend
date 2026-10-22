@@ -1,9 +1,10 @@
 import { useState, useEffect } from "react";
 import { api } from "../../shared/services/api";
 import PlantIcon from "../../components/PlantIcon";
+import BuildingLevel from "./BuildingLevel";
 import "./SeedSelectModal.css";
 
-export default function SeedSelectModal({ isOpen, onClose, buildingId, plots, onPlant, onHarvest, onSell }) {
+export default function SeedSelectModal({ isOpen, onClose, buildingId, building, coins, onUpgrade, plots, onPlant, onHarvest, onSell }) {
   const [seeds, setSeeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -97,7 +98,7 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, plots, on
       await onPlant(buildingId, 0, 0, seedId);
     } catch (e) {
       console.error("Plant error:", e);
-      alert("Ошибка посадки: " + (e?.message || e?.response?.data?.detail || "Unknown"));
+      alert("Ошибка посадки: " + (e?.response?.data?.detail || e?.message || "Unknown"));
     }
   }
 
@@ -110,7 +111,7 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, plots, on
         onHarvest();
       }
     } catch (e) {
-      alert("Ошибка сбора: " + (e?.message || e?.response?.data?.detail || "Unknown"));
+      alert("Ошибка сбора: " + (e?.response?.data?.detail || e?.message || "Unknown"));
     }
   }
 
@@ -205,6 +206,8 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, plots, on
             </>
           )}
           
+          <BuildingLevel building={building} coins={coins} onUpgrade={onUpgrade} />
+
           <div className="modal-footer">
             <button 
               className="sell-btn" 

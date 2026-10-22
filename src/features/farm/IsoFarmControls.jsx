@@ -50,6 +50,7 @@ const IsoFarmControls = ({
   stopProcessing,
   collectProcessing,
   load,
+  tryUpgradeBuilding,
   isFullscreen,
   onToggleFullscreen,
 }) => {
@@ -115,6 +116,9 @@ const IsoFarmControls = ({
           {hoveredBuilding.building_type === "extraction" && "⛏ "}
           {hoveredBuilding.building_type === "processing" && "🏭 "}
           {hoveredBuilding.building_type === "production" && "⚙️ "}
+          {hoveredBuilding.building_type === "storage" && "📦 "}
+          {hoveredBuilding.building_type === "shop" && "🛒 "}
+          {hoveredBuilding.building_type === "market" && "⚖️ "}
           {hoveredBuilding.name}
         </div>
       )}
@@ -298,6 +302,9 @@ const IsoFarmControls = ({
           setClickedBuilding(null);
         }}
         buildingId={clickedBuilding?.id}
+        building={buildings.find((b) => b.id === clickedBuilding?.id)}
+        coins={coins}
+        onUpgrade={tryUpgradeBuilding}
         plots={plots}
         onPlant={tryPlantSeed}
         onHarvest={loadPlots}
@@ -311,7 +318,9 @@ const IsoFarmControls = ({
           setExtractionBuilding(null);
           setProcessingRecipes([]);
         }}
-        building={extractionBuilding}
+        building={buildings.find((b) => b.id === extractionBuilding?.id) || extractionBuilding}
+        coins={coins}
+        onUpgrade={tryUpgradeBuilding}
         processes={
           ["processing", "production", "agroproduction"].includes(extractionBuilding?.building_type)
             ? processingProcesses

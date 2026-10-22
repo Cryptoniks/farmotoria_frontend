@@ -7,9 +7,10 @@ const CATEGORY_LABELS = {
   "extraction": "Добыча",
   "processing": "Переработка",
   "production": "Производство",
+  "storage": "Хранилища",
 };
 
-const CATEGORY_ORDER = ["field", "agroproduction", "extraction", "processing", "production"];
+const CATEGORY_ORDER = ["field", "storage", "agroproduction", "extraction", "processing", "production"];
 
 export default function BuildMenu({ 
   isOpen, 

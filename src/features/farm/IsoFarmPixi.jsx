@@ -7,6 +7,9 @@ import React, { useCallback, useEffect, useRef, useState } from "react";
 import { useIsoFarmEngine } from "./useIsoFarmEngine";
 import IsoFarmRenderer from "./IsoFarmRenderer";
 import IsoFarmControls from "./IsoFarmControls";
+import ShopModal from "./ShopModal";
+import MarketModal from "./MarketModal";
+import StorageModal from "./StorageModal";
 import { api } from "../../shared/services/api";
 
 // Здания с рецептами: окно показывает список рецептов из /api/processing/recipes/
@@ -16,6 +19,10 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
   const engine = useIsoFarmEngine();
   const rootRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  const [shopOpen, setShopOpen] = useState(false);
+  const [marketOpen, setMarketOpen] = useState(false);
+  const [storageId, setStorageId] = useState(null);
+  const storageBuilding = engine.buildings.find((b) => b.id === storageId) || null;
 
   // Баланс в шапке сайта = баланс игры. Движок обновляет coins после постройки,
   // продажи здания, посадки, покупки участка; до первой загрузки поля (fieldCfg) не трогаем.
@@ -68,6 +75,9 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
 
   // Клик по зданию: поле — окно посадки, остальное — окно добычи/переработки
   const handleBuildingClick = async (building) => {
+    if (building.building_type === "shop") return setShopOpen(true);
+    if (building.building_type === "market") return setMarketOpen(true);
+    if (building.building_type === "storage") return setStorageId(building.id);
     if (building.building_type === "field") {
       engine.setClickedBuilding(building);
       engine.setSeedModalOpen(true);
@@ -138,8 +148,28 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
         stopProcessing={engine.stopProcessing}
         collectProcessing={engine.collectProcessing}
         load={engine.load}
+        tryUpgradeBuilding={engine.tryUpgradeBuilding}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
+      />
+
+      <ShopModal
+        isOpen={shopOpen}
+        onClose={() => setShopOpen(false)}
+        coins={engine.coins}
+        onCoinsChange={engine.applyCoins}
+      />
+      <MarketModal
+        isOpen={marketOpen}
+        onClose={() => setMarketOpen(false)}
+        onCoinsChange={engine.applyCoins}
+      />
+      <StorageModal
+        building={storageBuilding}
+        onClose={() => setStorageId(null)}
+        coins={engine.coins}
+        onUpgrade={engine.tryUpgradeBuilding}
+        onSell={engine.tryRemoveBuilding}
       />
 
       {/* Game canvas */}

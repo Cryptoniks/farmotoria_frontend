@@ -55,6 +55,11 @@ export function useIsoFarmEngine() {
     setState(prev => ({ ...prev, processingRecipes: recipes || [] }));
   }, []);
 
+  // Баланс после покупки в Магазине / продажи на Рынке (ответ API содержит coins_balance)
+  const applyCoins = useCallback((coins) => {
+    if (typeof coins === "number") setState(prev => ({ ...prev, coins }));
+  }, []);
+
   const selected = state.catalog.find((b) => String(b.id) === String(selectedId)) || null;
 
   const unlockedSet = new Set(
@@ -194,11 +199,11 @@ export function useIsoFarmEngine() {
         coins: res.data.coins_balance,
         buildings: prev.buildings.filter((b) => b.id !== buildingId),
       }));
+      return { success: true };
     } catch (e) {
-      setState(prev => ({
-        ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка продажи",
-      }));
+      const error = e?.response?.data?.detail || e.message || "Ошибка продажи";
+      setState(prev => ({ ...prev, err: error }));
+      return { error };
     }
   }, []);
 
@@ -225,6 +230,21 @@ export function useIsoFarmEngine() {
         err: e?.response?.data?.detail || e.message || "Ошибка перемещения",
       }));
       throw e;
+    }
+  }, []);
+
+  // Улучшение здания: сервер возвращает здание с новым уровнем и бонусами
+  const tryUpgradeBuilding = useCallback(async (buildingId) => {
+    try {
+      const res = await api.post("/api/iso/upgrade-building/", { placement_id: buildingId });
+      setState(prev => ({
+        ...prev,
+        coins: res.data.coins_balance,
+        buildings: prev.buildings.map((b) => (b.id === buildingId ? { ...b, ...res.data.building } : b)),
+      }));
+      return { success: true };
+    } catch (e) {
+      return { error: e?.response?.data?.detail || e.message || "Ошибка улучшения" };
     }
   }, []);
 
@@ -386,6 +406,7 @@ export function useIsoFarmEngine() {
     initialBuildingsPos,
     setInitialBuildingsPos,
     setProcessingRecipes,
+    applyCoins,
 
     // Actions
     load,
@@ -395,6 +416,7 @@ export function useIsoFarmEngine() {
     tryPlaceBuilding,
     tryRemoveBuilding,
     tryMoveBuilding,
+    tryUpgradeBuilding,
     startExtraction,
     stopExtraction,
     collectExtraction,

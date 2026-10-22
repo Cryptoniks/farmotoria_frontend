@@ -1,6 +1,7 @@
 import { useState, useEffect } from "react";
 import "./SeedSelectModal.css";
 import PlantIcon from "../../components/PlantIcon";
+import BuildingLevel from "./BuildingLevel";
 
 export default function ExtractionModal({ 
   isOpen, 
@@ -15,7 +16,9 @@ export default function ExtractionModal({
   isProcessing = false,
   onCollectComplete = null,
   onStopComplete = null,  // Колбэк после остановки
-  onRecipesUpdate = null   // Колбэк для обновления рецептов
+  onRecipesUpdate = null,  // Колбэк для обновления рецептов
+  coins = 0,
+  onUpgrade = null,
 }) {
   const [quantities, setQuantities] = useState({});
   const [maxQuantities, setMaxQuantities] = useState({});
@@ -141,6 +144,9 @@ export default function ExtractionModal({
         if (onCollectComplete) {
           onCollectComplete(result);
         }
+      } catch (e) {
+        // Например, «Склад: не хватает места…» — показываем прямо в окне
+        alert(e?.response?.data?.detail || e?.message || "Ошибка сбора");
       } finally {
         setCollecting(false);
       }
@@ -347,6 +353,8 @@ export default function ExtractionModal({
               </div>
             </div>
           )}
+
+          <BuildingLevel building={building} coins={coins} onUpgrade={onUpgrade} />
 
           <div className="modal-footer">
             <button 

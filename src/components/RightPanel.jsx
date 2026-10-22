@@ -35,8 +35,8 @@ export default function RightPanel({ user }) {
       <section className="rp-block rp-banner">
         <h3>Акция</h3>
         <p>Получите бонусные монеты за ежедневный вход!</p>
-        <Link to="/market" className="rp-banner-btn">
-          На рынок
+        <Link to="/farm" className="rp-banner-btn">
+          На ферму
         </Link>
       </section>
     </div>

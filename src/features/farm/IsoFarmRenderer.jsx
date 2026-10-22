@@ -236,8 +236,15 @@ const IsoFarmRenderer = (props) => {
       function centerCamera() {
         const { chunkSize } = cfg();
         const list = propsRef.current.chunks || [];
+        const built = propsRef.current.buildings || [];
         let minR = 0, minC = 0, maxR = START_UNLOCKED, maxC = START_UNLOCKED;
-        if (list.length) {
+        if (built.length) {
+          // Показываем то, что уже построено (у нового игрока — стартовые здания в верхнем углу)
+          minR = Math.min(...built.map((b) => b.row));
+          minC = Math.min(...built.map((b) => b.col));
+          maxR = Math.max(...built.map((b) => b.row + getBuildingDimensions(b).h));
+          maxC = Math.max(...built.map((b) => b.col + getBuildingDimensions(b).w));
+        } else if (list.length) {
           minR = Math.min(...list.map((c) => c.chunk_row)) * chunkSize;
           minC = Math.min(...list.map((c) => c.chunk_col)) * chunkSize;
           maxR = (Math.max(...list.map((c) => c.chunk_row)) + 1) * chunkSize;
