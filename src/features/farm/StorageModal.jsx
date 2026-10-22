@@ -12,7 +12,7 @@ const HINTS = {
 };
 
 /** Сарай / Склад: товары этого типа хранилища и общая заполненность всех таких зданий. */
-export default function StorageModal({ building, onClose, coins, onUpgrade, onSell }) {
+export default function StorageModal({ building, onClose, coins, onUpgrade, onSell, onCustomize }) {
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const kind = building?.storage;
@@ -45,7 +45,10 @@ export default function StorageModal({ building, onClose, coins, onUpgrade, onSe
       <div className="seed-modal-content farm-modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
           <h2>{TITLES[kind] || building.name}</h2>
-          <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          <div className="seed-modal-header-actions">
+            {onCustomize && <button className="customize-btn" onClick={onCustomize}>🎨 Внешний вид</button>}
+            <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          </div>
         </div>
 
         <div className="seed-modal-body">

@@ -4,7 +4,7 @@ import PlantIcon from "../../components/PlantIcon";
 import BuildingLevel from "./BuildingLevel";
 import "./SeedSelectModal.css";
 
-export default function SeedSelectModal({ isOpen, onClose, buildingId, building, coins, onUpgrade, plots, onPlant, onHarvest, onSell }) {
+export default function SeedSelectModal({ isOpen, onClose, buildingId, building, coins, onUpgrade, onCustomize, plots, onPlant, onHarvest, onSell }) {
   const [seeds, setSeeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
@@ -130,7 +130,10 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
       <div className="seed-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
           <h2>🌾 Фермерское поле</h2>
-          <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          <div className="seed-modal-header-actions">
+            {onCustomize && <button className="customize-btn" onClick={onCustomize}>🎨 Внешний вид</button>}
+            <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          </div>
         </div>
 
         <div className="seed-modal-body">

@@ -10,6 +10,7 @@ import IsoFarmControls from "./IsoFarmControls";
 import ShopModal from "./ShopModal";
 import MarketModal from "./MarketModal";
 import StorageModal from "./StorageModal";
+import AppearanceModal from "./AppearanceModal";
 import { api } from "../../shared/services/api";
 
 // Здания с рецептами: окно показывает список рецептов из /api/processing/recipes/
@@ -23,6 +24,10 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
   const [marketOpen, setMarketOpen] = useState(false);
   const [storageId, setStorageId] = useState(null);
   const storageBuilding = engine.buildings.find((b) => b.id === storageId) || null;
+  // Смена внешнего вида: { slug, name } типа здания, окно открывается поверх окна здания
+  const [customize, setCustomize] = useState(null);
+  const openCustomize = (building) => building && setCustomize({ slug: building.slug, name: building.name });
+  const byType = (type) => engine.buildings.find((b) => b.building_type === type);
 
   // Баланс в шапке сайта = баланс игры. Движок обновляет coins после постройки,
   // продажи здания, посадки, покупки участка; до первой загрузки поля (fieldCfg) не трогаем.
@@ -149,6 +154,7 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
         collectProcessing={engine.collectProcessing}
         load={engine.load}
         tryUpgradeBuilding={engine.tryUpgradeBuilding}
+        onCustomize={openCustomize}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
       />
@@ -158,11 +164,13 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
         onClose={() => setShopOpen(false)}
         coins={engine.coins}
         onCoinsChange={engine.applyCoins}
+        onCustomize={() => openCustomize(byType("shop"))}
       />
       <MarketModal
         isOpen={marketOpen}
         onClose={() => setMarketOpen(false)}
         onCoinsChange={engine.applyCoins}
+        onCustomize={() => openCustomize(byType("market"))}
       />
       <StorageModal
         building={storageBuilding}
@@ -170,7 +178,20 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
         coins={engine.coins}
         onUpgrade={engine.tryUpgradeBuilding}
         onSell={engine.tryRemoveBuilding}
+        onCustomize={() => openCustomize(storageBuilding)}
       />
+      {customize && (
+        <AppearanceModal
+          key={customize.slug}
+          target={customize}
+          saved={engine.appearances[customize.slug] || null}
+          coins={engine.coins}
+          price={engine.appearancePrice}
+          onSave={engine.tryChangeAppearance}
+          onReset={(slug) => engine.tryChangeAppearance(slug, null)}
+          onClose={() => setCustomize(null)}
+        />
+      )}
 
       {/* Game canvas */}
       <div style={{ position: "absolute", inset: 0 }}>
@@ -188,6 +209,7 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
           moveMode={engine.moveMode}
           moveChanges={engine.moveChanges}
           setMoveChanges={engine.setMoveChanges}
+          appearances={engine.appearances}
           onBuildingClick={handleBuildingClick}
           onBuyChunk={engine.tryBuyChunk}
           onPlaceBuilding={engine.tryPlaceBuilding}

@@ -15,7 +15,7 @@ const TABS = [
 const STORAGE_NAMES = { barn: "Сарай", warehouse: "Склад" };
 
 /** Магазин: покупка любых товаров игры. Купленное ложится в Сарай или на Склад. */
-export default function ShopModal({ isOpen, onClose, coins, onCoinsChange }) {
+export default function ShopModal({ isOpen, onClose, coins, onCoinsChange, onCustomize }) {
   const [items, setItems] = useState([]);
   const [storage, setStorage] = useState(null);
   const [tab, setTab] = useState("seeds");
@@ -62,7 +62,10 @@ export default function ShopModal({ isOpen, onClose, coins, onCoinsChange }) {
       <div className="seed-modal-content farm-modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
           <h2>🛒 Магазин</h2>
-          <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          <div className="seed-modal-header-actions">
+            {onCustomize && <button className="customize-btn" onClick={onCustomize}>🎨 Внешний вид</button>}
+            <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          </div>
         </div>
 
         <div className="seed-modal-body">

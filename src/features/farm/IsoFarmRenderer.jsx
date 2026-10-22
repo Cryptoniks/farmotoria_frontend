@@ -24,6 +24,7 @@ import {
   DEBUG_BUILDING_BOX,
 } from "./isoUtils";
 import { buildingIcons } from "../../assets/buildings";
+import { appearanceKey, hasBuildingArt, renderBuildingSvg, svgToDataUrl } from "./buildingArt";
 
 const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 6;
@@ -92,10 +93,11 @@ const IsoFarmRenderer = (props) => {
   const propsRef = useRef(props);
   const drawRef = useRef(null);      // перерисовка статики (поле, здания)
   const drawGhostRef = useRef(null); // перерисовка призрака под курсором
+  const appearanceRef = useRef(null); // подгрузка текстур выбранного игроком внешнего вида
 
   const {
     fieldCfg, chunks, buildings, plots, availableChunks, coins,
-    buildingToPlace, selected, movingBuilding, moveMode, moveChanges,
+    buildingToPlace, selected, movingBuilding, moveMode, moveChanges, appearances,
   } = props;
 
   useEffect(() => {
@@ -109,6 +111,10 @@ const IsoFarmRenderer = (props) => {
   useEffect(() => {
     drawGhostRef.current?.();
   }, [buildingToPlace, selected, movingBuilding, moveMode]);
+
+  useEffect(() => {
+    appearanceRef.current?.();
+  }, [appearances]);
 
   useEffect(() => {
     let cancelled = false;
@@ -323,7 +329,8 @@ const IsoFarmRenderer = (props) => {
         node.zIndex = b.row + b.col + w + h; // дальние здания рисуются раньше ближних
         const picked = b.id === view.pickedId;
         const color = TYPE_COLORS[b.building_type] ?? 0xaaaaaa;
-        const texture = textures[b.slug];
+        const look = propsRef.current.appearances?.[b.slug];
+        const texture = textures[appearanceKey(b.slug, look)] || textures[b.slug];
 
         if (b.building_type === "field") {
           // Грядка: вспаханная земля с бороздами
@@ -425,13 +432,33 @@ const IsoFarmRenderer = (props) => {
         drawGhost();
       }
 
+      // Внешний вид, выбранный игроком: рисуем SVG по зёрнам и кэшируем текстуру (slug@c.r.d)
+      async function loadAppearanceTextures() {
+        const looks = Object.entries(propsRef.current.appearances || {});
+        const missing = looks.filter(([slug, look]) => hasBuildingArt(slug) && !textures[appearanceKey(slug, look)]);
+        if (missing.length === 0) return drawAll();
+        await Promise.all(missing.map(async ([slug, look]) => {
+          try {
+            textures[appearanceKey(slug, look)] = await PIXI.Assets.load({
+              src: svgToDataUrl(renderBuildingSvg(slug, look)),
+              loadParser: "loadSVG",
+            });
+          } catch (e) {
+            console.warn("Не удалось нарисовать внешний вид здания", slug, e);
+          }
+        }));
+        if (!cancelled) drawAll();
+      }
+
       drawRef.current = drawAll;
       drawGhostRef.current = () => {
         if (!propsRef.current.moveMode) view.pickedId = null;
         drawGhost();
       };
+      appearanceRef.current = loadAppearanceTextures;
       centerCamera();
       drawAll();
+      loadAppearanceTextures();
 
       // ------------------------------------------------------------- input --
       function updateTooltip(building, e) {
@@ -575,6 +602,7 @@ const IsoFarmRenderer = (props) => {
         canvas.removeEventListener("wheel", onWheel);
         drawRef.current = null;
         drawGhostRef.current = null;
+        appearanceRef.current = null;
         app.destroy(true, { children: true });
       };
     }

@@ -18,6 +18,8 @@ const INITIAL_STATE = {
   extractionProcesses: [],
   processingProcesses: [],
   processingRecipes: [],
+  appearances: {},       // slug типа здания → зёрна внешнего вида, выбранного игроком
+  appearancePrice: 500,  // цена смены внешнего вида (приходит с сервера)
 };
 
 export function useIsoFarmEngine() {
@@ -85,6 +87,8 @@ export function useIsoFarmEngine() {
         chunks: fieldRes.data.chunks || [],
         buildings: fieldRes.data.buildings || [],
         catalog: fieldRes.data.available_buildings || [],
+        appearances: fieldRes.data.appearances || {},
+        appearancePrice: fieldRes.data.appearance_price ?? prev.appearancePrice,
         plots: plotsRes.data.plots || [],
         extractionProcesses: extractionRes.data.processes || [],
       }));
@@ -245,6 +249,22 @@ export function useIsoFarmEngine() {
       return { success: true };
     } catch (e) {
       return { error: e?.response?.data?.detail || e.message || "Ошибка улучшения" };
+    }
+  }, []);
+
+  // Внешний вид типа здания: appearance — зёрна {c, r, d} (за монеты), null — вернуть стандартный (бесплатно)
+  const tryChangeAppearance = useCallback(async (slug, appearance) => {
+    try {
+      const res = await api.post("/api/iso/building-appearance/", { slug, appearance });
+      setState(prev => {
+        const appearances = { ...prev.appearances };
+        if (res.data.appearance) appearances[slug] = res.data.appearance;
+        else delete appearances[slug];
+        return { ...prev, coins: res.data.coins_balance, appearances };
+      });
+      return { success: true };
+    } catch (e) {
+      return { error: e?.response?.data?.detail || e.message || "Ошибка смены внешнего вида" };
     }
   }, []);
 
@@ -417,6 +437,7 @@ export function useIsoFarmEngine() {
     tryRemoveBuilding,
     tryMoveBuilding,
     tryUpgradeBuilding,
+    tryChangeAppearance,
     startExtraction,
     stopExtraction,
     collectExtraction,

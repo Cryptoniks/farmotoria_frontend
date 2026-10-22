@@ -34,15 +34,21 @@ src/
 ├── shared/services/api.js   # axios + автообновление JWT
 └── assets/          # иконки по slug: plants/, items/, buildings/ (.svg, .webp или .png)
 tools/
-└── gen_buildings.py # генератор изометрических SVG зданий
+└── gen_buildings.mjs # сохраняет стандартные картинки зданий в src/assets/buildings
 ```
 
 Иконка культуры общая для семени (`wheat`) и урожая (`wheat_harvest`). Для товаров без картинки показывается эмодзи (`components/PlantIcon.jsx`).
 
-Картинки зданий (`src/assets/buildings/<slug>.svg`) рисует `tools/gen_buildings.py`. Поменяли цвета или детали — перегенерируйте все (нужен только Python 3):
+Здания рисует код в `src/features/farm/buildingArt/` (`buildings.js` — рисунок, палитры и варианты каждого здания).
+Он же генерирует в игре внешний вид, который выбирает игрок (окно «🎨 Внешний вид», 500 монет за смену):
+вид — это три числа-зерна (цвета, крыша, детали), они хранятся на сервере, картинка рисуется в браузере.
+
+Стандартные картинки лежат файлами в `src/assets/buildings/<slug>.svg`. Поменяли рисунок — перегенерируйте их:
 
 ```bash
-python tools/gen_buildings.py
+node tools/gen_buildings.mjs
 ```
+
+Посмотреть случайные варианты (например, после правки палитр): `node tools/gen_buildings.mjs <папка> --variants 6`.
 
 Здание без картинки на карте рисуется цветным блоком с подписью.

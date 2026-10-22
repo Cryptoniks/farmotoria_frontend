@@ -51,6 +51,7 @@ const IsoFarmControls = ({
   collectProcessing,
   load,
   tryUpgradeBuilding,
+  onCustomize,
   isFullscreen,
   onToggleFullscreen,
 }) => {
@@ -305,6 +306,7 @@ const IsoFarmControls = ({
         building={buildings.find((b) => b.id === clickedBuilding?.id)}
         coins={coins}
         onUpgrade={tryUpgradeBuilding}
+        onCustomize={() => onCustomize?.(buildings.find((b) => b.id === clickedBuilding?.id))}
         plots={plots}
         onPlant={tryPlantSeed}
         onHarvest={loadPlots}
@@ -321,6 +323,7 @@ const IsoFarmControls = ({
         building={buildings.find((b) => b.id === extractionBuilding?.id) || extractionBuilding}
         coins={coins}
         onUpgrade={tryUpgradeBuilding}
+        onCustomize={() => onCustomize?.(extractionBuilding)}
         processes={
           ["processing", "production", "agroproduction"].includes(extractionBuilding?.building_type)
             ? processingProcesses

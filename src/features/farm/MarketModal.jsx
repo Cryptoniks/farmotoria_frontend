@@ -12,7 +12,7 @@ const TABS = [
 ];
 
 /** Рынок: все товары игры (кроме семян) с количеством у игрока и продажей. */
-export default function MarketModal({ isOpen, onClose, onCoinsChange }) {
+export default function MarketModal({ isOpen, onClose, onCoinsChange, onCustomize }) {
   const [items, setItems] = useState([]);
   const [tab, setTab] = useState("all");
   const [qty, setQty] = useState({});
@@ -60,7 +60,10 @@ export default function MarketModal({ isOpen, onClose, onCoinsChange }) {
       <div className="seed-modal-content farm-modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
           <h2>⚖️ Рынок</h2>
-          <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          <div className="seed-modal-header-actions">
+            {onCustomize && <button className="customize-btn" onClick={onCustomize}>🎨 Внешний вид</button>}
+            <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          </div>
         </div>
 
         <div className="seed-modal-body">

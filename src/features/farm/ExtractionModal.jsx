@@ -19,6 +19,7 @@ export default function ExtractionModal({
   onRecipesUpdate = null,  // Колбэк для обновления рецептов
   coins = 0,
   onUpgrade = null,
+  onCustomize = null,
 }) {
   const [quantities, setQuantities] = useState({});
   const [maxQuantities, setMaxQuantities] = useState({});
@@ -201,7 +202,10 @@ export default function ExtractionModal({
       <div className="seed-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
           <h2>{modalTitle}</h2>
-          <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          <div className="seed-modal-header-actions">
+            {onCustomize && <button className="customize-btn" onClick={onCustomize}>🎨 Внешний вид</button>}
+            <button className="seed-modal-close" onClick={onClose}>&times;</button>
+          </div>
         </div>
 
         <div className="seed-modal-body">
