@@ -176,3 +176,9 @@
   padding: 40px;
   font-size: 16px;
 }
+
+.build-card-locked {
+  margin-top: 4px;
+  font-size: 12px;
+  color: #ffcc80;
+}

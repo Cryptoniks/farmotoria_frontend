@@ -1,13 +1,175 @@
 import { useState, useEffect } from "react";
 import "./SeedSelectModal.css";
+import "./FarmModals.css";
 import PlantIcon from "../../components/PlantIcon";
 import BuildingLevel from "./BuildingLevel";
 
-export default function ExtractionModal({ 
-  isOpen, 
-  onClose, 
-  building, 
-  processes, 
+// Иконки по slug здания (для животноводства)
+const ANIMAL_ICONS = {
+  "chicken-coop": "🐔",
+  "pigsty": "🐷",
+  "cowshed": "🐄",
+  "sheepfold": "🐑",
+};
+
+const KIND_TEXT = {
+  extraction: { icon: "⛏️", title: "⛏ Добыча", running: "Добыча в процессе...", done: "" },
+  processing: { icon: "🏭", title: "🏭 Переработка", running: "Переработка в процессе...", done: "Переработка завершена!" },
+  production: { icon: "⚙️", title: "⚙️ Производство", running: "Производство в процессе...", done: "Производство завершено!" },
+  agroproduction: { icon: "🐄", title: "🐄 Животноводство", running: "Животноводство в процессе...", done: "Животноводство завершено!" },
+};
+
+function formatTime(minutes, seconds) {
+  if (minutes > 0) return `${minutes}м ${seconds}с`;
+  return `${seconds}с`;
+}
+
+function formatTimeFull(ms) {
+  const hours = Math.floor(ms / (1000 * 60 * 60));
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
+  if (hours > 0) return `${hours}ч ${minutes}м ${seconds}с`;
+  return formatTime(minutes, seconds);
+}
+
+function formatDuration(seconds) {
+  const mins = Math.floor(seconds / 60);
+  if (mins > 0) return `${mins} мин`;
+  return `${seconds} сек`;
+}
+
+/** Один процесс здания: таймер и «Остановить», а когда всё готово — «Собрать». */
+function ProcessCard({ process, kind, icon, onStop, onCollect }) {
+  const isExtraction = kind === "extraction";
+  const complete = !isExtraction && process.all_complete === true;
+  const target = isExtraction ? process.next_harvest_at : process.ready_at;
+  const [now, setNow] = useState(() => Date.now());
+  const [collecting, setCollecting] = useState(false);
+
+  useEffect(() => {
+    if (!target || complete) return undefined;
+    const interval = setInterval(() => setNow(Date.now()), 1000);
+    return () => clearInterval(interval);
+  }, [target, complete]);
+
+  const text = KIND_TEXT[kind] || KIND_TEXT.processing;
+
+  if (complete) {
+    const collect = async () => {
+      setCollecting(true);
+      try {
+        await onCollect(process.id);
+      } catch (e) {
+        // Например, «Склад: не хватает места…» — показываем прямо в окне
+        alert(e?.response?.data?.detail || e?.message || "Ошибка сбора");
+      } finally {
+        setCollecting(false);
+      }
+    };
+    return (
+      <div className="harvest-ready">
+        <div className="harvest-icon">✅</div>
+        <div className="harvest-text">
+          <div className="harvest-title">{text.done}</div>
+          <div className="harvest-seed">{process.output_item_name} x{process.output_quantity}</div>
+        </div>
+        <button className="harvest-btn" onClick={collect} disabled={collecting}>
+          {collecting ? "..." : "📦 Собрать"}
+        </button>
+      </div>
+    );
+  }
+
+  // Для переработки ready_at — конец всех циклов; до конца текущего — остаток от длительности одного цикла
+  const totalLeft = target ? new Date(target).getTime() - now : 0;
+  const perOne = (process.duration_per_one || 1) * 1000;
+  const cycleLeft = isExtraction ? totalLeft : totalLeft - Math.max(0, (process.remaining || 1) - 1) * perOne;
+
+  return (
+    <div className="process-card">
+      <div className="growing-timer">
+        <div className="timer-icon">{icon}</div>
+        <div className="timer-info">
+          <div className="timer-title">{totalLeft > 0 ? text.running : "Ожидание..."}</div>
+          <div className="timer-seed">{process.recipe_name || process.resource_name}</div>
+          {!isExtraction && (
+            <div className="timer-cycle">Цикл {Math.min(process.quantity_done + 1, process.quantity)} из {process.quantity}</div>
+          )}
+        </div>
+        {cycleLeft > 0 && (
+          <div className="timer-countdown">
+            <div className="timer-value">{formatTimeFull(cycleLeft)}</div>
+            <div className="timer-label">{isExtraction ? "автосбор" : "готово"}</div>
+          </div>
+        )}
+        {!isExtraction && totalLeft > 0 && (
+          <div className="timer-total">Всего осталось: {formatTimeFull(totalLeft)}</div>
+        )}
+      </div>
+      <div className="action-buttons">
+        <button className="harvest-btn stop-btn" onClick={() => onStop(process.id)}>⏹ Остановить работу</button>
+      </div>
+    </div>
+  );
+}
+
+/** Циклы здания переработки/производства: сколько открыто и занято, кнопка «Открыть новый цикл». */
+function CyclesPanel({ building, busyCount, coins, onOpenCycle }) {
+  const [opening, setOpening] = useState(false);
+  const [error, setError] = useState("");
+  const { cycles, max_cycles: max, cycle_price: price, cycle_lock_reason: lockReason } = building;
+  const allOpen = cycles >= max;
+  const noCoins = coins < price;
+
+  const open = async () => {
+    setOpening(true);
+    setError("");
+    const res = await onOpenCycle?.(building.id);
+    if (res?.error) setError(res.error);
+    setOpening(false);
+  };
+
+  return (
+    <div className="cycles-panel">
+      <div className="cycles-head">
+        <span className="farm-modal-name">Циклы: {cycles} из {max}</span>
+        <span className="farm-modal-sub">занято {busyCount} из {cycles}</span>
+      </div>
+      <div className="cycles-slots">
+        {Array.from({ length: max }, (_, i) => (
+          <span
+            key={i}
+            className={`cycles-slot ${i < busyCount ? "busy" : i < cycles ? "free" : "locked"}`}
+            title={i < busyCount ? "Занят" : i < cycles ? "Свободен" : "Закрыт"}
+          >
+            {i < busyCount ? "⚙️" : i < cycles ? "" : "🔒"}
+          </span>
+        ))}
+      </div>
+      {!allOpen && (
+        <>
+          <button
+            className="farm-modal-btn cycles-open-btn"
+            disabled={Boolean(lockReason) || noCoins || opening}
+            onClick={open}
+            title={lockReason || (noCoins ? "Недостаточно монет" : undefined)}
+          >
+            🏭 Открыть новый цикл (💰 {price.toLocaleString("ru-RU")})
+          </button>
+          {lockReason && <div className="academy-hint">🔒 {lockReason}</div>}
+          {!lockReason && noCoins && <div className="academy-hint">Недостаточно монет</div>}
+        </>
+      )}
+      {error && <div className="farm-modal-error">{error}</div>}
+    </div>
+  );
+}
+
+export default function ExtractionModal({
+  isOpen,
+  onClose,
+  building,
+  processes,
   onStart,
   onStop,
   onCollect,
@@ -20,142 +182,40 @@ export default function ExtractionModal({
   coins = 0,
   onUpgrade = null,
   onCustomize = null,
+  onOpenCycle = null,
 }) {
   const [quantities, setQuantities] = useState({});
-  const [maxQuantities, setMaxQuantities] = useState({});
-  const [collecting, setCollecting] = useState(false);
-  
-  // Обновляем maxQuantities когда приходят рецепты
-  useEffect(() => {
-    if (recipes && recipes.length > 0) {
-      const newMaxQuantities = {};
-      recipes.forEach(recipe => {
-        newMaxQuantities[recipe.id] = recipe.max_possible || 0;
-      });
-      setMaxQuantities(newMaxQuantities);
-    }
-  }, [recipes]);
-  
+
+  if (!isOpen) return null;
+
   // Определяем тип здания
   const buildingType = building?.building_type || (isProcessing ? "processing" : "extraction");
   const isExtraction = buildingType === "extraction";
-  const isProc = buildingType === "processing";
-  const isProduction = buildingType === "production";
-  const isAgroProduction = buildingType === "agroproduction";
-  
-  // Находим процесс для текущего здания
-  const buildingProcess = processes?.find(p => p.building_id === building?.id);
-  const isRunning = buildingProcess && buildingProcess.status === "running";
-  const isAllComplete = buildingProcess && buildingProcess.all_complete === true;
-  const canCollect = (isProc || isProduction || isAgroProduction) && isAllComplete;
+  const isRecipeBuilding = ["processing", "production", "agroproduction"].includes(buildingType);
+  const buildingSlug = building?.slug || "";
+  const text = KIND_TEXT[buildingType] || KIND_TEXT.processing;
+  const icon = buildingType === "agroproduction" ? ANIMAL_ICONS[buildingSlug] || text.icon : text.icon;
 
-  // Таймер обратного отсчёта - используем правильное поле для processing vs extraction
-  const [timeLeft, setTimeLeft] = useState(null);
-  const [currentCycle, setCurrentCycle] = useState(null);
-  const [totalTimeLeft, setTotalTimeLeft] = useState(null);
+  // Процессы этого здания: у добычи один, у переработки и производства — по одному на открытый цикл
+  const buildingProcesses = (processes || []).filter((p) => p.building_id === building?.id && p.status !== "stopped");
+  const hasRunning = buildingProcesses.length > 0;
+  const cycles = building?.cycles ?? 1;
+  const freeCycles = Math.max(0, cycles - buildingProcesses.length);
 
-  useEffect(() => {
-    // Для переработки и производства используем ready_at, для добычи - next_harvest_at
-    const targetTime = (isProc || isProduction || isAgroProduction)
-      ? buildingProcess?.ready_at 
-      : buildingProcess?.next_harvest_at;
-    
-    if (!targetTime) {
-      setTimeLeft(null);
-      setTotalTimeLeft(null);
-      return;
-    }
-    
-    const updateTimer = () => {
-      const now = new Date();
-      const ready = new Date(targetTime);
-      const diff = ready - now;
-      
-      if (diff <= 0) {
-        setTimeLeft(null);
-        // Если процесс готов - показываем что всё завершено
-        return;
-      }
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setTimeLeft({ hours, minutes, seconds, total: diff });
-      
-      // Вычисляем общее время для всех оставшихся циклов
-      if ((isProc || isProduction || isAgroProduction) && buildingProcess) {
-        const remaining = buildingProcess.remaining || 0;
-        const durationPerOne = buildingProcess.duration_per_one || 1;
-        const totalRemainingMs = diff + (remaining - 1) * durationPerOne * 1000;
-        
-        const totalHours = Math.floor(totalRemainingMs / (1000 * 60 * 60));
-        const totalMinutes = Math.floor((totalRemainingMs % (1000 * 60 * 60)) / (1000 * 60));
-        const totalSeconds = Math.floor((totalRemainingMs % (1000 * 60)) / 1000);
-        
-        setTotalTimeLeft({ hours: totalHours, minutes: totalMinutes, seconds: totalSeconds, total: totalRemainingMs });
-        
-        // Текущий цикл
-        const currentCycleNum = buildingProcess.quantity_done + 1;
-        setCurrentCycle({ current: currentCycleNum, total: buildingProcess.quantity });
-      }
-    };
-    
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
-    return () => clearInterval(interval);
-  }, [buildingProcess?.ready_at, buildingProcess?.next_harvest_at, buildingProcess?.remaining, buildingProcess?.quantity_done, buildingProcess?.duration_per_one, isProc, isProduction, isAgroProduction]);
-
-  function formatTime(minutes, seconds) {
-    if (minutes > 0) return `${minutes}м ${seconds}с`;
-    return `${seconds}с`;
+  async function handleStop(processId) {
+    await onStop(processId);
+    // После остановки обновляем рецепты (могут освободиться ингредиенты)
+    onStopComplete?.();
+    onRecipesUpdate?.();
   }
 
-  function formatTimeFull(hours, minutes, seconds) {
-    if (hours > 0) return `${hours}ч ${minutes}м ${seconds}с`;
-    if (minutes > 0) return `${minutes}м ${seconds}с`;
-    return `${seconds}с`;
-  }
-
-  function formatDuration(seconds) {
-    const mins = Math.floor(seconds / 60);
-    if (mins > 0) return `${mins} мин`;
-    return `${seconds} сек`;
-  }
-
-  async function handleStop() {
-    if (buildingProcess?.id) {
-      await onStop(buildingProcess.id);
-      // После остановки обновляем рецепты (могут освободиться ингредиенты)
-      if (onStopComplete) {
-        onStopComplete();
-      }
-      if (onRecipesUpdate) {
-        onRecipesUpdate();
-      }
-    }
-  }
-
-  async function handleCollect() {
-    if (buildingProcess?.id && onCollect) {
-      setCollecting(true);
-      try {
-        const result = await onCollect(buildingProcess.id);
-        // Если есть колбэк после сбора - вызываем его
-        if (onCollectComplete) {
-          onCollectComplete(result);
-        }
-      } catch (e) {
-        // Например, «Склад: не хватает места…» — показываем прямо в окне
-        alert(e?.response?.data?.detail || e?.message || "Ошибка сбора");
-      } finally {
-        setCollecting(false);
-      }
-    }
+  async function handleCollect(processId) {
+    const result = await onCollect(processId);
+    onCollectComplete?.(result);
   }
 
   async function handleSell() {
-    if (building?.id && isRunning) {
+    if (building?.id && hasRunning) {
       alert("Нельзя продать здание с активным процессом!");
       return;
     }
@@ -165,37 +225,15 @@ export default function ExtractionModal({
     }
   }
 
-  if (!isOpen) return null;
-
-  // Заголовок модального окна с названием здания
-  const buildingName = building?.name || "";
-  const buildingSlug = building?.slug || "";
-  
-  // Иконки по slug здания (для животноводства)
-  const buildingIcons = {
-    "chicken-coop": "🐔",
-    "pigsty": "🐷",
-    "cowshed": "🐄",
-    "sheepfold": "🐑",
-  };
-  
-  // Функция для получения иконки рецепта
+  // Картинка готового продукта (src/assets/items, src/assets/plants), иначе эмодзи
   const getRecipeIcon = (recipe) => {
-    // Картинка готового продукта (src/assets/items, src/assets/plants), иначе эмодзи
     if (recipe?.output_item_slug) {
       return <PlantIcon plant={{ slug: recipe.output_item_slug, name: recipe.output_item_name }} size={22} />;
     }
-    return isAgroProduction ? buildingIcons[buildingSlug] || "" : "";
+    return buildingType === "agroproduction" ? ANIMAL_ICONS[buildingSlug] || "" : "";
   };
-  
-  
-  const modalTitle = isProduction
-    ? `⚙️ Производство${buildingName ? ` - ${buildingName}` : ""}`
-    : (isAgroProduction
-        ? `${buildingIcons[buildingSlug] || "🐄"} Животноводство${buildingName ? ` - ${buildingName}` : ""}`
-        : (isProc 
-            ? `🏭 Переработка${buildingName ? ` - ${buildingName}` : ""}`
-            : (isExtraction ? `⛏ Добыча${buildingName ? ` - ${buildingName}` : ""}` : `🏭 Переработка${buildingName ? ` - ${buildingName}` : ""}`)));
+
+  const modalTitle = `${buildingType === "agroproduction" ? `${icon} Животноводство` : text.title}${building?.name ? ` - ${building.name}` : ""}`;
 
   return (
     <div className="seed-modal-overlay" onClick={onClose}>
@@ -209,77 +247,28 @@ export default function ExtractionModal({
         </div>
 
         <div className="seed-modal-body">
-          {/* Показываем таймер для активного процесса */}
-          {isRunning && timeLeft && !canCollect && (
-            <div className="growing-timer">
-              <div className="timer-icon">{isExtraction ? "⛏️" : (isProduction ? "⚙️" : (isAgroProduction ? (buildingIcons[buildingSlug] || "🐄") : (isProc ? "🏭" : "🏭")))}</div>
-              <div className="timer-info">
-                <div className="timer-title">
-                  {isExtraction ? "Добыча в процессе..." : (isProduction ? "Производство в процессе..." : (isAgroProduction ? "Животноводство в процессе..." : "Переработка в процессе..."))}
-                </div>
-                <div className="timer-seed">{buildingProcess?.recipe_name || buildingProcess?.resource_name}</div>
-                {(isProc || isProduction || isAgroProduction) && currentCycle && (
-                  <div className="timer-cycle">Цикл {currentCycle.current} из {currentCycle.total}</div>
-                )}
-              </div>
-              <div className="timer-countdown">
-                <div className="timer-value">{formatTime(timeLeft.minutes, timeLeft.seconds)}</div>
-                <div className="timer-label">{isExtraction ? "автосбор" : "готово"}</div>
-              </div>
-              {(isProc || isProduction || isAgroProduction) && totalTimeLeft && (
-                <div className="timer-total">
-                  Всего осталось: {formatTimeFull(totalTimeLeft.hours, totalTimeLeft.minutes, totalTimeLeft.seconds)}
-                </div>
-              )}
-            </div>
+          {building?.cycles != null && (
+            <CyclesPanel building={building} busyCount={buildingProcesses.length} coins={coins} onOpenCycle={onOpenCycle} />
           )}
 
-          {/* Кнопка "Все готово - собрать" для переработки/производства */}
-          {canCollect && (
-            <div className="harvest-ready">
-              <div className="harvest-icon">✅</div>
-              <div className="harvest-text">
-                <div className="harvest-title">{isProduction ? "Производство завершено!" : (isAgroProduction ? "Животноводство завершено!" : "Переработка завершена!")}</div>
-                <div className="harvest-seed">
-                  {buildingProcess?.output_item_name} x{buildingProcess?.output_quantity}
-                </div>
-              </div>
-              <button 
-                className="harvest-btn" 
-                onClick={handleCollect}
-                disabled={collecting}
-              >
-                {collecting ? "..." : "📦 Собрать"}
-              </button>
-            </div>
-          )}
+          {buildingProcesses.map((p) => (
+            <ProcessCard key={p.id} process={p} kind={buildingType} icon={icon} onStop={handleStop} onCollect={handleCollect} />
+          ))}
 
-          {/* Кнопка остановки для активного процесса (только если не всё готово) */}
-          {isRunning && !canCollect && (
-            <div className="action-buttons">
-              <button 
-                className="harvest-btn stop-btn" 
-                onClick={handleStop}
-              >
-                ⏹ Остановить работу
-              </button>
-            </div>
-          )}
-
-          {/* Если это переработка или производство и есть рецепты - показываем их список (только если нет активного процесса) */}
-          {(isProc || isProduction || isAgroProduction) && recipes && recipes.length > 0 && !isRunning && !canCollect && (
+          {/* Рецепты — пока в здании есть свободный цикл */}
+          {isRecipeBuilding && recipes && recipes.length > 0 && freeCycles > 0 && (
             <div className="recipes-section">
-              <div className="recipes-title">Доступные рецепты:</div>
+              <div className="recipes-title">
+                Доступные рецепты{cycles > 1 ? ` (свободно циклов: ${freeCycles})` : ""}:
+              </div>
               {recipes.map((recipe) => {
                 const qty = parseInt(quantities[recipe.id]) || 1;
-                const maxQty = maxQuantities[recipe.id] || 0;
-                const totalTime = formatDuration(recipe.duration_seconds * qty);
-                
+                const maxQty = recipe.max_possible || 0;
                 const isAvailable = maxQty > 0;
-                
+
                 return (
                   <div key={recipe.id} className="recipe-card" style={{ opacity: isAvailable ? 1 : 0.5 }}>
-                    <div className="recipe-name">{getRecipeIcon(recipe)} {recipe.name} {!isAvailable && <span style={{color: '#f44336', fontSize: 12}}>(нет ингредиентов)</span>}</div>
+                    <div className="recipe-name">{getRecipeIcon(recipe)} {recipe.name} {!isAvailable && <span style={{ color: '#f44336', fontSize: 12 }}>(нет ингредиентов)</span>}</div>
                     <div className="recipe-time">⏱ {formatDuration(recipe.duration_seconds)} за цикл</div>
                     <div className="recipe-inputs">
                       {recipe.ingredients?.map((ing, idx) => (
@@ -292,7 +281,7 @@ export default function ExtractionModal({
                       → {recipe.output_quantity * qty} x {recipe.output_item_name}
                     </div>
                     <div className="recipe-total-time">
-                      Всего: {totalTime} ({qty} циклов)
+                      Всего: {formatDuration(recipe.duration_seconds * qty)} ({qty} циклов)
                     </div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
                       <input
@@ -315,8 +304,8 @@ export default function ExtractionModal({
                       >
                         Макс ({maxQty})
                       </button>
-                      <button 
-                        className="harvest-btn start-btn" 
+                      <button
+                        className="harvest-btn start-btn"
                         onClick={() => onStart(building?.id, recipe.id, qty)}
                         disabled={maxQty <= 0 || qty <= 0 || qty > maxQty}
                         title={maxQty <= 0 ? "Недостаточно ингредиентов" : ""}
@@ -331,40 +320,31 @@ export default function ExtractionModal({
           )}
 
           {/* Если нет активного процесса и это добыча - показываем кнопку запуска */}
-          {!buildingProcess && isExtraction && (
+          {!hasRunning && isExtraction && (
             <div className="start-section">
               <div className="start-info">
                 <p>Здание: <strong>{building?.name}</strong></p>
                 <p>Тип: <strong>Добыча ресурсов</strong></p>
               </div>
-              
-              <button 
-                className="harvest-btn start-btn" 
+
+              <button
+                className="harvest-btn start-btn"
                 onClick={() => onStart(building?.id)}
               >
                 ▶ Начать работу
               </button>
-              
+
               <p className="start-hint">Бесплатно. Работает циклично.</p>
-            </div>
-          )}
-          
-          {isRunning && !timeLeft && !canCollect && (
-            <div className="growing-timer">
-              <div className="timer-icon">⏳</div>
-              <div className="timer-info">
-                <div className="timer-title">Ожидание...</div>
-              </div>
             </div>
           )}
 
           <BuildingLevel building={building} coins={coins} onUpgrade={onUpgrade} />
 
           <div className="modal-footer">
-            <button 
-              className="sell-btn" 
+            <button
+              className="sell-btn"
               onClick={handleSell}
-              disabled={isRunning}
+              disabled={hasRunning}
             >
               💰 Продать здание
             </button>

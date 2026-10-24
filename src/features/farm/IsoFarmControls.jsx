@@ -52,6 +52,7 @@ const IsoFarmControls = ({
   collectProcessing,
   load,
   tryUpgradeBuilding,
+  tryOpenCycle,
   onCustomize,
   isFullscreen,
   onToggleFullscreen,
@@ -351,9 +352,17 @@ const IsoFarmControls = ({
             ? processingProcesses
             : extractionProcesses
         }
-        onStart={(buildingId, recipeId, quantity) => {
+        onStart={async (buildingId, recipeId, quantity) => {
           if (["processing", "production", "agroproduction"].includes(extractionBuilding?.building_type)) {
-            startProcessing(buildingId, recipeId, quantity || 1);
+            await startProcessing(buildingId, recipeId, quantity || 1);
+            // Ингредиенты списаны — пересчитываем «Макс» для следующего свободного цикла
+            try {
+              const { api } = await import("../../shared/services/api");
+              const res = await api.get(`/api/processing/recipes/?building_type=${extractionBuilding.slug}`);
+              setProcessingRecipes(res.data);
+            } catch (e) {
+              console.error("Failed to reload recipes after start:", e);
+            }
           } else {
             startExtraction(buildingId);
           }
@@ -398,6 +407,7 @@ const IsoFarmControls = ({
           }
         }}
         onSell={tryRemoveBuilding}
+        onOpenCycle={tryOpenCycle}
         recipes={processingRecipes}
         isProcessing={["processing", "production", "agroproduction"].includes(extractionBuilding?.building_type)}
       />

@@ -15,7 +15,10 @@ export function ProfileBadge({ user, onOpen }) {
       </button>
       <div className="profile-badge-info">
         <div className="profile-badge-name">{user.username}</div>
-        <div className="profile-badge-level">Ур. {user.level}</div>
+        <div className="profile-badge-level">
+          Ур. {user.level}
+          {user.qualification_points > 0 && <span title="Очки квалификации — тратятся в Академии"> · 🎓 {user.qualification_points}</span>}
+        </div>
         <div className="profile-badge-bar" title={`Опыт: ${user.exp} / ${user.exp_to_next}`}>
           <div style={{ width: `${user.exp_progress ?? percent(user.exp, user.exp_to_next)}%` }} />
         </div>
@@ -83,6 +86,9 @@ export default function ProfileModal({ isOpen, onClose, onSaved }) {
                   </div>
                   <div className="capacity-caption">
                     <span>Опыт {profile.exp} / {profile.exp_to_next}</span>
+                    <span title="Очки квалификации: +1 за уровень, +2 за каждый 10-й; тратятся в Академии">
+                      🎓 {profile.qualification_points ?? 0}
+                    </span>
                     <span>💰 {profile.coins_balance.toLocaleString("ru-RU")}</span>
                   </div>
                 </div>

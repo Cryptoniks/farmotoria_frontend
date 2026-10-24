@@ -461,6 +461,53 @@ export const CLASSIC = {
       }
     },
   },
+
+  academy: {
+    size: [5, 5, 3.0],
+    base: { wall: "#efe6d2", roof: "#455a8a", door: "#6d4c41", dome: "#f2b632", column: "#fafafa", flag: "#e53935", trees: true },
+    draw(b, L) {
+      b.plate("#cfc6b4");
+      // дорожка к портику
+      b.poly([b.P(3.9, 2.05, 0.07), b.P(3.9, 2.95, 0.07), b.P(5, 2.95, 0.07), b.P(5, 2.05, 0.07)], "#e0d8c6", OUT, 0.8);
+      if (L.trees) {
+        b.bush(0.35, 0.35, "#f8bbd0", 0.16);
+        b.bush(0.35, 4.6, "#fff59d", 0.16);
+        b.bush(4.4, 0.45, "#f8bbd0", 0.18);
+      }
+
+      // главный корпус
+      const [r0, c0, r1, c1, z0, z1] = [0.6, 0.6, 3.2, 4.4, 0.06, 1.3];
+      b.box(r0, c0, r1, c1, z0, z1, L.wall);
+      b.linesOn("front", r1, c0, z0, c1 - c0, z1 - z0, 0.36, shade(L.wall, 0.82), 0.5);
+      for (const u of [0.22, 0.72, 2.98, 3.48]) b.styledWindow("front", r1, c0, z0, u, 0.32, 0.32, 0.6, "arched", "#fafafa");
+      for (const u of [0.25, 0.85, 1.45, 2.05]) b.styledWindow("side", r1, c1, z0, u, 0.32, 0.32, 0.6, "arched", "#fafafa");
+      b.door("front", r1, c0, z0, 1.65, 0.5, 0.75, L.door);
+      // карниз и вальмовая крыша
+      b.box(r0 - 0.05, c0 - 0.05, r1 + 0.05, c1 + 0.05, z1, z1 + 0.08, shade(L.wall, 0.95));
+      b.hip(r0, c0, r1, c1, z1 + 0.08, 1.85, L.roof, 0.1);
+
+      // купол на барабане со шпилем и флагом
+      const [dr, dc] = [1.75, 2.5];
+      b.cyl(dr, dc, 0.55, 1.55, 2.2, L.wall);
+      for (const u of [0.1, 0.62]) b.styledWindow("side", dr + 0.39, dc + 0.39, 1.75, u * 0.5, 0.05, 0.14, 0.28, "arched", "#fafafa");
+      b.cyl(dr, dc, 0.62, 2.18, 2.27, shade(L.wall, 0.95));
+      b.cone(dr, dc, 0.6, 2.27, 2.95, L.dome);
+      b.line(b.P(dr, dc, 2.95), b.P(dr, dc, 3.4), OUT, 1.6);
+      const top = b.P(dr, dc, 3.37);
+      const mid = b.P(dr, dc + 0.32, 3.29);
+      const low = b.P(dr, dc, 3.2);
+      b.poly([top, mid, low], L.flag, OUT, 0.8);
+
+      // портик: ступени, колонны, фронтон с эмблемой (раскрытая книга)
+      b.box(3.2, 1.55, 3.95, 3.45, 0.06, 0.12, "#e7dfcf");
+      b.box(3.25, 1.6, 3.85, 3.4, 0.12, 0.18, "#efe9dc");
+      for (const c of [1.72, 2.27, 2.83, 3.28]) b.cyl(3.68, c, 0.07, 0.18, 1.12, L.column);
+      b.box(3.2, 1.55, 3.9, 3.45, 1.12, 1.2, shade(L.wall, 0.95));
+      b.gable(3.2, 1.55, 3.9, 3.45, 1.2, 1.62, L.roof, L.wall, "r", 0.06);
+      b.onFace("front", 3.9, 1.55, 1.2,
+        `<path d="M0.72,0.1 L0.95,0.16 L0.95,0.3 L0.72,0.24 Z M1.18,0.1 L0.95,0.16 L0.95,0.3 L1.18,0.24 Z" fill="#fafafa" stroke="${OUT}" stroke-width="0.8" NS/>`);
+    },
+  },
 };
 
 /** Полосатый навес над передней гранью (r = const) от колонки c0 до c1. */

@@ -8,6 +8,7 @@ import { useIsoFarmEngine } from "./useIsoFarmEngine";
 import IsoFarmRenderer from "./IsoFarmRenderer";
 import IsoFarmControls from "./IsoFarmControls";
 import ShopModal from "./ShopModal";
+import AcademyModal from "./AcademyModal";
 import MarketModal from "./MarketModal";
 import StorageModal from "./StorageModal";
 import AppearanceModal from "./AppearanceModal";
@@ -50,6 +51,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
   ]), [extraction, processing]);
   const [shopOpen, setShopOpen] = useState(false);
   const [marketOpen, setMarketOpen] = useState(false);
+  const [academyOpen, setAcademyOpen] = useState(false);
   const [storageId, setStorageId] = useState(null);
   const storageBuilding = engine.buildings.find((b) => b.id === storageId) || null;
   // Смена внешнего вида: { slug, name } типа здания, окно открывается поверх окна здания
@@ -111,6 +113,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
   const handleBuildingClick = async (building) => {
     if (building.building_type === "shop") return setShopOpen(true);
     if (building.building_type === "market") return setMarketOpen(true);
+    if (building.building_type === "academy") return setAcademyOpen(true);
     if (building.building_type === "storage") return setStorageId(building.id);
     if (building.building_type === "field") {
       engine.setClickedBuilding(building);
@@ -183,6 +186,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
         collectProcessing={engine.collectProcessing}
         load={engine.load}
         tryUpgradeBuilding={engine.tryUpgradeBuilding}
+        tryOpenCycle={engine.tryOpenCycle}
         onCustomize={openCustomize}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
@@ -202,6 +206,16 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
         onClose={() => setMarketOpen(false)}
         onCoinsChange={engine.applyCoins}
         onCustomize={() => openCustomize(byType("market"))}
+      />
+      <AcademyModal
+        isOpen={academyOpen}
+        onClose={() => setAcademyOpen(false)}
+        onCoinsChange={engine.applyCoins}
+        onLearned={() => {
+          // Новая квалификация меняет доступные постройки и циклы зданий, а очки — значок профиля
+          engine.load();
+          onUserChanged?.();
+        }}
       />
       <StorageModal
         building={storageBuilding}

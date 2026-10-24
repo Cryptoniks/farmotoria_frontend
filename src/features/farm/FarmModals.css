@@ -648,3 +648,181 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* ---------------------------------------------------------------- Академия -- */
+.academy-summary {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 15px;
+  color: #fff;
+  margin-bottom: 4px;
+}
+
+.academy-tabs {
+  margin-top: 12px;
+}
+
+.academy-branch {
+  margin-top: 12px;
+}
+
+.academy-card {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 12px;
+  margin-top: 8px;
+}
+
+.academy-card.engineer {
+  margin-left: 20px;
+  border-left: 3px solid #42a5f5;
+}
+
+.academy-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.academy-level {
+  flex-shrink: 0;
+  font-size: 12px;
+  font-weight: 700;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.1);
+  color: #cfd8dc;
+}
+
+.academy-level.learned {
+  background: rgba(76, 175, 80, 0.3);
+  color: #fff;
+}
+
+.academy-steps {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+  margin: 10px 0;
+}
+
+.academy-step {
+  border-radius: 8px;
+  padding: 8px;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid transparent;
+}
+
+.academy-step.done {
+  background: rgba(76, 175, 80, 0.15);
+  border-color: rgba(76, 175, 80, 0.5);
+}
+
+.academy-step.next {
+  border-color: #ffb300;
+}
+
+.academy-step-name {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+}
+
+.academy-step-unlocks {
+  font-size: 12px;
+  color: #e0e0e0;
+  margin: 4px 0;
+}
+
+.academy-learn-btn {
+  width: 100%;
+  padding: 10px 12px;
+  white-space: normal;
+}
+
+.academy-hint {
+  margin-top: 6px;
+  font-size: 12px;
+  color: #ffcc80;
+}
+
+.academy-hint.done {
+  color: #a5d6a7;
+}
+
+@media (max-width: 560px) {
+  .academy-steps {
+    grid-template-columns: 1fr;
+  }
+
+  .academy-card.engineer {
+    margin-left: 8px;
+  }
+}
+
+/* ------------------------------------------------------ Циклы здания -- */
+.cycles-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.cycles-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: 12px;
+}
+
+.cycles-slots {
+  display: flex;
+  gap: 8px;
+  margin: 8px 0;
+}
+
+.cycles-slot {
+  width: 34px;
+  height: 34px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 16px;
+}
+
+.cycles-slot.busy {
+  background: rgba(255, 179, 0, 0.25);
+  border: 1px solid #ffb300;
+}
+
+.cycles-slot.free {
+  background: rgba(76, 175, 80, 0.2);
+  border: 1px dashed #4caf50;
+}
+
+.cycles-slot.locked {
+  background: rgba(0, 0, 0, 0.25);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.cycles-open-btn {
+  width: 100%;
+  padding: 9px 12px;
+}
+
+.process-card + .process-card,
+.process-card + .harvest-ready,
+.harvest-ready + .process-card {
+  margin-top: 10px;
+}
+
+.academy-card .farm-modal-name,
+.cycles-panel .farm-modal-name {
+  color: #fff;
+  font-size: 15px;
+}

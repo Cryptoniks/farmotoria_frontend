@@ -44,10 +44,12 @@ export default function BuildMenu({
   
   // Проверка доступности здания по цене
   const canAfford = (price) => coins >= price;
+  // Без нужной квалификации (Академия) здание видно, но построить его нельзя
+  const canBuild = (building) => canAfford(building.price) && !building.locked_reason;
   
   // Обработчик клика "Построить"
   const handleBuild = (building) => {
-    if (!canAfford(building.price)) return;
+    if (!canBuild(building)) return;
     onBuild(building);
     onClose();
   };
@@ -89,12 +91,15 @@ export default function BuildMenu({
           {filteredBuildings.map(building => (
             <div 
               key={building.id} 
-              className={`build-card ${!isMoveMode && !canAfford(building.price) ? "disabled" : ""}`}
+              className={`build-card ${!isMoveMode && !canBuild(building) ? "disabled" : ""}`}
             >
               <div className="build-card-info">
                 <div className="build-card-name">{building.name}</div>
                 <div className="build-card-type">{CATEGORY_LABELS[building.building_type] || building.building_type}</div>
                 <div className="build-card-size">Размер: {building.width}×{building.height}</div>
+                {!isMoveMode && building.locked_reason && (
+                  <div className="build-card-locked">🔒 {building.locked_reason}</div>
+                )}
                 {isMoveMode && building.row !== undefined && (
                   <div className="build-card-position">Позиция: ({building.row}, {building.col})</div>
                 )}
@@ -116,10 +121,11 @@ export default function BuildMenu({
               ) : (
                 <button 
                   className="build-card-btn"
-                  disabled={!canAfford(building.price)}
+                  disabled={!canBuild(building)}
                   onClick={() => handleBuild(building)}
+                  title={building.locked_reason || undefined}
                 >
-                  Построить
+                  {building.locked_reason ? "🔒 Закрыто" : "Построить"}
                 </button>
               )}
             </div>
