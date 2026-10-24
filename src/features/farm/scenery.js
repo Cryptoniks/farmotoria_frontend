@@ -115,12 +115,17 @@ const pickWeighted = (rand, list) => {
   return list[list.length - 1][0];
 };
 
+/** Число предметов на участке: количества заданы для участка 10×10, на меньших — пропорционально площади. */
+function densityCount(n, size) {
+  return Math.max(1, Math.round((n * size * size) / 100));
+}
+
 /** Деревья, кусты и камни закрытого участка: [{ art, r, c, tint }]. Отступ от края — чтобы не нависали над полем. */
 export function chunkDecor(cr, cc, size) {
   const kind = chunkKind(cr, cc);
   const rand = rng(seedOf(cr, cc, 23));
   const [lo, hi] = KIND_COUNT[kind];
-  const n = lo + Math.floor(rand() * (hi - lo + 1));
+  const n = densityCount(lo + Math.floor(rand() * (hi - lo + 1)), size);
   const items = [];
   for (let i = 0; i < n; i++) {
     items.push({
@@ -138,7 +143,7 @@ const OWNED_DECOR = [["grass1", 0.32], ["grass2", 0.28], ["flowers1", 0.12], ["f
 /** Мелкая растительность на купленной земле (трава, цветы, кустики) — постоянная для участка. */
 export function ownedDecor(cr, cc, size) {
   const rand = rng(seedOf(cr, cc, 97));
-  const n = 6 + Math.floor(rand() * 6);
+  const n = densityCount(6 + Math.floor(rand() * 6), size);
   const items = [];
   for (let i = 0; i < n; i++) {
     items.push({

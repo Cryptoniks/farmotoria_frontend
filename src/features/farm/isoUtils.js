@@ -5,9 +5,9 @@
 
 export const TILE_W = 16;
 export const TILE_H = 8;
-export const CHUNK_SIZE = 10;
-export const MAX_SIZE = 250;
-export const START_UNLOCKED = 50;
+export const CHUNK_SIZE = 5;
+export const MAX_SIZE = 125;
+export const START_UNLOCKED = 25;
 // Рамки зданий видны только в режиме разработки (npm run dev)
 export const DEBUG_BUILDING_BOX = import.meta.env.DEV;
 export const DRAG_THRESHOLD_PX = 6;
