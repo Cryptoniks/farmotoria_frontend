@@ -428,7 +428,9 @@ const IsoFarmRenderer = (props) => {
         // Пейзаж и забор зависят только от купленной земли
         const ownedKey = [...owned].sort().join(";");
         if (ownedKey !== view.ownedKey) {
-          const before = view.ownedKey === null ? null : new Set(view.ownedKey.split(";"));
+          // Расчистка — только для участков, купленных уже при открытой карте. Первый кадр рисуется
+          // до загрузки поля (участков ещё нет), поэтому пустой прошлый набор — это не покупка.
+          const before = view.ownedKey ? new Set(view.ownedKey.split(";")) : null;
           view.ownedKey = ownedKey;
           drawDecor(owned);
           drawFences(owned);
