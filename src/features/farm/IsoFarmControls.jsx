@@ -4,6 +4,7 @@
  */
 
 import React from "react";
+import { useT } from "../../i18n/context";
 import SeedSelectModal from "./SeedSelectModal";
 import { buildingBusyReason } from "./plots";
 import ExtractionModal from "./ExtractionModal";
@@ -64,7 +65,8 @@ const IsoFarmControls = ({
   animate,
   onToggleAnimate,
 }) => {
-  // Здание с запущенным процессом не улучшается: окно получает причину вместе с данными здания
+  const t = useT();
+  // Здание с запущенным процессомне улучшается: окно получает причину вместе с данными здания
   const withBusy = (b) => b && { ...b, busy_reason: buildingBusyReason(b.id, { plots, extractionProcesses, processingProcesses }) };
 
   const handleSaveMoves = async () => {
@@ -75,7 +77,7 @@ const IsoFarmControls = ({
     }));
 
     if (changes.length === 0) {
-      return { error: "Нет изменений для сохранения" };
+      return { error: t("controls.noChanges") };
     }
 
     try {
@@ -88,10 +90,10 @@ const IsoFarmControls = ({
         await load();
         return { success: true };
       } else {
-        return { error: "Ошибка сохранения: " + (res.data.errors?.[0]?.error || "Unknown") };
+        return { error: t("controls.saveError", { error: res.data.errors?.[0]?.error || "Unknown" }) };
       }
     } catch (e) {
-      return { error: e?.response?.data?.detail || "Ошибка сохранения" };
+      return { error: e?.response?.data?.detail || t("controls.saveErrorShort") };
     }
   };
 
@@ -147,7 +149,7 @@ const IsoFarmControls = ({
             fontSize: 12,
             pointerEvents: "auto",
           }}>
-            🌾 Посев: {plantingSeed.name} (💰 {plantingSeed.price_coins}) — кликайте на пустые поля •
+            {t("controls.sowing", { name: plantingSeed.name, price: plantingSeed.price_coins })}
             <button
               onClick={() => setPlantingSeed(null)}
               style={{
@@ -159,7 +161,7 @@ const IsoFarmControls = ({
                 marginLeft: 4,
               }}
             >
-              Отмена (Esc)
+              {t("controls.cancelEsc")}
             </button>
           </span>
         )}
@@ -173,7 +175,7 @@ const IsoFarmControls = ({
             fontSize: 12,
             pointerEvents: "auto",
           }}>
-            🏗 Строительство: {buildingToPlace.name} (💰 {buildingToPlace.price}) — кликайте на карту, можно несколько подряд •
+            {t("controls.building", { name: buildingToPlace.name, price: buildingToPlace.price })}
             <button
               onClick={() => setBuildingToPlace(null)}
               style={{
@@ -185,7 +187,7 @@ const IsoFarmControls = ({
                 marginLeft: 4,
               }}
             >
-              Отмена (Esc)
+              {t("controls.cancelEsc")}
             </button>
           </span>
         )}
@@ -199,7 +201,7 @@ const IsoFarmControls = ({
             fontSize: 12,
             pointerEvents: "auto",
           }}>
-            📦 Перемещение: {movingBuilding.name} (кликните на поле) •
+            {t("controls.moving", { name: movingBuilding.name })}
             <button
               onClick={() => setMovingBuilding(null)}
               style={{
@@ -211,7 +213,7 @@ const IsoFarmControls = ({
                 marginLeft: 4,
               }}
             >
-              Отмена
+              {t("common.cancel")}
             </button>
           </span>
         )}
@@ -239,12 +241,12 @@ const IsoFarmControls = ({
             boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
           }}
         >
-          🏗️ Построить
+          {t("controls.build")}
         </button>
         <button
           onClick={() => {
             if (buildings.length === 0) {
-              return { error: "Нет построенных зданий" };
+              return { error: t("controls.noBuildings") };
             }
             const pos = {};
             buildings.forEach((b) => {
@@ -268,7 +270,7 @@ const IsoFarmControls = ({
             boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
           }}
         >
-          {moveMode ? "🔄 Режим перемещения" : "📦 Переместить"}
+          {moveMode ? t("controls.moveMode") : t("controls.move")}
         </button>
         {moveMode && (
           <>
@@ -286,7 +288,7 @@ const IsoFarmControls = ({
                 boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
               }}
             >
-              💾 Сохранить
+              {t("controls.save")}
             </button>
             <button
               onClick={handleCancelMoves}
@@ -302,14 +304,14 @@ const IsoFarmControls = ({
                 boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
               }}
             >
-              ❌ Отменить
+              {t("controls.discard")}
             </button>
           </>
         )}
         <button
           onClick={onToggleAnimate}
-          title={animate ? "Выключить анимацию зданий" : "Включить анимацию зданий"}
-          aria-label={animate ? "Выключить анимацию" : "Включить анимацию"}
+          title={animate ? t("controls.animOffTitle") : t("controls.animOnTitle")}
+          aria-label={animate ? t("controls.animOff") : t("controls.animOn")}
           style={{
             background: animate ? "linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%)" : "linear-gradient(135deg, #546e7a 0%, #37474f 100%)",
             border: "none",
@@ -325,8 +327,8 @@ const IsoFarmControls = ({
         </button>
         <button
           onClick={onToggleFullscreen}
-          title={isFullscreen ? "Свернуть (Esc)" : "На весь экран"}
-          aria-label={isFullscreen ? "Свернуть" : "На весь экран"}
+          title={isFullscreen ? t("controls.exitFullscreen") : t("controls.fullscreen")}
+          aria-label={isFullscreen ? t("controls.exitFullscreenShort") : t("controls.fullscreen")}
           style={{
             background: "linear-gradient(135deg, #546e7a 0%, #37474f 100%)",
             border: "none",

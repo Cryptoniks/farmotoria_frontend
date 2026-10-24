@@ -1,18 +1,20 @@
 import { useEffect, useState } from "react";
+import { useT } from "../../i18n/context";
 import { api } from "../../shared/services/api";
 import PlantIcon from "../../components/PlantIcon";
 import BuildingLevel from "./BuildingLevel";
 import "./SeedSelectModal.css";
 import "./FarmModals.css";
 
-const TITLES = { barn: "🏚 Сарай", warehouse: "📦 Склад" };
+const TITLES = { barn: "storageModal.barnTitle", warehouse: "storageModal.warehouseTitle" };
 const HINTS = {
-  barn: "Семена, урожай, корма и продукты животноводства",
-  warehouse: "Ресурсы, продукты переработки и продукция",
+  barn: "storageModal.barnHint",
+  warehouse: "storageModal.warehouseHint",
 };
 
 /** Сарай / Склад: товары этого типа хранилища и общая заполненность всех таких зданий. */
 export default function StorageModal({ building, onClose, coins, onUpgrade, onSell, onCustomize }) {
+  const t = useT();
   const [data, setData] = useState(null);
   const [error, setError] = useState("");
   const kind = building?.storage;
@@ -24,7 +26,7 @@ export default function StorageModal({ building, onClose, coins, onUpgrade, onSe
     api
       .get("/api/storage/")
       .then((res) => setData(res.data))
-      .catch(() => setError("Ошибка загрузки хранилища"));
+      .catch(() => setError(t("storageModal.loadError")));
   }, [building?.id, level]); // eslint-disable-line react-hooks/exhaustive-deps
 
   if (!building) return null;
@@ -34,7 +36,7 @@ export default function StorageModal({ building, onClose, coins, onUpgrade, onSe
   const fillClass = ratio >= 1 ? "full" : ratio >= 0.8 ? "warn" : "";
 
   const handleSell = async () => {
-    if (!confirm(`Продать «${building.name}»? Вернётся ${building.price_paid} монет.`)) return;
+    if (!confirm(t("storageModal.sellConfirm", { name: building.name, coins: building.price_paid }))) return;
     const res = await onSell?.(building.id);
     if (res?.error) setError(res.error);
     else onClose();
@@ -44,15 +46,15 @@ export default function StorageModal({ building, onClose, coins, onUpgrade, onSe
     <div className="seed-modal-overlay" onClick={onClose}>
       <div className="seed-modal-content farm-modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
-          <h2>{TITLES[kind] || building.name}</h2>
+          <h2>{TITLES[kind] ? t(TITLES[kind]) : building.name}</h2>
           <div className="seed-modal-header-actions">
-            {onCustomize && <button className="customize-btn" onClick={onCustomize}>🎨 Внешний вид</button>}
+            {onCustomize && <button className="customize-btn" onClick={onCustomize}>{t("common.appearance")}</button>}
             <button className="seed-modal-close" onClick={onClose}>&times;</button>
           </div>
         </div>
 
         <div className="seed-modal-body">
-          <div className="farm-modal-sub">{HINTS[kind]}</div>
+          <div className="farm-modal-sub">{HINTS[kind] ? t(HINTS[kind]) : ""}</div>
 
           {s && (
             <>
@@ -60,17 +62,17 @@ export default function StorageModal({ building, onClose, coins, onUpgrade, onSe
                 <div className={`capacity-bar-fill ${fillClass}`} style={{ width: `${Math.min(100, ratio * 100)}%` }} />
               </div>
               <div className="capacity-caption">
-                <span>Занято <b>{s.used}</b> из {s.capacity}</span>
-                <span>это здание: +{building.capacity}</span>
+                <span>{t("storageModal.used")} <b>{s.used}</b> {t("shop.of", { capacity: s.capacity })}</span>
+                <span>{t("storageModal.thisBuilding", { capacity: building.capacity })}</span>
               </div>
               {ratio >= 1 && (
                 <div className="farm-modal-error">
-                  Места нет: новые товары сюда не попадут. Продайте часть на Рынке или улучшите здание.
+                  {t("storageModal.full")}
                 </div>
               )}
 
               {s.items.length === 0 ? (
-                <div className="farm-modal-empty">Пусто</div>
+                <div className="farm-modal-empty">{t("storageModal.empty")}</div>
               ) : (
                 <div className="farm-modal-list">
                   {s.items.map((item) => (
@@ -78,7 +80,7 @@ export default function StorageModal({ building, onClose, coins, onUpgrade, onSe
                       <PlantIcon plant={{ name: item.name, slug: item.slug }} size={32} />
                       <div>
                         <div className="farm-modal-name">{item.name}</div>
-                        <div className="farm-modal-sub">{item.category} • на Рынке 💰 {item.sell_price} за шт.</div>
+                        <div className="farm-modal-sub">{t("storageModal.itemSub", { category: item.category, price: item.sell_price })}</div>
                       </div>
                       <b>×{item.quantity}</b>
                       <span />
@@ -88,13 +90,13 @@ export default function StorageModal({ building, onClose, coins, onUpgrade, onSe
               )}
             </>
           )}
-          {!s && !error && <div className="farm-modal-empty">Загрузка...</div>}
+          {!s && !error && <div className="farm-modal-empty">{t("common.loading")}</div>}
           {error && <div className="farm-modal-error">{error}</div>}
 
           <BuildingLevel building={building} coins={coins} onUpgrade={onUpgrade} />
 
           <div className="modal-footer">
-            <button className="sell-btn" onClick={handleSell}>💰 Продать здание</button>
+            <button className="sell-btn" onClick={handleSell}>{t("common.sellBuilding")}</button>
           </div>
         </div>
       </div>

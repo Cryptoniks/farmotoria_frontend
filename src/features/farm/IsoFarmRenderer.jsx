@@ -5,6 +5,7 @@
  */
 
 import React, { useRef, useEffect } from "react";
+import { getLanguage, translate } from "../../i18n/core";
 import * as PIXI from "pixi.js";
 import {
   gridToIsoTop,
@@ -554,7 +555,7 @@ const IsoFarmRenderer = (props) => {
             text = `💎 ${expansion.diamond_price}`;
             fill = 0x90caf9;
           } else if (!coinsLeft) {
-            text = `🔒 ур. ${expansion.level + 1}`;
+            text = translate(getLanguage(), "map.lockedLevel", { level: expansion.level + 1 });
             fill = 0xbdbdbd;
           }
           const label = makeLabel(text, 32);

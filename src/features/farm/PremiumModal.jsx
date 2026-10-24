@@ -2,36 +2,21 @@ import { useEffect, useState } from "react";
 import { api } from "../../shared/services/api";
 import "./SeedSelectModal.css";
 import "./FarmModals.css";
+import { useT } from "../../i18n/context";
 
-const PLAN_TITLES = { 1: "1 день", 7: "7 дней", 30: "30 дней" };
-
-// Что даёт Премиум. Новая премиум-функция — ещё одна запись в этом списке.
+// Что даёт Премиум: иконка и ключ текстов premium.feature.<key>.title / .text в словарях (src/i18n).
+// Новая премиум-функция — ещё одна запись здесь и строки в словарях.
 const PREMIUM_FEATURES = [
-  {
-    icon: "🌾",
-    title: "Множественный посев",
-    text: "Выберите семя один раз — и сажайте его на любые пустые поля кликом по карте, без окна. "
-      + "Поле под курсором подсвечивается: зелёным пустое, красным засеянное.",
-  },
-  {
-    icon: "🧺",
-    title: "Сбор со всех полей",
-    text: "Одной кнопкой собрать урожай со всех созревших полей — и сразу посадить в каждое то же семя.",
-  },
-  {
-    icon: "🗺️",
-    title: "Вдвое больше земли",
-    text: "За монеты — 2 новых участка на каждый уровень игрока вместо одного.",
-  },
-  {
-    icon: "👑",
-    title: "Корона у имени",
-    text: "Значок Премиума в профиле, пока подписка действует.",
-  },
+  { icon: "🌾", key: "multi" },
+  { icon: "🧺", key: "harvest" },
+  { icon: "🗺️", key: "land" },
+  { icon: "👑", key: "crown" },
 ];
 
 /** Премиум-магазин: алмазы за реальные деньги (пока заглушка) и Премиум-подписка за алмазы. */
 export default function PremiumModal({ isOpen, onClose, onChanged }) {
+  const t = useT();
+  const planTitle = (days) => (["1", "7", "30"].includes(String(days)) ? t(`premium.plan.${days}`) : t("premium.planDays", { days }));
   const [data, setData] = useState(null);
   const [tab, setTab] = useState("premium");
   const [busy, setBusy] = useState(false);
@@ -42,8 +27,8 @@ export default function PremiumModal({ isOpen, onClose, onChanged }) {
     setStatus({ text: "", error: false });
     api.get("/api/premium/")
       .then((res) => setData(res.data))
-      .catch(() => setStatus({ text: "Ошибка загрузки магазина", error: true }));
-  }, [isOpen]);
+      .catch(() => setStatus({ text: t("premium.loadError"), error: true }));
+  }, [isOpen, t]);
 
   if (!isOpen) return null;
 
@@ -53,10 +38,9 @@ export default function PremiumModal({ isOpen, onClose, onChanged }) {
       const res = await api.post("/api/premium/subscribe/", { days });
       setData(res.data);
       onChanged?.();
-      const verb = data.is_premium ? "продлён" : "оформлен";
-      setStatus({ text: `✅ Премиум ${verb} на ${PLAN_TITLES[days]}`, error: false });
+      setStatus({ text: t(data.is_premium ? "premium.extended" : "premium.started", { plan: planTitle(days) }), error: false });
     } catch (e) {
-      setStatus({ text: e?.response?.data?.detail || "Не удалось оформить подписку", error: true });
+      setStatus({ text: e?.response?.data?.detail || t("premium.error"), error: true });
     }
     setBusy(false);
   };
@@ -65,27 +49,27 @@ export default function PremiumModal({ isOpen, onClose, onChanged }) {
     <div className="seed-modal-overlay" onClick={onClose}>
       <div className="seed-modal-content farm-modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
-          <h2>💎 Премиум-магазин</h2>
+          <h2>{t("premium.title")}</h2>
           <button className="seed-modal-close" onClick={onClose}>&times;</button>
         </div>
 
         <div className="seed-modal-body">
           {!data ? (
-            <div className="farm-modal-empty">{status.text || "Загрузка..."}</div>
+            <div className="farm-modal-empty">{status.text || t("common.loading")}</div>
           ) : (
             <>
               <div className="academy-summary">
-                <span>💎 <b>{data.diamonds_balance.toLocaleString("ru-RU")}</b> алмазов</span>
+                <span>💎 <b>{t.num(data.diamonds_balance)}</b> {t("bank.diamonds")}</span>
                 <span>
                   {data.is_premium
-                    ? `👑 Премиум до ${new Date(data.premium_until).toLocaleString("ru-RU", { dateStyle: "medium", timeStyle: "short" })}`
-                    : "Премиум не активен"}
+                    ? t("premium.until", { date: t.date(data.premium_until, { dateStyle: "medium", timeStyle: "short" }) })
+                    : t("premium.inactive")}
                 </span>
               </div>
 
               <div className="farm-modal-tabs academy-tabs">
-                <button className={`farm-modal-tab ${tab === "premium" ? "active" : ""}`} onClick={() => setTab("premium")}>👑 Премиум</button>
-                <button className={`farm-modal-tab ${tab === "diamonds" ? "active" : ""}`} onClick={() => setTab("diamonds")}>💎 Алмазы</button>
+                <button className={`farm-modal-tab ${tab === "premium" ? "active" : ""}`} onClick={() => setTab("premium")}>{t("premium.tab.premium")}</button>
+                <button className={`farm-modal-tab ${tab === "diamonds" ? "active" : ""}`} onClick={() => setTab("diamonds")}>{t("premium.tab.diamonds")}</button>
               </div>
 
               {status.text && <div className={`farm-modal-status ${status.error ? "error" : ""}`}>{status.text}</div>}
@@ -93,32 +77,32 @@ export default function PremiumModal({ isOpen, onClose, onChanged }) {
               {tab === "premium" && (
                 <>
                   <div className="farm-modal-sub">
-                    Если подписка уже действует, новые дни добавятся к её сроку.
+                    {t("premium.extendNote")}
                   </div>
                   <div className="premium-grid">
                     {data.plans.map((p) => (
                       <div key={p.days} className="premium-card">
-                        <div className="premium-card-title">👑 {PLAN_TITLES[p.days] || `${p.days} дн.`}</div>
+                        <div className="premium-card-title">👑 {planTitle(p.days)}</div>
                         <div className="premium-card-price">💎 {p.price}</div>
                         <button className="farm-modal-btn" disabled={busy || data.diamonds_balance < p.price} onClick={() => subscribe(p.days)}
-                          title={data.diamonds_balance < p.price ? "Недостаточно алмазов" : undefined}>
-                          {data.is_premium ? "Продлить" : "Купить"}
+                          title={data.diamonds_balance < p.price ? t("premium.noDiamonds") : undefined}>
+                          {data.is_premium ? t("premium.extend") : t("common.buy")}
                         </button>
                       </div>
                     ))}
                   </div>
                   <div className="farm-modal-sub" style={{ marginTop: 10 }}>
-                    Алмазы можно купить в Банке за монеты или во вкладке «Алмазы».
+                    {t("premium.whereDiamonds")}
                   </div>
 
-                  <div className="profile-skills-title premium-features-title">Что даёт Премиум</div>
+                  <div className="profile-skills-title premium-features-title">{t("premium.features")}</div>
                   <div className="premium-features">
                     {PREMIUM_FEATURES.map((f) => (
-                      <div key={f.title} className="guide-card">
+                      <div key={f.key} className="guide-card">
                         <div className="guide-icon">{f.icon}</div>
                         <div>
-                          <div className="guide-title">{f.title}</div>
-                          <div className="guide-text">{f.text}</div>
+                          <div className="guide-title">{t(`premium.feature.${f.key}.title`)}</div>
+                          <div className="guide-text">{t(`premium.feature.${f.key}.text`)}</div>
                         </div>
                       </div>
                     ))}
@@ -128,14 +112,14 @@ export default function PremiumModal({ isOpen, onClose, onChanged }) {
 
               {tab === "diamonds" && (
                 <>
-                  <div className="farm-modal-sub">Покупка алмазов за реальные деньги скоро появится.</div>
+                  <div className="farm-modal-sub">{t("premium.diamondsSoon")}</div>
                   <div className="premium-grid">
                     {data.diamond_packs.map((p) => (
                       <div key={p.diamonds} className="premium-card">
-                        <div className="premium-card-title">💎 {p.diamonds.toLocaleString("ru-RU")}</div>
+                        <div className="premium-card-title">💎 {t.num(p.diamonds)}</div>
                         {p.bonus && <div className="premium-card-bonus">{p.bonus}</div>}
                         <div className="premium-card-price">{p.price}</div>
-                        <button className="farm-modal-btn" disabled={!data.payments_enabled}>Скоро</button>
+                        <button className="farm-modal-btn" disabled={!data.payments_enabled}>{t("premium.soon")}</button>
                       </div>
                     ))}
                   </div>

@@ -215,7 +215,7 @@ const ROOFS_PITCHED = ["gable-c", "gable-r", "hip", "shed"];
 
 // ======================================================================= рецепты ==
 // slots — подписи трёх цветов в окне «Внешний вид» (стены, крыша, окна и двери).
-const HOME_SLOTS = { wall: "Стены", roof: "Крыша", window: "Окна и двери" };
+const HOME_SLOTS = { wall: "slot.walls", roof: "slot.roof", window: "slot.windowsDoors" };
 
 export const RECIPES = {
   house: {
@@ -234,7 +234,7 @@ export const RECIPES = {
 
   warehouse: {
     size: [5, 5, 2.8],
-    slots: { wall: "Стены", roof: "Крыша", window: "Ворота и окна" },
+    slots: { wall: "slot.walls", roof: "slot.roof", window: "slot.gatesWindows" },
     palette: { wall: ["#8fa5b8", "#90a4ae", "#b0bec5", "#78909c", "#a5b4a0", "#c8b89a", "#a1887f", "#b23a2e"], roof: DARK_ROOFS, window: ["#4b5a69", "#5d4037", "#37474f", "#1b5e20", "#7f2b1f", "#1565c0"] },
     compose(b, R, D, C) {
       b.plate(GRAVEL);
@@ -248,7 +248,7 @@ export const RECIPES = {
 
   barn: {
     size: [2, 2, 1.9],
-    slots: { wall: "Стены", roof: "Крыша", window: "Отделка ворот и окон" },
+    slots: { wall: "slot.walls", roof: "slot.roof", window: "slot.gateTrim" },
     palette: BARN,
     compose(b, R, D, C) {
       b.plate(DIRT);
@@ -288,7 +288,7 @@ export const RECIPES = {
 
   quarry: {
     size: [3, 3, 2.0],
-    slots: { wall: "Камень", roof: "Кран и дерево", window: "Тележка" },
+    slots: { wall: "slot.stone", roof: "slot.craneWood", window: "slot.cart" },
     palette: { wall: ["#9e9e9e", "#a1887f", "#b0a999", "#8d8d8d", "#bcaaa4", "#90a4ae", "#c2b280"], roof: WOOD, window: [...WOOD, "#607d8b", "#546e7a"] },
     compose(b, R, D, C) {
       b.plate(GRAVEL);
@@ -322,7 +322,7 @@ export const RECIPES = {
 
   mine: {
     size: [3, 3, 1.9],
-    slots: { wall: "Скала", roof: "Крепь", window: "Вагонетка" },
+    slots: { wall: "slot.rock", roof: "slot.supports", window: "slot.minecart" },
     palette: { wall: ["#7b6a58", "#6d6d6d", "#8d7b68", "#5d4e3f", "#7a6f62", "#6f5f52"], roof: WOODS, window: ["#607d8b", "#8d6e63", "#546e7a", "#795548", "#455a64"] },
     compose(b, R, D, C) {
       b.plate("#9c8a72");
@@ -385,7 +385,7 @@ export const RECIPES = {
 
   sawmill: {
     size: [3, 2, 1.9],
-    slots: { wall: "Брёвна и стол", roof: "Навес", window: "Столбы" },
+    slots: { wall: "slot.logsTable", roof: "slot.canopy", window: "slot.posts" },
     palette: { wall: WOODS, roof: [...DARK_ROOFS, "#2e7d32", "#c0392b", "#8d6e63"], window: WOOD },
     compose(b, R, D, C) {
       b.plate(DIRT);
@@ -592,7 +592,7 @@ export const RECIPES = {
 
   cowshed: {
     size: [4, 4, 2.6],
-    slots: { wall: "Стены", roof: "Крыша", window: "Отделка ворот и окон" },
+    slots: { wall: "slot.walls", roof: "slot.roof", window: "slot.gateTrim" },
     palette: BARN,
     compose(b, R, D, C) {
       b.plate(DIRT);
@@ -629,7 +629,7 @@ export const RECIPES = {
 
   shop: {
     size: [3, 3, 2.2],
-    slots: { wall: "Стены", roof: "Крыша и вывеска", window: "Окна, двери и навес" },
+    slots: { wall: "slot.walls", roof: "slot.roofSign", window: "slot.windowsAwning" },
     palette: HOME,
     compose(b, R, D, C) {
       b.plate("#c8b08a");
@@ -657,7 +657,7 @@ export const RECIPES = {
 
   market: {
     size: [4, 3, 1.8],
-    slots: { wall: "Прилавки", roof: "Тенты", window: "Полосы тентов" },
+    slots: { wall: "slot.stalls", roof: "slot.tents", window: "slot.tentStripes" },
     palette: { wall: WOODS, roof: ["#1e88e5", "#43a047", "#e53935", "#fb8c00", "#8e24aa", "#00897b", "#fdd835"], window: ["#fafafa", "#fff8e1", "#fff59d", "#ffe0b2"] },
     compose(b, R, D, C) {
       b.plate("#d7c49e");

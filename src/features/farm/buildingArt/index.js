@@ -14,7 +14,7 @@ import { PALETTES, RECIPES } from "./procedural.js";
 const HEADROOM = 0.9;
 
 export const COLOR_SLOTS = ["wall", "roof", "window"];
-const DEFAULT_SLOTS = { wall: "Стены", roof: "Крыша", window: "Окна и двери" };
+const DEFAULT_SLOTS = { wall: "slot.walls", roof: "slot.roof", window: "slot.windowsDoors" };
 
 // Перекраска классической формы: какие параметры рисунка отвечают за стены, крышу и окна
 const genericPaint = {
@@ -59,7 +59,7 @@ const paintOf = (slug) => CLASSIC_PAINT[slug] || genericPaint;
 
 export const hasBuildingArt = (slug) => Boolean(CLASSIC[slug] || RECIPES[slug]);
 
-/** Подписи трёх цветов для окна «Внешний вид» (у каменоломни «Камень», у рынка «Тенты»…). */
+/** Ключи подписей трёх цветов для окна «Внешний вид» (у каменоломни «Камень», у рынка «Тенты»…) — тексты в src/i18n. */
 export const slotLabels = (slug) => RECIPES[slug]?.slots || DEFAULT_SLOTS;
 
 /** Стандартные цвета здания (исходная форма). */

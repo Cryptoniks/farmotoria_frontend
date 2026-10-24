@@ -4,11 +4,13 @@ import PlantIcon from "../../components/PlantIcon";
 import BuildingLevel from "./BuildingLevel";
 import { isPlotReady, plotReadyAt } from "./plots";
 import "./SeedSelectModal.css";
+import { useT } from "../../i18n/context";
 
 export default function SeedSelectModal({
   isOpen, onClose, buildingId, building, coins, onUpgrade, plots, onPlant, onHarvest, onSell, isPremium, onStartMulti,
   onCoinsChange,
 }) {
+  const t = useT();
   const [seeds, setSeeds] = useState([]);
   // Одиночная посадка — одно поле; множественная (Премиум) — то же семя и на другие поля кликом по карте
   const [multi, setMulti] = useState(false);
@@ -42,10 +44,10 @@ export default function SeedSelectModal({
   
   async function handleSell() {
     if (buildingId && hasActiveProcess) {
-      alert("Нельзя продать здание с активными процессами!");
+      alert(t("common.sellRunning"));
       return;
     }
-    if (buildingId && confirm("Вы уверены, что хотите продать это здание?")) {
+    if (buildingId && confirm(t("common.sellConfirm"))) {
       await onSell(buildingId);
       onClose();
     }
@@ -81,7 +83,7 @@ export default function SeedSelectModal({
 
   async function handlePlant(seedId) {
     if (!buildingId) {
-      alert("Ошибка: ID здания не определен");
+      alert(t("field.noBuilding"));
       return;
     }
     try {
@@ -94,7 +96,7 @@ export default function SeedSelectModal({
       await onPlant(buildingId, seedId);
     } catch (e) {
       console.error("Plant error:", e);
-      alert("Ошибка посадки: " + (e?.response?.data?.detail || e?.message || "Unknown"));
+      alert(t("field.plantError", { error: e?.response?.data?.detail || e?.message || "Unknown" }));
     }
   }
 
@@ -108,7 +110,7 @@ export default function SeedSelectModal({
       onCoinsChange?.(res.data.coins_balance);
       onHarvest?.();
     } catch (e) {
-      setBulk({ error: e?.response?.data?.detail || "Не удалось собрать урожай" });
+      setBulk({ error: e?.response?.data?.detail || t("field.bulkError") });
     }
     setBulkBusy(false);
   }
@@ -125,28 +127,17 @@ export default function SeedSelectModal({
       });
       onHarvest?.();
     } catch (e) {
-      alert("Ошибка сбора: " + (e?.response?.data?.detail || e?.message || "Unknown"));
+      alert(t("field.harvestError", { error: e?.response?.data?.detail || e?.message || "Unknown" }));
     }
   }
 
-  function formatTime(ms) {
-    const hours = Math.floor(ms / (1000 * 60 * 60));
-    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
-    const parts = [];
-    if (hours > 0) parts.push(`${hours}ч`);
-    if (minutes > 0) parts.push(`${minutes}м`);
-    parts.push(`${seconds}с`);
-    return parts.join(" ");
-  }
-
-  if (!isOpen) return null;
+if (!isOpen) return null;
 
   return (
     <div className="seed-modal-overlay" onClick={onClose}>
       <div className="seed-modal-content" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
-          <h2>🌾 Фермерское поле</h2>
+          <h2>{t("field.title")}</h2>
           <div className="seed-modal-header-actions">
             <button className="seed-modal-close" onClick={onClose}>&times;</button>
           </div>
@@ -161,28 +152,28 @@ export default function SeedSelectModal({
                 <PlantIcon plant={harvestOf(plot)} size={40} />
               </div>
               <div className="harvest-text">
-                <div className="harvest-title">Урожай готов!</div>
+                <div className="harvest-title">{t("field.ready")}</div>
                 <div className="harvest-seed">{plot.seed_name}</div>
               </div>
               <button className="harvest-btn" onClick={() => handleHarvest(plot)}>
-                Собрать
+                {t("field.harvest")}
               </button>
             </div>
             <div className="bulk-harvest">
               <div className="bulk-harvest-title">
-                👑 Все созревшие поля: {readyCount}
+                {t("field.allReady", { count: readyCount })}
               </div>
               {isPremium ? (
                 <div className="bulk-harvest-actions">
                   <button className="action-btn other-seeds-btn" disabled={bulkBusy} onClick={() => harvestAll(false)}>
-                    🧺 Собрать все
+                    {t("field.harvestAll")}
                   </button>
                   <button className="action-btn replant-btn" disabled={bulkBusy} onClick={() => harvestAll(true)}>
-                    🔁 Собрать и посадить снова
+                    {t("field.harvestReplant")}
                   </button>
                 </div>
               ) : (
-                <div className="plant-mode-hint">С Премиумом — собрать урожай со всех полей и пересадить те же семена одной кнопкой.</div>
+                <div className="plant-mode-hint">{t("field.bulkPremiumHint")}</div>
               )}
             </div>
             </>
@@ -193,8 +184,8 @@ export default function SeedSelectModal({
             <div className={`bulk-result ${bulk.error ? "error" : ""}`}>
               {bulk.error || (
                 <>
-                  ✅ Собрано с {bulk.harvested} пол{bulk.harvested === 1 ? "я" : "ей"}: {bulk.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}
-                  {bulk.replant && <> · пересажено {bulk.replanted}</>}
+                  {t("field.bulkDone", { count: bulk.harvested, items: bulk.items.map((i) => `${i.name} ×${i.quantity}`).join(", ") })}
+                  {bulk.replant && t("field.replanted", { count: bulk.replanted })}
                   {bulk.errors?.map((e) => <div key={e} className="farm-modal-error">{e}</div>)}
                 </>
               )}
@@ -208,12 +199,12 @@ export default function SeedSelectModal({
                 <PlantIcon plant={seedOf(plot)} size={40} />
               </div>
               <div className="timer-info">
-                <div className="timer-title">Растёт...</div>
+                <div className="timer-title">{t("field.growing")}</div>
                 <div className="timer-seed">{plot.seed_name}</div>
               </div>
               <div className="timer-countdown">
-                <div className="timer-value">{formatTime(Math.max(0, plotReadyAt(plot) - now))}</div>
-                <div className="timer-label">до созревания</div>
+                <div className="timer-value">{t.duration(Math.max(0, plotReadyAt(plot) - now))}</div>
+                <div className="timer-label">{t("field.untilRipe")}</div>
               </div>
             </div>
           )}
@@ -221,11 +212,11 @@ export default function SeedSelectModal({
           {/* Кнопки Ускорить и Удобрить */}
           {hasActiveProcess && (
             <div className="plot-actions">
-              <button className="action-btn accelerate-btn" onClick={() => alert("Ускорение будет доступно в будущем!")}>
-                ⚡ Ускорить
+              <button className="action-btn accelerate-btn" onClick={() => alert(t("field.speedUpSoon"))}>
+                {t("field.speedUp")}
               </button>
-              <button className="action-btn fertilize-btn" onClick={() => alert("Удобрение будет доступно в будущем!")}>
-                🌿 Удобрить
+              <button className="action-btn fertilize-btn" onClick={() => alert(t("field.fertilizeSoon"))}>
+                {t("field.fertilize")}
               </button>
             </div>
           )}
@@ -237,7 +228,7 @@ export default function SeedSelectModal({
               <>
                 {harvested.itemName && (
                   <div className="harvest-done">
-                    ✅ Собрано: {harvested.itemName} × {harvested.quantity}
+                    {t("field.harvested", { item: harvested.itemName, count: harvested.quantity })}
                   </div>
                 )}
                 <div className="plot-actions">
@@ -246,13 +237,13 @@ export default function SeedSelectModal({
                     disabled={!lastSeed}
                     onClick={() => handlePlant(harvested.seedId)}
                   >
-                    🔁 Повторить посадку
+                    {t("field.replant")}
                     <span className="action-btn-sub">
                       {lastSeed ? `${lastSeed.name} · 💰 ${lastSeed.price_coins}` : harvested.seedName}
                     </span>
                   </button>
                   <button className="action-btn other-seeds-btn" onClick={() => setHarvested(null)}>
-                    🌱 Выбрать другие семена
+                    {t("field.otherSeeds")}
                   </button>
                 </div>
               </>
@@ -264,27 +255,27 @@ export default function SeedSelectModal({
             <>
               <div className="plant-mode">
                 <button className={`plant-mode-btn ${!multi ? "active" : ""}`} onClick={() => setMulti(false)}>
-                  🌱 Одиночная посадка
+                  {t("field.single")}
                 </button>
                 <button
                   className={`plant-mode-btn ${multi ? "active" : ""}`}
                   disabled={!isPremium}
                   onClick={() => setMulti(true)}
-                  title={isPremium ? "Семя сажается сюда и на другие поля кликом по карте" : "Доступно с Премиумом"}
+                  title={isPremium ? t("field.multiTitle") : t("field.premiumOnly")}
                 >
-                  🌾 Множественная 👑
+                  {t("field.multi")}
                 </button>
               </div>
               <div className="plant-mode-hint">
                 {!isPremium
-                  ? "Множественная посадка — с Премиумом: выбранное семя сажается и на другие поля одним кликом по карте."
+                  ? t("field.multiNoPremium")
                   : multi
-                    ? "Выберите семя: оно посадится сюда, а дальше кликайте по пустым полям на карте. Выход — «Отмена» или Esc."
-                    : "Одно поле — одна посадка."}
+                    ? t("field.multiHint")
+                    : t("field.singleHint")}
               </div>
-              <div className="shop-title">Купить семена</div>
+              <div className="shop-title">{t("field.buySeeds")}</div>
               
-              {loading && <div className="seed-loading">Загрузка...</div>}
+              {loading && <div className="seed-loading">{t("common.loading")}</div>}
               {error && <div className="seed-error">{error}</div>}
 
               {!loading && !error && (
@@ -297,7 +288,7 @@ export default function SeedSelectModal({
                       <div className="seed-card-name">{seed.name}</div>
                       <div className="seed-card-price">💰 {seed.price_coins}</div>
                       {seed.grow_time_minutes && (
-                        <div className="seed-card-time">⏱ {seed.grow_time_minutes} мин</div>
+                        <div className="seed-card-time">{t("field.minutes", { count: seed.grow_time_minutes })}</div>
                       )}
                     </div>
                   ))}
@@ -314,7 +305,7 @@ export default function SeedSelectModal({
               onClick={handleSell}
               disabled={hasActiveProcess}
             >
-              💰 Продать здание
+              {t("common.sellBuilding")}
             </button>
           </div>
         </div>

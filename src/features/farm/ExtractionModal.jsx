@@ -4,6 +4,7 @@ import "./FarmModals.css";
 import PlantIcon from "../../components/PlantIcon";
 import BuildingLevel from "./BuildingLevel";
 import AnimalsPanel from "./AnimalsPanel";
+import { useT } from "../../i18n/context";
 
 // Иконки по slug здания (для животноводства)
 const ANIMAL_ICONS = {
@@ -13,34 +14,14 @@ const ANIMAL_ICONS = {
   "sheepfold": "🐑",
 };
 
-const KIND_TEXT = {
-  extraction: { icon: "⛏️", title: "⛏ Добыча", running: "Добыча в процессе...", done: "" },
-  processing: { icon: "🏭", title: "🏭 Переработка", running: "Переработка в процессе...", done: "Переработка завершена!" },
-  production: { icon: "⚙️", title: "⚙️ Производство", running: "Производство в процессе...", done: "Производство завершено!" },
-  agroproduction: { icon: "🐄", title: "🐄 Животноводство", running: "Животноводство в процессе...", done: "Животноводство завершено!" },
-};
-
-function formatTime(minutes, seconds) {
-  if (minutes > 0) return `${minutes}м ${seconds}с`;
-  return `${seconds}с`;
-}
-
-function formatTimeFull(ms) {
-  const hours = Math.floor(ms / (1000 * 60 * 60));
-  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
-  const seconds = Math.floor((ms % (1000 * 60)) / 1000);
-  if (hours > 0) return `${hours}ч ${minutes}м ${seconds}с`;
-  return formatTime(minutes, seconds);
-}
-
-function formatDuration(seconds) {
-  const mins = Math.floor(seconds / 60);
-  if (mins > 0) return `${mins} мин`;
-  return `${seconds} сек`;
-}
+// Тексты вида работы — ключи work.<kind>.title / .running / .done в словарях (src/i18n)
+const KIND_ICONS = { extraction: "⛏️", processing: "🏭", production: "⚙️", agroproduction: "🐄" };
+const KINDS = ["extraction", "processing", "production", "agroproduction"];
 
 /** Один процесс здания: таймер и «Остановить», а когда всё готово — «Собрать». */
 function ProcessCard({ process, kind, icon, onStop, onCollect }) {
+  const t = useT();
+  const k = KINDS.includes(kind) ? kind : "processing";
   const isExtraction = kind === "extraction";
   const complete = !isExtraction && process.all_complete === true;
   const target = isExtraction ? process.next_harvest_at : process.ready_at;
@@ -53,7 +34,6 @@ function ProcessCard({ process, kind, icon, onStop, onCollect }) {
     return () => clearInterval(interval);
   }, [target, complete]);
 
-  const text = KIND_TEXT[kind] || KIND_TEXT.processing;
 
   if (complete) {
     const collect = async () => {
@@ -62,7 +42,7 @@ function ProcessCard({ process, kind, icon, onStop, onCollect }) {
         await onCollect(process.id);
       } catch (e) {
         // Например, «Склад: не хватает места…» — показываем прямо в окне
-        alert(e?.response?.data?.detail || e?.message || "Ошибка сбора");
+        alert(e?.response?.data?.detail || e?.message || t("work.collectError"));
       } finally {
         setCollecting(false);
       }
@@ -71,11 +51,11 @@ function ProcessCard({ process, kind, icon, onStop, onCollect }) {
       <div className="harvest-ready">
         <div className="harvest-icon">✅</div>
         <div className="harvest-text">
-          <div className="harvest-title">{text.done}</div>
+          <div className="harvest-title">{t(`work.${k}.done`)}</div>
           <div className="harvest-seed">{process.output_item_name} x{process.output_quantity}</div>
         </div>
         <button className="harvest-btn" onClick={collect} disabled={collecting}>
-          {collecting ? "..." : "📦 Собрать"}
+          {collecting ? "..." : t("common.collect")}
         </button>
       </div>
     );
@@ -91,24 +71,24 @@ function ProcessCard({ process, kind, icon, onStop, onCollect }) {
       <div className="growing-timer">
         <div className="timer-icon">{icon}</div>
         <div className="timer-info">
-          <div className="timer-title">{totalLeft > 0 ? text.running : "Ожидание..."}</div>
+          <div className="timer-title">{totalLeft > 0 ? t(`work.${k}.running`) : t("work.waiting")}</div>
           <div className="timer-seed">{process.recipe_name || process.resource_name}</div>
           {!isExtraction && (
-            <div className="timer-cycle">Цикл {Math.min(process.quantity_done + 1, process.quantity)} из {process.quantity}</div>
+            <div className="timer-cycle">{t("work.cycle", { done: Math.min(process.quantity_done + 1, process.quantity), total: process.quantity })}</div>
           )}
         </div>
         {cycleLeft > 0 && (
           <div className="timer-countdown">
-            <div className="timer-value">{formatTimeFull(cycleLeft)}</div>
-            <div className="timer-label">{isExtraction ? "автосбор" : "готово"}</div>
+            <div className="timer-value">{t.duration(cycleLeft)}</div>
+            <div className="timer-label">{isExtraction ? t("work.autoCollect") : t("work.ready")}</div>
           </div>
         )}
         {!isExtraction && totalLeft > 0 && (
-          <div className="timer-total">Всего осталось: {formatTimeFull(totalLeft)}</div>
+          <div className="timer-total">{t("work.totalLeft", { time: t.duration(totalLeft) })}</div>
         )}
       </div>
       <div className="action-buttons">
-        <button className="harvest-btn stop-btn" onClick={() => onStop(process.id)}>⏹ Остановить работу</button>
+        <button className="harvest-btn stop-btn" onClick={() => onStop(process.id)}>{t("work.stop")}</button>
       </div>
     </div>
   );
@@ -116,6 +96,7 @@ function ProcessCard({ process, kind, icon, onStop, onCollect }) {
 
 /** Циклы здания переработки/производства: сколько открыто и занято, кнопка «Открыть новый цикл». */
 function CyclesPanel({ building, busyCount, coins, onOpenCycle }) {
+  const t = useT();
   const [opening, setOpening] = useState(false);
   const [error, setError] = useState("");
   const { cycles, max_cycles: max, cycle_price: price, cycle_lock_reason: lockReason } = building;
@@ -133,15 +114,15 @@ function CyclesPanel({ building, busyCount, coins, onOpenCycle }) {
   return (
     <div className="cycles-panel">
       <div className="cycles-head">
-        <span className="farm-modal-name">Циклы: {cycles} из {max}</span>
-        <span className="farm-modal-sub">занято {busyCount} из {cycles}</span>
+        <span className="farm-modal-name">{t("cycles.count", { count: cycles, max })}</span>
+        <span className="farm-modal-sub">{t("cycles.busy", { busy: busyCount, count: cycles })}</span>
       </div>
       <div className="cycles-slots">
         {Array.from({ length: max }, (_, i) => (
           <span
             key={i}
             className={`cycles-slot ${i < busyCount ? "busy" : i < cycles ? "free" : "locked"}`}
-            title={i < busyCount ? "Занят" : i < cycles ? "Свободен" : "Закрыт"}
+            title={t(i < busyCount ? "cycles.slotBusy" : i < cycles ? "cycles.slotFree" : "cycles.slotLocked")}
           >
             {i < busyCount ? "⚙️" : i < cycles ? "" : "🔒"}
           </span>
@@ -153,12 +134,12 @@ function CyclesPanel({ building, busyCount, coins, onOpenCycle }) {
             className="farm-modal-btn cycles-open-btn"
             disabled={Boolean(lockReason) || noCoins || opening}
             onClick={open}
-            title={lockReason || (noCoins ? "Недостаточно монет" : undefined)}
+            title={lockReason || (noCoins ? t("common.noCoins") : undefined)}
           >
-            🏭 Открыть новый цикл (💰 {price.toLocaleString("ru-RU")})
+            {t("cycles.open", { price: t.num(price) })}
           </button>
           {lockReason && <div className="academy-hint">🔒 {lockReason}</div>}
-          {!lockReason && noCoins && <div className="academy-hint">Недостаточно монет</div>}
+          {!lockReason && noCoins && <div className="academy-hint">{t("common.noCoins")}</div>}
         </>
       )}
       {error && <div className="farm-modal-error">{error}</div>}
@@ -186,6 +167,7 @@ export default function ExtractionModal({
   onOpenCycle = null,
   onBuyAnimal = null,
 }) {
+  const t = useT();
   const [quantities, setQuantities] = useState({});
 
   if (!isOpen) return null;
@@ -195,8 +177,8 @@ export default function ExtractionModal({
   const isExtraction = buildingType === "extraction";
   const isRecipeBuilding = ["processing", "production", "agroproduction"].includes(buildingType);
   const buildingSlug = building?.slug || "";
-  const text = KIND_TEXT[buildingType] || KIND_TEXT.processing;
-  const icon = buildingType === "agroproduction" ? ANIMAL_ICONS[buildingSlug] || text.icon : text.icon;
+  const kind = KINDS.includes(buildingType) ? buildingType : "processing";
+  const icon = buildingType === "agroproduction" ? ANIMAL_ICONS[buildingSlug] || KIND_ICONS.agroproduction : KIND_ICONS[kind];
 
   // Процессы этого здания: у добычи один, у переработки и производства — по одному на открытый цикл
   const buildingProcesses = (processes || []).filter((p) => p.building_id === building?.id && p.status !== "stopped");
@@ -219,10 +201,10 @@ export default function ExtractionModal({
 
   async function handleSell() {
     if (building?.id && hasRunning) {
-      alert("Нельзя продать здание с активным процессом!");
+      alert(t("common.sellRunning"));
       return;
     }
-    if (building?.id && confirm("Вы уверены, что хотите продать это здание?")) {
+    if (building?.id && confirm(t("common.sellConfirm"))) {
       await onSell(building.id);
       onClose();
     }
@@ -236,7 +218,8 @@ export default function ExtractionModal({
     return buildingType === "agroproduction" ? ANIMAL_ICONS[buildingSlug] || "" : "";
   };
 
-  const modalTitle = `${buildingType === "agroproduction" ? `${icon} Животноводство` : text.title}${building?.name ? ` - ${building.name}` : ""}`;
+  const kindTitle = buildingType === "agroproduction" ? t("work.agroTitle", { icon }) : t(`work.${kind}.title`);
+  const modalTitle = `${kindTitle}${building?.name ? ` - ${building.name}` : ""}`;
 
   return (
     <div className="seed-modal-overlay" onClick={onClose}>
@@ -244,7 +227,7 @@ export default function ExtractionModal({
         <div className="seed-modal-header">
           <h2>{modalTitle}</h2>
           <div className="seed-modal-header-actions">
-            {onCustomize && <button className="customize-btn" onClick={onCustomize}>🎨 Внешний вид</button>}
+            {onCustomize && <button className="customize-btn" onClick={onCustomize}>{t("common.appearance")}</button>}
             <button className="seed-modal-close" onClick={onClose}>&times;</button>
           </div>
         </div>
@@ -276,7 +259,7 @@ export default function ExtractionModal({
           {isRecipeBuilding && !hasAnimals && recipes && recipes.length > 0 && freeCycles > 0 && (
             <div className="recipes-section">
               <div className="recipes-title">
-                Доступные рецепты{cycles > 1 ? ` (свободно циклов: ${freeCycles})` : ""}:
+                {cycles > 1 ? t("recipes.availableFree", { free: freeCycles }) : t("recipes.available")}
               </div>
               {recipes.map((recipe) => {
                 const qty = parseInt(quantities[recipe.id]) || 1;
@@ -285,12 +268,12 @@ export default function ExtractionModal({
 
                 return (
                   <div key={recipe.id} className="recipe-card" style={{ opacity: isAvailable ? 1 : 0.5 }}>
-                    <div className="recipe-name">{getRecipeIcon(recipe)} {recipe.name} {!isAvailable && <span style={{ color: '#f44336', fontSize: 12 }}>(нет ингредиентов)</span>}</div>
-                    <div className="recipe-time">⏱ {formatDuration(recipe.duration_seconds)} за цикл</div>
+                    <div className="recipe-name">{getRecipeIcon(recipe)} {recipe.name} {!isAvailable && <span style={{ color: '#f44336', fontSize: 12 }}>{t("recipes.noIngredients")}</span>}</div>
+                    <div className="recipe-time">{t("recipes.perCycle", { time: t.minutes(recipe.duration_seconds) })}</div>
                     <div className="recipe-inputs">
                       {recipe.ingredients?.map((ing, idx) => (
                         <span key={idx} className="recipe-ingredient" style={{ color: ing.available >= ing.quantity ? '#4caf50' : '#f44336' }}>
-                          {ing.item_name} x{ing.quantity * qty} (доступно: {ing.available})
+                          {ing.item_name} x{ing.quantity * qty} ({t("recipes.available.short", { count: ing.available })})
                         </span>
                       ))}
                     </div>
@@ -298,7 +281,7 @@ export default function ExtractionModal({
                       → {recipe.output_quantity * qty} x {recipe.output_item_name}
                     </div>
                     <div className="recipe-total-time">
-                      Всего: {formatDuration(recipe.duration_seconds * qty)} ({qty} циклов)
+                      {t("recipes.total", { time: t.minutes(recipe.duration_seconds * qty), count: qty })}
                     </div>
                     <div style={{ display: "flex", gap: 8, alignItems: "center", marginTop: 8 }}>
                       <input
@@ -319,15 +302,15 @@ export default function ExtractionModal({
                         style={{ padding: "4px 12px", fontSize: 12 }}
                         disabled={maxQty <= 0}
                       >
-                        Макс ({maxQty})
+                        {t("common.maxN", { value: maxQty })}
                       </button>
                       <button
                         className="harvest-btn start-btn"
                         onClick={() => onStart(building?.id, recipe.id, qty)}
                         disabled={maxQty <= 0 || qty <= 0 || qty > maxQty}
-                        title={maxQty <= 0 ? "Недостаточно ингредиентов" : ""}
+                        title={maxQty <= 0 ? t("recipes.notEnough") : ""}
                       >
-                        ▶ Запустить ×{qty}
+                        {t("recipes.start", { count: qty })}
                       </button>
                     </div>
                   </div>
@@ -340,18 +323,18 @@ export default function ExtractionModal({
           {!hasRunning && isExtraction && (
             <div className="start-section">
               <div className="start-info">
-                <p>Здание: <strong>{building?.name}</strong></p>
-                <p>Тип: <strong>Добыча ресурсов</strong></p>
+                <p>{t("extraction.building")} <strong>{building?.name}</strong></p>
+                <p>{t("extraction.type")} <strong>{t("extraction.typeValue")}</strong></p>
               </div>
 
               <button
                 className="harvest-btn start-btn"
                 onClick={() => onStart(building?.id)}
               >
-                ▶ Начать работу
+                {t("extraction.start")}
               </button>
 
-              <p className="start-hint">Бесплатно. Работает циклично.</p>
+              <p className="start-hint">{t("extraction.hint")}</p>
             </div>
           )}
 
@@ -363,7 +346,7 @@ export default function ExtractionModal({
               onClick={handleSell}
               disabled={hasRunning}
             >
-              💰 Продать здание
+              {t("common.sellBuilding")}
             </button>
           </div>
         </div>

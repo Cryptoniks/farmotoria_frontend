@@ -1,4 +1,5 @@
 import axios from "axios";
+import { getLanguage } from "../../i18n/core";
 
 // Адрес бэкенда на Render задаётся переменной VITE_API_BASE_URL
 // (Vercel → Project → Settings → Environment Variables).
@@ -23,10 +24,10 @@ function clearTokensAndGoHome() {
 // ===== запрос: подставляем Bearer-токен =====
 api.interceptors.request.use((config) => {
   const token = getAccess();
-  if (token) {
-    config.headers = config.headers || {};
-    config.headers.Authorization = `Bearer ${token}`;
-  }
+  config.headers = config.headers || {};
+  if (token) config.headers.Authorization = `Bearer ${token}`;
+  // Сервер отвечает (сообщения, названия) на языке, выбранном игроком
+  config.headers["Accept-Language"] = getLanguage();
   return config;
 });
 

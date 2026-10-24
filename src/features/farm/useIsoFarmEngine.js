@@ -4,7 +4,11 @@
  */
 
 import { useCallback, useEffect, useRef, useState } from "react";
+import { getLanguage, translate } from "../../i18n/core";
 import { api } from "../../shared/services/api";
+
+// Текст на языке игрока (движок живёт вне компонентов, поэтому без useT)
+const tr = (key, params) => translate(getLanguage(), key, params);
 
 const INITIAL_STATE = {
   err: "",
@@ -104,7 +108,7 @@ export function useIsoFarmEngine() {
     } catch (e) {
       setState(prev => ({
         ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка загрузки",
+        err: e?.response?.data?.detail || e.message || tr("engine.loadError"),
       }));
     }
   }, []);
@@ -155,7 +159,7 @@ export function useIsoFarmEngine() {
       await loadAvailableChunks();
       return { success: true, data: res.data };
     } catch (e) {
-      return { error: e?.response?.data?.detail || e.message || "Ошибка покупки участка" };
+      return { error: e?.response?.data?.detail || e.message || tr("engine.chunkError") };
     }
   }, [loadAvailableChunks]);
 
@@ -174,7 +178,7 @@ export function useIsoFarmEngine() {
       loadPlots();
       return { success: true };
     } catch (e) {
-      const error = e?.response?.data?.detail || e.message || "Ошибка посадки";
+      const error = e?.response?.data?.detail || e.message || tr("engine.plantError");
       setState(prev => ({ ...prev, err: error }));
       return { error };
     }
@@ -191,7 +195,7 @@ export function useIsoFarmEngine() {
     if (!sel || placingRef.current) return;
     if (stateRef.current.coins < sel.price) {
       setBuildingToPlace(null);
-      setState(prev => ({ ...prev, err: `Недостаточно монет: «${sel.name}» стоит ${sel.price}` }));
+      setState(prev => ({ ...prev, err: tr("engine.noCoinsFor", { name: sel.name, price: sel.price }) }));
       return;
     }
 
@@ -221,13 +225,13 @@ export function useIsoFarmEngine() {
       setTimeout(async () => {
         await load();
         if (exhausted) {
-          setState(prev => ({ ...prev, err: `Постройка завершена: на ещё одно «${sel.name}» не хватает монет` }));
+          setState(prev => ({ ...prev, err: tr("engine.buildDone", { name: sel.name }) }));
         }
       }, 100);
     } catch (e) {
       setState(prev => ({
         ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка размещения",
+        err: e?.response?.data?.detail || e.message || tr("engine.placeError"),
       }));
     } finally {
       placingRef.current = false;
@@ -247,7 +251,7 @@ export function useIsoFarmEngine() {
       }));
       return { success: true };
     } catch (e) {
-      const error = e?.response?.data?.detail || e.message || "Ошибка продажи";
+      const error = e?.response?.data?.detail || e.message || tr("engine.sellError");
       setState(prev => ({ ...prev, err: error }));
       return { error };
     }
@@ -273,7 +277,7 @@ export function useIsoFarmEngine() {
     } catch (e) {
       setState(prev => ({
         ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка перемещения",
+        err: e?.response?.data?.detail || e.message || tr("engine.moveError"),
       }));
       throw e;
     }
@@ -290,7 +294,7 @@ export function useIsoFarmEngine() {
       }));
       return { success: true };
     } catch (e) {
-      return { error: e?.response?.data?.detail || e.message || "Ошибка улучшения" };
+      return { error: e?.response?.data?.detail || e.message || tr("engine.upgradeError") };
     }
   }, []);
 
@@ -305,7 +309,7 @@ export function useIsoFarmEngine() {
       }));
       return { success: true };
     } catch (e) {
-      return { error: e?.response?.data?.detail || e.message || "Ошибка открытия цикла" };
+      return { error: e?.response?.data?.detail || e.message || tr("engine.cycleError") };
     }
   }, []);
 
@@ -320,7 +324,7 @@ export function useIsoFarmEngine() {
       }));
       return { success: true };
     } catch (e) {
-      return { error: e?.response?.data?.detail || e.message || "Ошибка покупки животного" };
+      return { error: e?.response?.data?.detail || e.message || tr("engine.animalError") };
     }
   }, []);
 
@@ -336,7 +340,7 @@ export function useIsoFarmEngine() {
       });
       return { success: true };
     } catch (e) {
-      return { error: e?.response?.data?.detail || e.message || "Ошибка смены внешнего вида" };
+      return { error: e?.response?.data?.detail || e.message || tr("engine.looksError") };
     }
   }, []);
 
@@ -348,7 +352,7 @@ export function useIsoFarmEngine() {
     } catch (e) {
       setState(prev => ({
         ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка запуска добычи",
+        err: e?.response?.data?.detail || e.message || tr("engine.extractionStartError"),
       }));
     }
   }, [load]);
@@ -361,7 +365,7 @@ export function useIsoFarmEngine() {
     } catch (e) {
       setState(prev => ({
         ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка остановки",
+        err: e?.response?.data?.detail || e.message || tr("engine.stopError"),
       }));
     }
   }, []);
@@ -393,7 +397,7 @@ export function useIsoFarmEngine() {
     } catch (e) {
       setState(prev => ({
         ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка запуска переработки",
+        err: e?.response?.data?.detail || e.message || tr("engine.processingStartError"),
       }));
     }
   }, []);
@@ -411,7 +415,7 @@ export function useIsoFarmEngine() {
     } catch (e) {
       setState(prev => ({
         ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка остановки переработки",
+        err: e?.response?.data?.detail || e.message || tr("engine.processingStopError"),
       }));
     }
   }, []);
@@ -430,7 +434,7 @@ export function useIsoFarmEngine() {
     } catch (e) {
       setState(prev => ({
         ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка сбора переработки",
+        err: e?.response?.data?.detail || e.message || tr("engine.processingCollectError"),
       }));
       throw e;
     }

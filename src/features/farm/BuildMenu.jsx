@@ -1,14 +1,6 @@
 import { useState } from "react";
 import "./BuildMenu.css";
-
-const CATEGORY_LABELS = {
-  "field": "Поля",
-  "agroproduction": "Сельхозпродукция",
-  "extraction": "Добыча",
-  "processing": "Переработка",
-  "production": "Производство",
-  "storage": "Хранилища",
-};
+import { useT } from "../../i18n/context";
 
 const CATEGORY_ORDER = ["field", "storage", "agroproduction", "extraction", "processing", "production"];
 
@@ -21,6 +13,8 @@ export default function BuildMenu({
   mode = "build", // "build" или "move" - режим работы
   onMove, // колбэк для перемещения
 }) {
+  const t = useT();
+  const categoryLabel = (type) => t(`build.cat.${type}`);
   const [activeTab, setActiveTab] = useState("all");
   
   // Группировка зданий по категориям
@@ -38,8 +32,8 @@ export default function BuildMenu({
   
   // Категории для вкладок
   const tabs = [
-    { key: "all", label: "Все" },
-    ...CATEGORY_ORDER.map(key => ({ key, label: CATEGORY_LABELS[key] || key }))
+    { key: "all", label: t("build.all") },
+    ...CATEGORY_ORDER.map(key => ({ key, label: categoryLabel(key) }))
   ];
   
   // Проверка доступности здания по цене
@@ -70,8 +64,8 @@ export default function BuildMenu({
     <div className="build-menu-overlay" onClick={onClose}>
       <div className="build-menu-content" onClick={e => e.stopPropagation()}>
         <div className="build-menu-header">
-          <h2>{isMoveMode ? "📦 Переместить здание" : "🏗️ Построить здание"}</h2>
-          {!isMoveMode && <span className="build-menu-coins">💰 {coins}</span>}
+          <h2>{isMoveMode ? t("build.titleMove") : t("build.titleBuild")}</h2>
+          {!isMoveMode && <span className="build-menu-coins">💰 {t.num(coins)}</span>}
           <button className="build-menu-close" onClick={onClose}>&times;</button>
         </div>
         
@@ -95,13 +89,13 @@ export default function BuildMenu({
             >
               <div className="build-card-info">
                 <div className="build-card-name">{building.name}</div>
-                <div className="build-card-type">{CATEGORY_LABELS[building.building_type] || building.building_type}</div>
-                <div className="build-card-size">Размер: {building.width}×{building.height}</div>
+                <div className="build-card-type">{categoryLabel(building.building_type)}</div>
+                <div className="build-card-size">{t("build.size", { w: building.width, h: building.height })}</div>
                 {!isMoveMode && building.locked_reason && (
                   <div className="build-card-locked">🔒 {building.locked_reason}</div>
                 )}
                 {isMoveMode && building.row !== undefined && (
-                  <div className="build-card-position">Позиция: ({building.row}, {building.col})</div>
+                  <div className="build-card-position">{t("build.position", { row: building.row, col: building.col })}</div>
                 )}
               </div>
               {!isMoveMode && (
@@ -116,7 +110,7 @@ export default function BuildMenu({
                   className="build-card-btn move-btn"
                   onClick={() => handleMove(building)}
                 >
-                  Выбрать
+                  {t("build.select")}
                 </button>
               ) : (
                 <button 
@@ -125,7 +119,7 @@ export default function BuildMenu({
                   onClick={() => handleBuild(building)}
                   title={building.locked_reason || undefined}
                 >
-                  {building.locked_reason ? "🔒 Закрыто" : "Построить"}
+                  {building.locked_reason ? t("build.locked") : t("build.build")}
                 </button>
               )}
             </div>
@@ -133,7 +127,7 @@ export default function BuildMenu({
           
           {filteredBuildings.length === 0 && (
             <div className="build-menu-empty">
-              {isMoveMode ? "Нет построенных зданий" : "Нет доступных зданий"}
+              {isMoveMode ? t("build.noneBuilt") : t("build.noneAvailable")}
             </div>
           )}
         </div>

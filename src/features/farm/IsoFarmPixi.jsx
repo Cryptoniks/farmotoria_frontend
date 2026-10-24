@@ -4,6 +4,7 @@
  */
 
 import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { useLanguage, useT } from "../../i18n/context";
 import { useIsoFarmEngine } from "./useIsoFarmEngine";
 import IsoFarmRenderer from "./IsoFarmRenderer";
 import IsoFarmControls from "./IsoFarmControls";
@@ -26,6 +27,7 @@ const RECIPE_BUILDING_TYPES = ["processing", "production", "agroproduction"];
 
 const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, onBankClose }) => {
   const engine = useIsoFarmEngine();
+  const t = useT();
   const rootRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
   // Для Esc: идёт ли сейчас постройка или перемещение и как их отменить
@@ -72,6 +74,17 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
   const [academyOpen, setAcademyOpen] = useState(false);
   const [chunkToBuy, setChunkToBuy] = useState(null); // участок, покупку которого подтверждает игрок
   const [premiumOpen, setPremiumOpen] = useState(false);
+
+  // Названия зданий, товаров и рецептов приходят с сервера на языке игрока —
+  // при смене языка перечитываем поле (первую загрузку движок делает сам)
+  const { lang } = useLanguage();
+  const { load: reloadField } = engine;
+  const loadedLangRef = useRef(lang);
+  useEffect(() => {
+    if (loadedLangRef.current === lang) return;
+    loadedLangRef.current = lang;
+    reloadField();
+  }, [lang, reloadField]);
 
   // Лимит участков зависит от уровня и Премиума — перечитываем, когда они меняются
   const { loadAvailableChunks } = engine;
@@ -166,7 +179,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
     if (seed) {
       if (building.building_type !== "field") return;
       if (engine.plots.some((p) => p.building_id === building.id)) {
-        engine.showError("Это поле уже засеяно — выберите пустое");
+        engine.showError(t("map.fieldSown"));
         return;
       }
       const res = await engine.tryPlantSeed(building.id, seed.id, { multi: true });

@@ -24,15 +24,13 @@ export function buildingBusyReason(buildingId, { plots, extractionProcesses, pro
   if (buildingId == null) return null;
   const plot = (plots || []).find((p) => p.building_id === buildingId);
   if (plot) {
-    return isPlotReady(plot, now)
-      ? "На поле созрел урожай — сначала соберите его"
-      : "На поле растёт урожай — дождитесь и соберите его";
+    return isPlotReady(plot, now) ? "busy.plotRipe" : "busy.plotGrowing";
   }
   if ((extractionProcesses || []).some((p) => p.building_id === buildingId && p.status === "running")) {
-    return "Идёт добыча — сначала остановите её";
+    return "busy.extraction";
   }
   if ((processingProcesses || []).some((p) => p.building_id === buildingId && p.status === "running")) {
-    return "Идёт производство — дождитесь и заберите продукцию";
+    return "busy.production";
   }
   return null;
 }

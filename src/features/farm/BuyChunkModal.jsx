@@ -1,14 +1,15 @@
 import { useEffect, useState } from "react";
 import "./SeedSelectModal.css";
 import "./FarmModals.css";
-
-const fmt = (n) => (n ?? 0).toLocaleString("ru-RU");
+import { useT } from "../../i18n/context";
 
 /**
  * Покупка участка земли. За монеты — в пределах лимита по уровню (уровень × 1, с Премиумом × 2),
  * сверх него — один участок на уровень за алмазы.
  */
 export default function BuyChunkModal({ chunk, coins, diamonds, expansion, chunkSize, onBuy, onRefresh, onClose }) {
+  const t = useT();
+  const fmt = t.num;
   const [busy, setBusy] = useState(false);
   const [error, setError] = useState("");
 
@@ -34,59 +35,61 @@ export default function BuyChunkModal({ chunk, coins, diamonds, expansion, chunk
   const x = expansion;
   const nextLevel = (x?.level ?? 1) + 1;
   const coinsReason = !x ? "" : x.coin_slots_left <= 0
-    ? `Лимит на ${x.level}-м уровне исчерпан — следующий участок за монеты на ${nextLevel}-м уровне`
-    : coins < chunk.cost ? `Не хватает 💰 ${fmt(chunk.cost - coins)}` : "";
+    ? t("chunk.coinLimitReached", { level: x.level, next: nextLevel })
+    : coins < chunk.cost ? t("chunk.needCoins", { amount: fmt(chunk.cost - coins) }) : "";
   const diamondReason = !x ? "" : x.diamond_slots_left <= 0
-    ? `За алмазы — один участок на уровень; следующий на ${nextLevel}-м уровне`
-    : diamonds < x.diamond_price ? `Не хватает 💎 ${fmt(x.diamond_price - diamonds)} — алмазы есть в Банке` : "";
+    ? t("chunk.diamondLimitReached", { next: nextLevel })
+    : diamonds < x.diamond_price ? t("chunk.needDiamonds", { amount: fmt(x.diamond_price - diamonds) }) : "";
 
   return (
     <div className="seed-modal-overlay" onClick={onClose}>
       <div className="seed-modal-content confirm-modal" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
-          <h2>🗺️ Новый участок</h2>
+          <h2>{t("chunk.title")}</h2>
           <button className="seed-modal-close" onClick={onClose}>&times;</button>
         </div>
         <div className="seed-modal-body">
-          <div className="confirm-text">Купить участок {chunkSize}×{chunkSize} клеток и расширить ферму?</div>
+          <div className="confirm-text">{t("chunk.question", { size: chunkSize })}</div>
           {x && (
             <div className="farm-modal-sub" style={{ marginTop: 6 }}>
-              Уровень {x.level}: за монеты — по {x.per_level} участ{x.per_level === 1 ? "ку" : "ка"} на уровень
-              {x.is_premium ? " (👑 Премиум)" : " (с Премиумом — по 2)"}, куплено {x.coin_bought} из {x.coin_limit}.
+              {t("chunk.limit", {
+                level: x.level, perLevel: x.per_level, bought: x.coin_bought, limit: x.coin_limit,
+                premium: t(x.is_premium ? "chunk.withPremium" : "chunk.premiumHint"),
+              })}
             </div>
           )}
 
           <div className="chunk-option">
             <div>
-              <div className="farm-modal-name">💰 За монеты: {fmt(chunk.cost)}</div>
+              <div className="farm-modal-name">{t("chunk.coins", { cost: fmt(chunk.cost) })}</div>
               <div className="farm-modal-sub">
-                {x ? `Можно ещё ${x.coin_slots_left} на этом уровне` : ""} · у вас 💰 {fmt(coins)}
+                {x ? t("chunk.coinsLeft", { left: x.coin_slots_left }) : ""} · {t("chunk.youHaveCoins", { coins: fmt(coins) })}
               </div>
               {coinsReason && <div className="academy-hint">🔒 {coinsReason}</div>}
             </div>
             <button className="farm-modal-btn" disabled={busy || Boolean(coinsReason) || !x} onClick={() => buy("coins")} autoFocus>
-              Купить
+              {t("common.buy")}
             </button>
           </div>
 
           {x && (
             <div className="chunk-option diamonds">
               <div>
-                <div className="farm-modal-name">💎 За алмазы: {x.diamond_price}</div>
+                <div className="farm-modal-name">{t("chunk.diamonds", { price: x.diamond_price })}</div>
                 <div className="farm-modal-sub">
-                  Сверх лимита, монеты не тратятся · ещё {x.diamond_slots_left} на этом уровне · у вас 💎 {fmt(diamonds)}
+                  {t("chunk.diamondsNote", { left: x.diamond_slots_left, diamonds: fmt(diamonds) })}
                 </div>
                 {diamondReason && <div className="academy-hint">🔒 {diamondReason}</div>}
               </div>
               <button className="farm-modal-btn premium" disabled={busy || Boolean(diamondReason)} onClick={() => buy("diamonds")}>
-                Купить
+                {t("common.buy")}
               </button>
             </div>
           )}
 
           {error && <div className="farm-modal-error">{error}</div>}
           <div className="confirm-actions">
-            <button className="farm-modal-btn ghost" onClick={onClose}>Отмена</button>
+            <button className="farm-modal-btn ghost" onClick={onClose}>{t("common.cancel")}</button>
           </div>
         </div>
       </div>

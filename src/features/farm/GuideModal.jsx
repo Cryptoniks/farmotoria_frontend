@@ -1,115 +1,47 @@
 import "./SeedSelectModal.css";
 import "./FarmModals.css";
+import { useT } from "../../i18n/context";
 
-// Разделы игры. Новый раздел (например, Квесты) — ещё одна запись в этом списке.
+// Разделы игры: иконка и ключ текстов guide.<key>.title / .text в словарях (src/i18n).
+// Новый раздел (например, Квесты) — ещё одна запись здесь и строки в словарях.
 const GUIDE_SECTIONS = [
-  {
-    icon: "🗺️",
-    title: "Карта и участки",
-    text: "Ваша ферма — участок за забором. Карту можно двигать мышью и приближать колесом. "
-      + "Соседние участки покупаются кликом: "
-      + "за монеты — по одному на каждый уровень игрока (с Премиумом по два), сверх того — один на уровень за 10 алмазов.",
-  },
-  {
-    icon: "🏗️",
-    title: "Постройка и перемещение",
-    text: "«Построить» — выберите здание и кликайте по свободным клеткам: можно поставить несколько подряд, "
-      + "выход — «Отмена» или Esc. «Переместить» — переставьте здания и сохраните. Лишнее здание можно продать в его окне.",
-  },
-  {
-    icon: "🌾",
-    title: "Фермерские поля",
-    text: "Купите семена прямо в окне поля и засейте его — одно поле, одна культура. "
-      + "Когда урожай созреет (🧺 на карте), соберите его и сразу посадите снова.",
-  },
-  {
-    icon: "⛏️",
-    title: "Добыча",
-    text: "Лесорубка, Каменоломня, Рудник и Водяная мельница добывают ресурсы сами, пока запущены. "
-      + "Добытое попадает на Склад.",
-  },
-  {
-    icon: "🏭",
-    title: "Переработка и производство",
-    text: "Лесопилка, Мельница, Пекарня и другие превращают сырьё в товары подороже. "
-      + "Строятся после квалификации в Академии; новые параллельные циклы открывает Инженер.",
-  },
-  {
-    icon: "🐄",
-    title: "Животноводство",
-    text: "Кормите животных кормом с Мельницы — они дают яйца, молоко, шерсть, мясо. "
-      + "В здании до 9 животных: новые места открываются уровнем навыка «Животноводство».",
-  },
-  {
-    icon: "📦",
-    title: "Сарай и Склад",
-    text: "Сарай хранит семена, урожай, корма и продукты животных, Склад — ресурсы и товары. "
-      + "Места не хватает — улучшите хранилище или постройте ещё одно.",
-  },
-  {
-    icon: "🛒",
-    title: "Магазин и Рынок",
-    text: "В Магазине покупают семена и товары, на Рынке продают всё произведённое за монеты.",
-  },
-  {
-    icon: "🏦",
-    title: "Банк",
-    text: "Открывается по клику на баланс в шапке. Обмен: 1 алмаз → 1 000 монет, 1 алмаз за 25 000 монет. "
-      + "Кредит до 1 000 монет за уровень, 5% сразу в сумме к возврату, гасится частями, без срока.",
-  },
-  {
-    icon: "💎",
-    title: "Премиум-магазин",
-    text: "Кнопка 💎 рядом с профилем. Премиум-подписка за алмазы: 1 день — 25, 7 дней — 150, 30 дней — 500. "
-      + "С Премиумом: множественный посев (одно семя на много полей кликом по карте), сбор со всех полей "
-      + "с пересадкой тех же семян и по 2 участка за уровень. "
-      + "Покупка алмазов за деньги появится позже.",
-  },
-  {
-    icon: "🏛",
-    title: "Академия",
-    text: "Изучайте квалификации за монеты и очки квалификации: они открывают новые здания и циклы. "
-      + "Очки дают за уровни игрока: +1 за уровень, +2 за каждый 10-й.",
-  },
-  {
-    icon: "⬆️",
-    title: "Уровни зданий",
-    text: "Улучшайте здания в их окне: больше продукции, быстрее работа, больше места в хранилищах. "
-      + "Пока в здании идёт работа, улучшить его нельзя.",
-  },
-  {
-    icon: "👤",
-    title: "Профиль и навыки",
-    text: "Уровень игрока растёт от любой работы. Общие навыки — Земледелие, Добыча, Переработка, Производство, "
-      + "Животноводство — растут от своего дела и ускоряют его.",
-  },
-  {
-    icon: "🎨",
-    title: "Внешний вид",
-    text: "Многие здания можно перекрасить и сменить им форму — кнопка «Внешний вид» в окне здания.",
-  },
+  { icon: "🗺️", key: "map" },
+  { icon: "🏗️", key: "build" },
+  { icon: "🌾", key: "fields" },
+  { icon: "⛏️", key: "extraction" },
+  { icon: "🏭", key: "processing" },
+  { icon: "🐄", key: "animals" },
+  { icon: "📦", key: "storage" },
+  { icon: "🛒", key: "trade" },
+  { icon: "🏦", key: "bank" },
+  { icon: "💎", key: "premium" },
+  { icon: "🏛", key: "academy" },
+  { icon: "⬆️", key: "levels" },
+  { icon: "👤", key: "profile" },
+  { icon: "🎨", key: "looks" },
 ];
 
 /** Окно «Как играть»: краткое описание всех разделов игры. Показывается при входе, повторно — кнопкой «❓». */
 export default function GuideModal({ isOpen, onClose, hideOnStart, onHideOnStartChange }) {
+  const t = useT();
   if (!isOpen) return null;
   return (
     <div className="seed-modal-overlay" onClick={onClose}>
       <div className="seed-modal-content farm-modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
-          <h2>🌱 Добро пожаловать на ферму!</h2>
+          <h2>{t("guide.title")}</h2>
           <button className="seed-modal-close" onClick={onClose}>&times;</button>
         </div>
 
         <div className="seed-modal-body">
-          <div className="farm-modal-sub">Коротко о том, что есть в игре. Нажмите на любое здание на карте, чтобы открыть его окно.</div>
+          <div className="farm-modal-sub">{t("guide.intro")}</div>
           <div className="guide-grid">
             {GUIDE_SECTIONS.map((s) => (
-              <div key={s.title} className="guide-card">
+              <div key={s.key} className="guide-card">
                 <div className="guide-icon">{s.icon}</div>
                 <div>
-                  <div className="guide-title">{s.title}</div>
-                  <div className="guide-text">{s.text}</div>
+                  <div className="guide-title">{t(`guide.${s.key}.title`)}</div>
+                  <div className="guide-text">{t(`guide.${s.key}.text`)}</div>
                 </div>
               </div>
             ))}
@@ -118,9 +50,9 @@ export default function GuideModal({ isOpen, onClose, hideOnStart, onHideOnStart
           <div className="guide-footer">
             <label className="guide-check">
               <input type="checkbox" checked={hideOnStart} onChange={(e) => onHideOnStartChange?.(e.target.checked)} />
-              Не показывать при входе (открыть снова — кнопка ❓ рядом с профилем)
+              {t("guide.hideOnStart")}
             </label>
-            <button className="farm-modal-btn" onClick={onClose}>Играть</button>
+            <button className="farm-modal-btn" onClick={onClose}>{t("guide.play")}</button>
           </div>
         </div>
       </div>

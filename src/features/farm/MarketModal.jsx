@@ -1,18 +1,20 @@
 import { useEffect, useMemo, useState } from "react";
+import { useT } from "../../i18n/context";
 import { api } from "../../shared/services/api";
 import PlantIcon from "../../components/PlantIcon";
 import "./SeedSelectModal.css";
 import "./FarmModals.css";
 
 const TABS = [
-  { id: "all", name: "📦 Все" },
-  { id: "harvest", name: "🌾 Урожай" },
-  { id: "resource", name: "⚒️ Ресурсы" },
-  { id: "product", name: "🏭 Продукты" },
+  { id: "all" },
+  { id: "harvest" },
+  { id: "resource" },
+  { id: "product" },
 ];
 
 /** Рынок: все товары игры (кроме семян) с количеством у игрока и продажей. */
 export default function MarketModal({ isOpen, onClose, onCoinsChange, onCustomize }) {
+  const t = useT();
   const [items, setItems] = useState([]);
   const [tab, setTab] = useState("all");
   const [qty, setQty] = useState({});
@@ -27,9 +29,9 @@ export default function MarketModal({ isOpen, onClose, onCoinsChange, onCustomiz
     api
       .get("/api/market/inventory/")
       .then((res) => setItems(res.data))
-      .catch(() => setStatus({ text: "Ошибка загрузки рынка", error: true }))
+      .catch(() => setStatus({ text: t("market.loadError"), error: true }))
       .finally(() => setLoading(false));
-  }, [isOpen]);
+  }, [isOpen, t]);
 
   const visible = useMemo(() => {
     const order = { harvest: 1, resource: 2, product: 3 };
@@ -49,9 +51,9 @@ export default function MarketModal({ isOpen, onClose, onCoinsChange, onCustomiz
       onCoinsChange?.(res.data.coins_balance);
       setItems((prev) => prev.map((it) => (it.id === item.id ? { ...it, quantity: it.quantity - quantity } : it)));
       setQty((prev) => ({ ...prev, [item.id]: "" }));
-      setStatus({ text: `✅ ${res.data.message || `Продано ×${quantity}`}`, error: false });
+      setStatus({ text: `✅ ${res.data.message || t("market.sold", { count: quantity })}`, error: false });
     } catch (e) {
-      setStatus({ text: e?.response?.data?.detail || "Ошибка продажи", error: true });
+      setStatus({ text: e?.response?.data?.detail || t("market.sellError"), error: true });
     }
   };
 
@@ -59,30 +61,30 @@ export default function MarketModal({ isOpen, onClose, onCoinsChange, onCustomiz
     <div className="seed-modal-overlay" onClick={onClose}>
       <div className="seed-modal-content farm-modal-wide" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
-          <h2>⚖️ Рынок</h2>
+          <h2>{t("market.title")}</h2>
           <div className="seed-modal-header-actions">
-            {onCustomize && <button className="customize-btn" onClick={onCustomize}>🎨 Внешний вид</button>}
+            {onCustomize && <button className="customize-btn" onClick={onCustomize}>{t("common.appearance")}</button>}
             <button className="seed-modal-close" onClick={onClose}>&times;</button>
           </div>
         </div>
 
         <div className="seed-modal-body">
           <div className="farm-modal-tabs">
-            {TABS.map((t) => (
-              <button key={t.id} className={`farm-modal-tab ${tab === t.id ? "active" : ""}`} onClick={() => setTab(t.id)}>
-                {t.name}
+            {TABS.map((tb) => (
+              <button key={tb.id} className={`farm-modal-tab ${tab === tb.id ? "active" : ""}`} onClick={() => setTab(tb.id)}>
+                {t(`market.tab.${tb.id}`)}
               </button>
             ))}
             <button className={`farm-modal-tab ${onlyStock ? "active" : ""}`} onClick={() => setOnlyStock((v) => !v)}>
-              {onlyStock ? "✔ Только в наличии" : "Показать все товары"}
+              {onlyStock ? t("market.onlyStock") : t("market.showAll")}
             </button>
           </div>
 
           {loading ? (
-            <div className="farm-modal-empty">Загрузка...</div>
+            <div className="farm-modal-empty">{t("common.loading")}</div>
           ) : visible.length === 0 ? (
             <div className="farm-modal-empty">
-              {onlyStock ? "Нечего продавать: соберите урожай, запустите добычу или переработку" : "Нет товаров"}
+              {onlyStock ? t("market.nothingToSell") : t("shop.noItems")}
             </div>
           ) : (
             <div className="farm-modal-list">
@@ -95,7 +97,7 @@ export default function MarketModal({ isOpen, onClose, onCoinsChange, onCustomiz
                     <div>
                       <div className="farm-modal-name">{item.name}</div>
                       <div className="farm-modal-sub">
-                        В наличии: <b>{item.quantity}</b> • 💰 {item.sell_price_coins} за шт.
+                        {t("market.inStock")} <b>{item.quantity}</b> • {t("market.perItem", { price: item.sell_price_coins })}
                       </div>
                     </div>
                     <div className="farm-modal-actions">
@@ -114,7 +116,7 @@ export default function MarketModal({ isOpen, onClose, onCoinsChange, onCustomiz
                         disabled={!hasStock}
                         onClick={() => setQty((prev) => ({ ...prev, [item.id]: item.quantity }))}
                       >
-                        Все
+                        {t("market.all")}
                       </button>
                     </div>
                     <button
@@ -122,7 +124,7 @@ export default function MarketModal({ isOpen, onClose, onCoinsChange, onCustomiz
                       disabled={!n || n > item.quantity}
                       onClick={() => handleSell(item)}
                     >
-                      Продать{n ? ` за 💰 ${n * item.sell_price_coins}` : ""}
+                      {n ? t("market.sellFor", { total: n * item.sell_price_coins }) : t("market.sell")}
                     </button>
                   </div>
                 );

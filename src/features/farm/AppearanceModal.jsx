@@ -1,4 +1,5 @@
 import { useMemo, useState } from "react";
+import { useT } from "../../i18n/context";
 import {
   COLOR_SLOTS,
   defaultColors,
@@ -51,7 +52,9 @@ export default function AppearanceModal({ target, saved, coins, price, onSave, o
   const [status, setStatus] = useState({ text: "", error: false });
 
   const colors = effectiveColors(slug, look);
-  const labels = slotLabels(slug);
+  const t = useT();
+  const slotKeys = slotLabels(slug);
+  const labels = Object.fromEntries(Object.entries(slotKeys).map(([slot, key]) => [slot, t(key)]));
   const draftUrl = useMemo(() => svgToDataUrl(renderBuildingSvg(slug, isDefaultAppearance(look) ? null : look)), [slug, look]);
   const savedUrl = useMemo(() => svgToDataUrl(renderBuildingSvg(slug, saved)), [slug, saved]);
 
@@ -82,48 +85,48 @@ export default function AppearanceModal({ target, saved, coins, price, onSave, o
     setStatus(res?.error ? { text: res.error, error: true } : { text: okText, error: false });
   };
 
-  const handleSave = () => run(() => onSave(slug, { v: 2, ...look, colors }), `✅ Новый вид сохранён для всех зданий «${target.name}»`);
+  const handleSave = () => run(() => onSave(slug, { v: 2, ...look, colors }), t("looks.saved", { name: target.name }));
   const handleReset = () => {
-    if (!confirm(`Вернуть всем зданиям «${target.name}» исходный вид? Это бесплатно.`)) return;
+    if (!confirm(t("looks.resetConfirm", { name: target.name }))) return;
     run(async () => {
       const res = await onReset(slug);
       if (!res?.error) setLook(DEFAULT);
       return res;
-    }, "✅ Возвращён исходный вид");
+    }, t("looks.resetDone"));
   };
 
   return (
     <div className="seed-modal-overlay appearance-overlay" onClick={onClose}>
       <div className="seed-modal-content appearance-modal" onClick={(e) => e.stopPropagation()}>
         <div className="seed-modal-header">
-          <h2>🎨 Внешний вид: {target.name}</h2>
+          <h2>{t("looks.title", { name: target.name })}</h2>
           <button className="seed-modal-close" onClick={onClose}>&times;</button>
         </div>
 
         <div className="seed-modal-body">
           <div className="appearance-stage">
             <img src={draftUrl} alt={target.name} />
-            <span className="appearance-badge">{look.shape ? "Новая форма" : "Исходная форма"}{changed ? " • не сохранено" : ""}</span>
+            <span className="appearance-badge">{look.shape ? t("looks.newShape") : t("looks.originalShape")}{changed ? t("looks.unsaved") : ""}</span>
           </div>
 
           <div className="appearance-reroll">
             <button className="farm-modal-btn" disabled={busy}
               onClick={() => update({ shape: randomSeed(), details: randomSeed(), colors: rollColors() })}>
-              🎲 Всё новое
+              {t("looks.allNew")}
             </button>
             <button className="farm-modal-btn ghost" disabled={busy} onClick={() => update({ shape: randomSeed(), details: look.details || randomSeed() })}>
-              🏠 Форма
+              {t("looks.shape")}
             </button>
-            <button className="farm-modal-btn ghost" disabled={busy || !look.shape} title={look.shape ? undefined : "Детали меняются у новой формы"}
+            <button className="farm-modal-btn ghost" disabled={busy || !look.shape} title={look.shape ? undefined : t("looks.detailsHint")}
               onClick={() => update({ details: randomSeed() })}>
-              🪵 Детали
+              {t("looks.details")}
             </button>
             <button className={`farm-modal-btn ghost ${showColors ? "active" : ""}`} disabled={busy}
               onClick={() => { setShowColors((v) => !v); setPicker(null); }}>
-              🎨 Цвета {showColors ? "▴" : "▾"}
+              {t("looks.colors")} {showColors ? "▴" : "▾"}
             </button>
             <button className="farm-modal-btn ghost" disabled={busy || !look.shape} onClick={() => update({ shape: 0, details: 0 })}>
-              ↩ Исходная форма
+              {t("looks.backToOriginal")}
             </button>
           </div>
 
@@ -134,7 +137,7 @@ export default function AppearanceModal({ target, saved, coins, price, onSave, o
                 {COLOR_SLOTS.map((slot) => {
                   const toggle = () => setPicker(picker === slot ? null : slot);
                   return (
-                    <div key={slot} role="button" tabIndex={0} title="Выбрать цвет"
+                    <div key={slot} role="button" tabIndex={0} title={t("looks.pickColor")}
                       className={`appearance-color ${picker === slot ? "active" : ""}`}
                       onClick={toggle}
                       onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle())}>
@@ -145,7 +148,7 @@ export default function AppearanceModal({ target, saved, coins, price, onSave, o
                       </div>
                       <button className="appearance-lock"
                         onClick={(e) => { e.stopPropagation(); setLocked((p) => ({ ...p, [slot]: !p[slot] })); }}
-                        title={locked[slot] ? "Цвет закреплён: 🎲 его не меняет" : "Закрепить цвет"}>
+                        title={locked[slot] ? t("looks.colorLocked") : t("looks.lockColor")}>
                         {locked[slot] ? "🔒" : "🔓"}
                       </button>
                     </div>
@@ -154,11 +157,11 @@ export default function AppearanceModal({ target, saved, coins, price, onSave, o
               </div>
               <div className="appearance-colors-actions">
                 <button className="farm-modal-btn ghost" disabled={busy} onClick={() => update({ colors: rollColors() })}>
-                  🎲 Случайные цвета
+                  {t("looks.randomColors")}
                 </button>
                 <button className="farm-modal-btn ghost" disabled={busy}
                   onClick={() => { update({ colors: defaultColors(slug) }); setLocked({}); }}>
-                  Исходные цвета
+                  {t("looks.originalColors")}
                 </button>
               </div>
             </div>
@@ -167,9 +170,9 @@ export default function AppearanceModal({ target, saved, coins, price, onSave, o
           {showColors && picker && (
             <div className="appearance-palette">
               <div className="appearance-palette-head">
-                <span>{labels[picker]}: выберите цвет</span>
+                <span>{t("looks.chooseColor", { slot: labels[picker] })}</span>
                 <label className="farm-modal-btn ghost appearance-custom">
-                  🎯 Свой цвет
+                  {t("looks.customColor")}
                   <input type="color" value={colors[picker]} onChange={(e) => setColor(picker, e.target.value)} />
                 </label>
               </div>
@@ -183,30 +186,29 @@ export default function AppearanceModal({ target, saved, coins, price, onSave, o
           )}
 
           <div className="appearance-current">
-            <img src={savedUrl} alt="Сейчас" />
+            <img src={savedUrl} alt={t("looks.now")} />
             <div>
-              <div className="farm-modal-name">Сейчас</div>
-              <div className="farm-modal-sub">{saved ? "Свой вид" : "Исходный вид"}</div>
+              <div className="farm-modal-name">{t("looks.now")}</div>
+              <div className="farm-modal-sub">{saved ? t("looks.custom") : t("looks.original")}</div>
               {changed && (
                 <button className="farm-modal-btn ghost" disabled={busy} onClick={() => setLook(saved || DEFAULT)}>
-                  ↩ Вернуть как сейчас
+                  {t("looks.revert")}
                 </button>
               )}
             </div>
           </div>
 
           <div className="farm-modal-sub appearance-note">
-            Генерируйте и подбирайте цвета сколько угодно — монеты списываются только при сохранении.
-            Новый вид получат все ваши здания «{target.name}», в том числе построенные позже.
+            {t("looks.hint1")} {t("looks.hint2", { name: target.name })}
           </div>
 
           <button className="upgrade-btn" onClick={handleSave} disabled={!canSave}
-            title={coins < price ? "Недостаточно монет" : !changed ? "Измените форму или цвета" : undefined}>
-            💾 Сохранить за 💰 {price}
+            title={coins < price ? t("common.noCoins") : !changed ? t("looks.changeSomething") : undefined}>
+            {t("looks.saveFor", { price: t.num(price) })}
           </button>
           {saved && (
             <button className="farm-modal-btn ghost appearance-reset" onClick={handleReset} disabled={busy}>
-              ↺ Вернуть исходный вид (бесплатно)
+              {t("looks.resetFree")}
             </button>
           )}
 
