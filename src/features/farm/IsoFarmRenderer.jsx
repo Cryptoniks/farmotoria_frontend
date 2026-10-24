@@ -26,11 +26,11 @@ import {
 import { buildingIcons } from "../../assets/buildings";
 import { appearanceKey, hasBuildingArt, renderBuildingSvg, svgToDataUrl } from "./buildingArt";
 import { buildAnimatedBuilding, loadBuildingAnimation } from "./buildingAnimation";
-import { CHUNK_COLORS, SCENERY_ART, chunkDecor, chunkKind, fenceEdges, wildDecor } from "./scenery";
+import { CHUNK_COLORS, SCENERY_ART, chunkDecor, chunkKind, fenceEdges, grassShade, ownedDecor, wildBounds, wildDecor } from "./scenery";
 
-const WILD_MARGIN = 26; // ширина лесного кольца вокруг поля, клеток
+const WILD_MARGIN = 12; // ширина лесного кольца вокруг поля, клеток
 
-const MIN_ZOOM = 0.4;
+const MIN_ZOOM = 0.75; // дальше не отдаляем (ещё и так, чтобы карта всегда заполняла экран)
 const MAX_ZOOM = 6;
 const START_ZOOM = 2;
 
@@ -171,7 +171,8 @@ const IsoFarmRenderer = (props) => {
       app.stage.addChild(world);
 
       const groundLayer = new PIXI.Container();
-      const decorLayer = new PIXI.Container();      // деревья, кусты, камни
+      const decorLayer = new PIXI.Container();      // деревья, кусты, камни на закрытых участках
+      const ownedDecorLayer = new PIXI.Container(); // трава и цветы на купленной земле (не под зданиями)
       const wildLayer = new PIXI.Container();       // лес вокруг поля (не меняется)
       const chunkLayer = new PIXI.Container();
       const fenceBackLayer = new PIXI.Container();  // дальний забор — под зданиями
@@ -179,10 +180,11 @@ const IsoFarmRenderer = (props) => {
       const fxLayer = new PIXI.Container();         // эффекты (расчистка участка)
       decorLayer.sortableChildren = true;
       wildLayer.sortableChildren = true;
+      ownedDecorLayer.sortableChildren = true;
       const buildingsLayer = new PIXI.Container();
       const ghostLayer = new PIXI.Container();
       buildingsLayer.sortableChildren = true;
-      world.addChild(groundLayer, wildLayer, decorLayer, chunkLayer, fenceBackLayer, buildingsLayer, fenceFrontLayer, fxLayer, ghostLayer);
+      world.addChild(groundLayer, wildLayer, decorLayer, ownedDecorLayer, chunkLayer, fenceBackLayer, buildingsLayer, fenceFrontLayer, fxLayer, ghostLayer);
 
       const ghost = new PIXI.Graphics();
       ghostLayer.addChild(ghost);
@@ -195,6 +197,7 @@ const IsoFarmRenderer = (props) => {
         fx: [],   // эффекты расчистки купленных участков: { r, c, start }
         groundKey: null,
         ownedKey: null,
+        ownedDecorKey: null,
       };
 
       // Анимации работающих зданий: ключ внешнего вида → текстуры | null (нечего анимировать) | "loading"
@@ -300,6 +303,29 @@ const IsoFarmRenderer = (props) => {
           app.screen.width / 2 - center.x * START_ZOOM,
           app.screen.height / 2 - center.y * START_ZOOM
         );
+        clampCamera();
+      }
+
+      /** Экран не выходит за кромку леса вокруг поля: за краем карты ничего пустого не видно. */
+      const minZoom = () => {
+        const b = wildBounds(cfg().maxSize, WILD_MARGIN);
+        return Math.max(MIN_ZOOM, app.screen.width / (b.x1 - b.x0), app.screen.height / (b.y1 - b.y0));
+      };
+      function clampCamera() {
+        const { maxSize } = cfg();
+        const b = wildBounds(maxSize, WILD_MARGIN);
+        if (world.scale.x < minZoom()) world.scale.set(minZoom());
+        const k = world.scale.x;
+        // 1) центр экрана — над полем (не уводим поле за край ради леса в углах ромба)
+        const g = isoToGrid((app.screen.width / 2 - world.position.x) / k, (app.screen.height / 2 - world.position.y) / k);
+        const p = gridToIsoTop(clamp(g.row, 0, maxSize), clamp(g.col, 0, maxSize));
+        world.position.set(app.screen.width / 2 - p.x * k, app.screen.height / 2 - p.y * k);
+        // 2) экран целиком внутри кромки леса — пустого фона не видно
+        const fit = (pos, size, lo, hi) => clamp(pos, size - hi * k, -lo * k); // экран [0, size] внутри [lo, hi] мира
+        world.position.set(
+          fit(world.position.x, app.screen.width, b.x0, b.x1),
+          fit(world.position.y, app.screen.height, b.y0, b.y1),
+        );
       }
 
       // -------------------------------------------------------------- draw --
@@ -312,11 +338,6 @@ const IsoFarmRenderer = (props) => {
         const p = propsRef.current;
         return Boolean(p.buildingToPlace || p.selected || p.movingBuilding || p.moveMode);
       };
-
-      function isoEllipse(g, r, c, R, color, alpha = 1) {
-        const p = gridToIsoTop(r, c);
-        g.ellipse(p.x, p.y, R * TILE_W * 0.72, R * TILE_H * 0.72).fill({ color, alpha });
-      }
 
       function sceneryPiece(layer, item) {
         const tex = scenery[item.art];
@@ -351,19 +372,25 @@ const IsoFarmRenderer = (props) => {
         clearLayer(groundLayer);
         const g = new PIXI.Graphics();
 
-        const M = WILD_MARGIN;
-        const wild = footprint(-M, -M, maxSize + 2 * M, maxSize + 2 * M);
-        g.poly(poly(wild.top, wild.right, wild.bottom, wild.left)).fill({ color: CHUNK_COLORS.wild });
-        for (const h of wildDecor(maxSize, M).hills) isoEllipse(g, h.r, h.c, h.R, h.light ? 0x5f9445 : 0x44723a, 0.9);
+        const b = wildBounds(maxSize, WILD_MARGIN);
+        g.rect(b.x0, b.y0, b.x1 - b.x0, b.y1 - b.y0).fill({ color: CHUNK_COLORS.wild });
 
         const n = Math.ceil(maxSize / chunkSize);
         for (let cr = 0; cr < n; cr++) {
           for (let cc = 0; cc < n; cc++) {
             const f = footprint(cr * chunkSize, cc * chunkSize, chunkSize, chunkSize);
-            const color = owned.has(chunkKey(cr, cc))
-              ? CHUNK_COLORS.owned[(cr + cc) % 2]
-              : CHUNK_COLORS[chunkKind(cr, cc)];
+            const color = owned.has(chunkKey(cr, cc)) ? CHUNK_COLORS.owned : CHUNK_COLORS[chunkKind(cr, cc)];
             g.poly(poly(f.top, f.right, f.bottom, f.left)).fill({ color });
+          }
+        }
+        // Переливы травы на купленной земле: плавный шум блоками 2×2 клетки поверх ровной заливки
+        for (const k of owned) {
+          const [cr, cc] = k.split(",").map(Number);
+          for (let r = cr * chunkSize; r < (cr + 1) * chunkSize; r += 2) {
+            for (let c = cc * chunkSize; c < (cc + 1) * chunkSize; c += 2) {
+              const f = footprint(r, c, 2, 2);
+              g.poly(poly(f.top, f.right, f.bottom, f.left)).fill({ color: grassShade(r + 1, c + 1) });
+            }
           }
         }
         // Рамка поля: край расчищенной земли
@@ -583,8 +610,28 @@ const IsoFarmRenderer = (props) => {
         return node;
       }
 
+      function drawOwnedDecor() {
+        const { chunkSize } = cfg();
+        const list = currentBuildings();
+        const key = (view.ownedKey || "") + "|" + list.map((b) => `${b.row},${b.col},${getBuildingDimensions(b).w},${getBuildingDimensions(b).h}`).join(";");
+        if (key === view.ownedDecorKey) return;
+        view.ownedDecorKey = key;
+        clearLayer(ownedDecorLayer);
+        const underBuilding = (r, c) => list.some((b) => {
+          const { w, h } = getBuildingDimensions(b);
+          return r > b.row - 0.4 && r < b.row + h + 0.3 && c > b.col - 0.4 && c < b.col + w + 0.3;
+        });
+        for (const k of ownedSet()) {
+          const [cr, cc] = k.split(",").map(Number);
+          for (const item of ownedDecor(cr, cc, chunkSize)) {
+            if (!underBuilding(item.r, item.c)) sceneryPiece(ownedDecorLayer, item);
+          }
+        }
+      }
+
       function drawBuildings() {
         view.anim = [];
+        drawOwnedDecor();
         clearLayer(buildingsLayer);
         for (const b of currentBuildings()) buildingsLayer.addChild(drawBuilding(b));
       }
@@ -739,6 +786,7 @@ const IsoFarmRenderer = (props) => {
           if (!drag.moved && Math.hypot(dx, dy) > DRAG_THRESHOLD_PX) drag.moved = true;
           if (drag.moved) {
             world.position.set(drag.worldX + dx, drag.worldY + dy);
+            clampCamera();
             canvas.style.cursor = "grabbing";
             return;
           }
@@ -774,13 +822,14 @@ const IsoFarmRenderer = (props) => {
         const sx = e.clientX - rect.left;
         const sy = e.clientY - rect.top;
         const old = world.scale.x;
-        const next = clamp(old * (e.deltaY < 0 ? 1.15 : 1 / 1.15), MIN_ZOOM, MAX_ZOOM);
+        const next = clamp(old * (e.deltaY < 0 ? 1.15 : 1 / 1.15), minZoom(), MAX_ZOOM);
         // Зум относительно точки под курсором
         world.position.set(
           sx - ((sx - world.position.x) / old) * next,
           sy - ((sy - world.position.y) / old) * next
         );
         world.scale.set(next);
+        clampCamera();
       }
 
       canvas.addEventListener("pointerdown", onPointerDown);

@@ -38,6 +38,11 @@ const flowers = (c) => svg(`
   <circle cx="22" cy="38" r="3" fill="${c}" stroke="${OUT}" stroke-width="0.8"/>
   <circle cx="31" cy="41" r="3" fill="${c}" stroke="${OUT}" stroke-width="0.8"/>`);
 
+const grass = (c) => svg(`
+  <path d="M12,54 Q10,44 6,40 M16,54 Q16,42 13,34 M20,54 Q21,40 24,33 M24,54 Q26,44 31,39 M28,54 Q31,47 35,45"
+        stroke="${c}" stroke-width="2.4" fill="none" stroke-linecap="round"/>
+  <path d="M14,54 Q13,46 10,43 M22,54 Q23,46 27,42" stroke="${shade(c, 1.25)}" stroke-width="1.6" fill="none" stroke-linecap="round"/>`);
+
 /** Все картинки пейзажа: имя → svg и ширина в клетках на карте. */
 export const SCENERY_ART = {
   pine1: { svg: pine("#2e7d32"), w: 1.2 },
@@ -51,6 +56,9 @@ export const SCENERY_ART = {
   rock2: { svg: rock("#a1887f"), w: 0.7 },
   flowers1: { svg: flowers("#fff176"), w: 0.55 },
   flowers2: { svg: flowers("#f48fb1"), w: 0.55 },
+  flowers3: { svg: flowers("#ffffff"), w: 0.5 },
+  grass1: { svg: grass("#4c8c2f"), w: 0.45 },
+  grass2: { svg: grass("#5f9e3a"), w: 0.4 },
 };
 
 // ---------------------------------------------------------------- участки --
@@ -58,11 +66,33 @@ export const CHUNK_COLORS = {
   forest: 0x5b8f3f,
   meadow: 0x93c55a,
   rocks: 0xa2a982,
-  owned: [0x7cc36a, 0x76bd63],
-  wild: 0x4e7f3b, // кольцо леса и холмов вокруг поля
+  owned: 0x7cc36a,  // купленная земля — один цвет, переливы даёт grassShade
+  wild: 0x4e7f3b,   // кольцо леса вокруг поля
 };
 
 const seedOf = (...nums) => nums.reduce((h, n) => (Math.imul(h ^ (n | 0), 0x9e3779b1) + 0x7f4a7c15) >>> 0, 0x2545f491);
+
+// Плавный шум: значения в узлах решётки шага step и сглаженная интерполяция между ними
+function valueNoise(r, c, step, salt) {
+  const fr = r / step;
+  const fc = c / step;
+  const r0 = Math.floor(fr);
+  const c0 = Math.floor(fc);
+  const node = (a, b) => rng(seedOf(a, b, salt))();
+  const smooth = (t) => t * t * (3 - 2 * t);
+  const tr = smooth(fr - r0);
+  const tc = smooth(fc - c0);
+  const top = node(r0, c0) * (1 - tc) + node(r0, c0 + 1) * tc;
+  const bottom = node(r0 + 1, c0) * (1 - tc) + node(r0 + 1, c0 + 1) * tc;
+  return top * (1 - tr) + bottom * tr;
+}
+
+/** Оттенок травы в точке поля: мягкие переливы без резких границ (цвет 0xRRGGBB). */
+export function grassShade(r, c) {
+  const v = valueNoise(r, c, 16, 71) * 0.7 + valueNoise(r, c, 6, 73) * 0.3;
+  const lerp = (a, b) => Math.round(a + (b - a) * v);
+  return (lerp(0x70, 0x8a) << 16) | (lerp(0xb8, 0xcc) << 8) | lerp(0x5c, 0x72);
+}
 
 /** Тип закрытого участка: в основном лес, местами луг и камни. */
 export function chunkKind(cr, cc) {
@@ -103,31 +133,48 @@ export function chunkDecor(cr, cc, size) {
   return items;
 }
 
-/** Лес вокруг поля (кольцо шириной margin клеток) и холмы. */
+const OWNED_DECOR = [["grass1", 0.32], ["grass2", 0.28], ["flowers1", 0.12], ["flowers2", 0.1], ["flowers3", 0.08], ["bush1", 0.06], ["bush2", 0.04]];
+
+/** Мелкая растительность на купленной земле (трава, цветы, кустики) — постоянная для участка. */
+export function ownedDecor(cr, cc, size) {
+  const rand = rng(seedOf(cr, cc, 97));
+  const n = 6 + Math.floor(rand() * 6);
+  const items = [];
+  for (let i = 0; i < n; i++) {
+    items.push({
+      art: pickWeighted(rand, OWNED_DECOR),
+      r: cr * size + 0.4 + rand() * (size - 0.8),
+      c: cc * size + 0.4 + rand() * (size - 0.8),
+      tint: 0.9 + rand() * 0.1,
+    });
+  }
+  return items;
+}
+
+/** Прямоугольник мира вокруг поля с кромкой margin клеток — дальше камера не показывает. */
+export function wildBounds(maxSize, margin) {
+  const xMax = (maxSize + 2 * margin) * 8;
+  return { x0: -xMax, x1: xMax, y0: -8 * margin, y1: 8 * (maxSize + margin) };
+}
+
+/** Лес вокруг поля: заполняет весь прямоугольник wildBounds вне поля — гуще у забора, реже дальше. */
 export function wildDecor(maxSize, margin) {
   const rand = rng(seedOf(maxSize, margin, 37));
+  const { x0, x1, y0, y1 } = wildBounds(maxSize, margin);
   const trees = [];
-  for (let r = -margin; r < maxSize + margin; r += 2.2) {
-    for (let c = -margin; c < maxSize + margin; c += 2.2) {
-      if (r > -1.5 && c > -1.5 && r < maxSize + 0.5 && c < maxSize + 0.5) continue;
-      if (rand() > 0.4) continue;
-      trees.push({
-        art: pickWeighted(rand, KIND_DECOR.forest),
-        r: r + rand() * 1.6,
-        c: c + rand() * 1.6,
-        tint: 0.8 + rand() * 0.2,
-      });
+  for (let y = y0; y < y1; y += 11) {
+    for (let x = x0; x < x1; x += 22) {
+      const wx = x + rand() * 18;
+      const wy = y + rand() * 9;
+      const r = (wy / 4 - wx / 8) / 2; // мир → клетки (как isoToGrid)
+      const c = (wy / 4 + wx / 8) / 2;
+      const out = Math.max(-r, -c, r - maxSize, c - maxSize);
+      if (out < 1) continue;
+      if (rand() > (out < margin ? 0.5 : 0.22)) continue;
+      trees.push({ art: pickWeighted(rand, KIND_DECOR.forest), r, c, tint: 0.78 + rand() * 0.2 });
     }
   }
-  const hills = [];
-  for (let i = 0; i < 60; i++) {
-    const side = Math.floor(rand() * 4);
-    const t = rand() * (maxSize + margin * 2) - margin;
-    const d = -margin * (0.3 + rand() * 0.6);
-    const [r, c] = [[d, t], [t, maxSize - d], [maxSize - d, t], [t, d]][side];
-    hills.push({ r, c, R: 4 + rand() * 7, light: rand() < 0.5 });
-  }
-  return { trees, hills };
+  return { trees };
 }
 
 // ------------------------------------------------------------------ забор --
