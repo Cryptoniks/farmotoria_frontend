@@ -826,3 +826,33 @@
   color: #fff;
   font-size: 15px;
 }
+
+.profile-qualification {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 6px 12px;
+  padding: 8px 10px;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.profile-qualification-main {
+  font-weight: 600;
+  color: #fff;
+}
+
+.profile-qualification-engineer {
+  font-size: 13px;
+  color: #90caf9;
+}
+
+.profile-qualification-engineer::before {
+  content: "—";
+  margin-right: 8px;
+  color: #90a4ae;
+}
+
+.farm-modal-list + .profile-skills-title {
+  margin-top: 16px;
+}

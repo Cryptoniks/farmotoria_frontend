@@ -28,7 +28,7 @@ export function ProfileBadge({ user, onOpen }) {
   );
 }
 
-/** Окно профиля: уровень, монеты, логин и email, дата регистрации, навыки. */
+/** Окно профиля: уровень, монеты, логин и email, дата регистрации, общие навыки и квалификации. */
 export default function ProfileModal({ isOpen, onClose, onSaved }) {
   const [profile, setProfile] = useState(null);
   const [form, setForm] = useState({ username: "", email: "" });
@@ -112,7 +112,7 @@ export default function ProfileModal({ isOpen, onClose, onSaved }) {
                 {status.text && <div className={`farm-modal-status ${status.error ? "error" : ""}`}>{status.text}</div>}
               </form>
 
-              <div className="profile-skills-title">Навыки</div>
+              <div className="profile-skills-title">Общие навыки</div>
               <div className="farm-modal-list">
                 {(profile.skills || []).map((s) => (
                   <div key={s.id} className="profile-skill">
@@ -130,6 +130,22 @@ export default function ProfileModal({ isOpen, onClose, onSaved }) {
                 ))}
                 {(!profile.skills || profile.skills.length === 0) && <div className="farm-modal-empty">Навыки пока не прокачаны</div>}
               </div>
+
+              <div className="profile-skills-title">Квалификации</div>
+              {profile.qualifications?.length ? (
+                <div className="farm-modal-list">
+                  {profile.qualifications.map((g) => (
+                    <div key={g.branch} className="profile-qualification">
+                      <span className="profile-qualification-main">🎓 {g.main.title}</span>
+                      {g.engineer && <span className="profile-qualification-engineer">🛠 {g.engineer.title}</span>}
+                    </div>
+                  ))}
+                </div>
+              ) : (
+                <div className="farm-modal-empty">
+                  Нет изученных квалификаций. Чтобы получить первую, откройте Академию на карте.
+                </div>
+              )}
             </>
           )}
         </div>
