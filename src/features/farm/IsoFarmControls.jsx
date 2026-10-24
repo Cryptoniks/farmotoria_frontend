@@ -59,6 +59,7 @@ const IsoFarmControls = ({
   onToggleFullscreen,
   animate,
   onToggleAnimate,
+  onOpenGuide,
 }) => {
   // Здание с запущенным процессом не улучшается: окно получает причину вместе с данными здания
   const withBusy = (b) => b && { ...b, busy_reason: buildingBusyReason(b.id, { plots, extractionProcesses, processingProcesses }) };
@@ -276,6 +277,23 @@ const IsoFarmControls = ({
             </button>
           </>
         )}
+        <button
+          onClick={onOpenGuide}
+          title="Как играть: разделы игры"
+          aria-label="Как играть"
+          style={{
+            background: "linear-gradient(135deg, #00897b 0%, #00695c 100%)",
+            border: "none",
+            color: "white",
+            width: 48,
+            borderRadius: "12px",
+            cursor: "pointer",
+            fontSize: 18,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+          }}
+        >
+          ❓
+        </button>
         <button
           onClick={onToggleAnimate}
           title={animate ? "Выключить анимацию зданий" : "Включить анимацию зданий"}

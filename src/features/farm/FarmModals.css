@@ -997,3 +997,68 @@
 .skill-bonus-next {
   color: #ffcc80;
 }
+
+/* ------------------------------------------------------ Как играть -- */
+.guide-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.guide-card {
+  display: flex;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.guide-icon {
+  font-size: 24px;
+  line-height: 1;
+  flex-shrink: 0;
+}
+
+.guide-title {
+  font-weight: 700;
+  font-size: 14px;
+  color: #fff;
+}
+
+.guide-text {
+  margin-top: 3px;
+  font-size: 12.5px;
+  line-height: 1.4;
+  color: #cfd8dc;
+}
+
+.guide-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+  flex-wrap: wrap;
+  margin-top: 14px;
+}
+
+.guide-check {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 12.5px;
+  color: #cfd8dc;
+  cursor: pointer;
+}
+
+.guide-footer .farm-modal-btn {
+  padding: 9px 28px;
+  font-size: 14px;
+}
+
+@media (max-width: 640px) {
+  .guide-grid {
+    grid-template-columns: 1fr;
+  }
+}

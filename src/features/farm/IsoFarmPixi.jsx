@@ -9,6 +9,9 @@ import IsoFarmRenderer from "./IsoFarmRenderer";
 import IsoFarmControls from "./IsoFarmControls";
 import ShopModal from "./ShopModal";
 import AcademyModal from "./AcademyModal";
+import GuideModal from "./GuideModal";
+
+const GUIDE_HIDE_KEY = "farm.guide.hide";
 import MarketModal from "./MarketModal";
 import StorageModal from "./StorageModal";
 import AppearanceModal from "./AppearanceModal";
@@ -63,6 +66,24 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
   const [shopOpen, setShopOpen] = useState(false);
   const [marketOpen, setMarketOpen] = useState(false);
   const [academyOpen, setAcademyOpen] = useState(false);
+  // «Как играть»: показывается при каждом входе в игру, пока игрок не отметит «Не показывать при входе»
+  const [guideHidden, setGuideHidden] = useState(() => {
+    try {
+      return localStorage.getItem(GUIDE_HIDE_KEY) === "1";
+    } catch {
+      return false;
+    }
+  });
+  const [guideOpen, setGuideOpen] = useState(() => !guideHidden);
+  const changeGuideHidden = (hide) => {
+    setGuideHidden(hide);
+    try {
+      if (hide) localStorage.setItem(GUIDE_HIDE_KEY, "1");
+      else localStorage.removeItem(GUIDE_HIDE_KEY);
+    } catch {
+      /* хранилище недоступно — окно просто покажется при следующем входе */
+    }
+  };
   const [storageId, setStorageId] = useState(null);
   const storageBuilding = engine.buildings.find((b) => b.id === storageId) || null;
   // Смена внешнего вида: { slug, name } типа здания, окно открывается поверх окна здания
@@ -210,6 +231,14 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
         onToggleFullscreen={toggleFullscreen}
         animate={animate}
         onToggleAnimate={toggleAnimate}
+        onOpenGuide={() => setGuideOpen(true)}
+      />
+
+      <GuideModal
+        isOpen={guideOpen}
+        onClose={() => setGuideOpen(false)}
+        hideOnStart={guideHidden}
+        onHideOnStartChange={changeGuideHidden}
       />
 
       <ShopModal
