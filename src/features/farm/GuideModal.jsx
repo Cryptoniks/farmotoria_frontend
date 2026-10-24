@@ -7,7 +7,7 @@ const GUIDE_SECTIONS = [
     icon: "🗺️",
     title: "Карта и участки",
     text: "Ваша ферма — участок за забором. Карту можно двигать мышью и приближать колесом. "
-      + "Соседние участки с ценой «+ 200» покупаются кликом и расширяют ферму.",
+      + "Соседние участки покупаются кликом и расширяют ферму.",
   },
   {
     icon: "🏗️",
@@ -103,7 +103,7 @@ export default function GuideModal({ isOpen, onClose, hideOnStart, onHideOnStart
           <div className="guide-footer">
             <label className="guide-check">
               <input type="checkbox" checked={hideOnStart} onChange={(e) => onHideOnStartChange?.(e.target.checked)} />
-              Не показывать при входе (открыть снова — кнопка ❓ внизу)
+              Не показывать при входе (открыть снова — кнопка ❓ рядом с профилем)
             </label>
             <button className="farm-modal-btn" onClick={onClose}>Играть</button>
           </div>

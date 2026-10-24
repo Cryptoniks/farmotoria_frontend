@@ -6,25 +6,30 @@ import SkillRow from "./SkillRow";
 
 const percent = (exp, next) => (next > 0 ? Math.min(100, Math.round((exp / next) * 100)) : 100);
 
-/** Значок игрока в углу карты: аватар, имя, уровень, опыт и ссылка на окно профиля. */
-export function ProfileBadge({ user, onOpen }) {
+/** Угол карты: значок игрока (аватар, имя, уровень, опыт, ссылка на профиль) и рядом отдельный блок «❓ Как играть». */
+export function ProfileBadge({ user, onOpen, onHelp }) {
   if (!user) return null;
   return (
-    <div className="profile-badge">
-      <button className="profile-badge-avatar" onClick={onOpen} title="Профиль">
-        {(user.username || "?").slice(0, 1).toUpperCase()}
-      </button>
-      <div className="profile-badge-info">
-        <div className="profile-badge-name">{user.username}</div>
-        <div className="profile-badge-level">
-          Ур. {user.level}
-          {user.qualification_points > 0 && <span title="Очки квалификации — тратятся в Академии"> · 🎓 {user.qualification_points}</span>}
+    <div className="profile-corner">
+      <div className="profile-badge">
+        <button className="profile-badge-avatar" onClick={onOpen} title="Профиль">
+          {(user.username || "?").slice(0, 1).toUpperCase()}
+        </button>
+        <div className="profile-badge-info">
+          <div className="profile-badge-name">{user.username}</div>
+          <div className="profile-badge-level">
+            Ур. {user.level}
+            {user.qualification_points > 0 && <span title="Очки квалификации — тратятся в Академии"> · 🎓 {user.qualification_points}</span>}
+          </div>
+          <div className="profile-badge-bar" title={`Опыт: ${user.exp} / ${user.exp_to_next}`}>
+            <div style={{ width: `${user.exp_progress ?? percent(user.exp, user.exp_to_next)}%` }} />
+          </div>
+          <button className="profile-badge-link" onClick={onOpen}>👤 Профиль</button>
         </div>
-        <div className="profile-badge-bar" title={`Опыт: ${user.exp} / ${user.exp_to_next}`}>
-          <div style={{ width: `${user.exp_progress ?? percent(user.exp, user.exp_to_next)}%` }} />
-        </div>
-        <button className="profile-badge-link" onClick={onOpen}>👤 Профиль</button>
       </div>
+      {onHelp && (
+        <button className="profile-help" onClick={onHelp} title="Как играть: разделы игры" aria-label="Как играть">❓</button>
+      )}
     </div>
   );
 }

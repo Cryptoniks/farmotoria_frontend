@@ -231,7 +231,6 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
         onToggleFullscreen={toggleFullscreen}
         animate={animate}
         onToggleAnimate={toggleAnimate}
-        onOpenGuide={() => setGuideOpen(true)}
       />
 
       <GuideModal
@@ -272,7 +271,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
         onSell={engine.tryRemoveBuilding}
         onCustomize={() => openCustomize(storageBuilding)}
       />
-      <ProfileBadge user={user} onOpen={() => setProfileOpen(true)} />
+      <ProfileBadge user={user} onOpen={() => setProfileOpen(true)} onHelp={() => setGuideOpen(true)} />
       <ProfileModal isOpen={profileOpen} onClose={() => setProfileOpen(false)} onSaved={onUserChanged} />
       {customize && (
         <AppearanceModal
