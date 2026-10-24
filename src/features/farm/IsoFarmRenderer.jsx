@@ -27,6 +27,7 @@ import { buildingIcons } from "../../assets/buildings";
 import { appearanceKey, hasBuildingArt, renderBuildingSvg, svgToDataUrl } from "./buildingArt";
 import { buildAnimatedBuilding, loadBuildingAnimation } from "./buildingAnimation";
 import { CHUNK_COLORS, SCENERY_ART, chunkDecor, chunkKind, fenceEdges, grassShade, ownedDecor, wildBounds, wildDecor } from "./scenery";
+import { isPlotReady, msUntilNextReady } from "./plots";
 
 const WILD_MARGIN = 12; // ширина лесного кольца вокруг поля, клеток
 
@@ -113,6 +114,14 @@ const IsoFarmRenderer = (props) => {
     drawRef.current?.();
   }, [fieldCfg, chunks, buildings, plots, availableChunks, coins, moveChanges, moveMode, workingIds, animate]);
 
+  // Посадка созрела — сразу меняем иконку на поле, не дожидаясь опроса сервера
+  useEffect(() => {
+    const ms = msUntilNextReady(plots);
+    if (ms == null) return undefined;
+    const timer = setTimeout(() => drawRef.current?.(), ms + 50);
+    return () => clearTimeout(timer);
+  }, [plots]);
+
   useEffect(() => {
     drawGhostRef.current?.();
   }, [buildingToPlace, selected, movingBuilding, moveMode]);
@@ -180,11 +189,14 @@ const IsoFarmRenderer = (props) => {
       const fxLayer = new PIXI.Container();         // эффекты (расчистка участка)
       decorLayer.sortableChildren = true;
       wildLayer.sortableChildren = true;
+      // Деревья перед ближним (южным/восточным) забором: рисуются поверх забора и зданий у края
+      const decorFrontLayer = new PIXI.Container();
+      decorFrontLayer.sortableChildren = true;
       ownedDecorLayer.sortableChildren = true;
       const buildingsLayer = new PIXI.Container();
       const ghostLayer = new PIXI.Container();
       buildingsLayer.sortableChildren = true;
-      world.addChild(groundLayer, wildLayer, decorLayer, ownedDecorLayer, chunkLayer, fenceBackLayer, buildingsLayer, fenceFrontLayer, fxLayer, ghostLayer);
+      world.addChild(groundLayer, wildLayer, decorLayer, ownedDecorLayer, fenceBackLayer, buildingsLayer, fenceFrontLayer, decorFrontLayer, chunkLayer, fxLayer, ghostLayer);
 
       const ghost = new PIXI.Graphics();
       ghostLayer.addChild(ghost);
@@ -353,12 +365,10 @@ const IsoFarmRenderer = (props) => {
         layer.addChild(s);
       }
 
-      // Лес и холмы вокруг поля рисуются один раз
+      // Лес вокруг поля: раскладка считается один раз, раскладывается по слоям в drawDecor
+      let wildTrees = [];
       function drawWild() {
-        clearLayer(wildLayer);
-        const { maxSize } = cfg();
-        const { trees } = wildDecor(maxSize, WILD_MARGIN);
-        for (const t of trees) sceneryPiece(wildLayer, t);
+        wildTrees = wildDecor(cfg().maxSize, WILD_MARGIN).trees;
       }
 
       /** Земля: лесное кольцо с холмами, закрытые участки (лес/луг/камни), купленная трава, сетка при постройке. */
@@ -435,14 +445,25 @@ const IsoFarmRenderer = (props) => {
 
       function drawDecor(owned) {
         clearLayer(decorLayer);
+        clearLayer(wildLayer);
+        clearLayer(decorFrontLayer);
         const { chunkSize, maxSize } = cfg();
+        // Перед забором — то, что стоит южнее/восточнее купленной земли (её участок к северу или западу)
+        const inFront = (r, c) => {
+          const cr = Math.floor(r / chunkSize);
+          const cc = Math.floor(c / chunkSize);
+          return owned.has(chunkKey(cr - 1, cc)) || owned.has(chunkKey(cr, cc - 1)) || owned.has(chunkKey(cr - 1, cc - 1));
+        };
         const n = Math.ceil(maxSize / chunkSize);
         for (let cr = 0; cr < n; cr++) {
           for (let cc = 0; cc < n; cc++) {
             if (owned.has(chunkKey(cr, cc))) continue;
-            for (const item of chunkDecor(cr, cc, chunkSize)) sceneryPiece(decorLayer, item);
+            for (const item of chunkDecor(cr, cc, chunkSize)) {
+              sceneryPiece(inFront(item.r, item.c) ? decorFrontLayer : decorLayer, item);
+            }
           }
         }
+        for (const t of wildTrees) sceneryPiece(inFront(t.r, t.c) ? decorFrontLayer : wildLayer, t);
       }
 
       /** Забор по краю купленной земли: столбики, две жерди, ворота посередине некоторых сторон. */
@@ -553,7 +574,7 @@ const IsoFarmRenderer = (props) => {
 
           const plots = (propsRef.current.plots || []).filter((p) => p.building_id === b.id);
           if (plots.length) {
-            const ready = plots.some((p) => p.is_ready || p.status === "ready");
+            const ready = plots.some((p) => isPlotReady(p));
             const icon = makeLabel(ready ? "🧺" : "🌱", 40);
             const c = gridToIsoTop(b.row + h / 2, b.col + w / 2);
             icon.position.set(c.x, c.y - 2);

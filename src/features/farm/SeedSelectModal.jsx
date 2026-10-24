@@ -2,13 +2,14 @@ import { useState, useEffect } from "react";
 import { api } from "../../shared/services/api";
 import PlantIcon from "../../components/PlantIcon";
 import BuildingLevel from "./BuildingLevel";
+import { isPlotReady, plotReadyAt } from "./plots";
 import "./SeedSelectModal.css";
 
-export default function SeedSelectModal({ isOpen, onClose, buildingId, building, coins, onUpgrade, onCustomize, plots, onPlant, onHarvest, onSell }) {
+export default function SeedSelectModal({ isOpen, onClose, buildingId, building, coins, onUpgrade, plots, onPlant, onHarvest, onSell }) {
   const [seeds, setSeeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [timeLeft, setTimeLeft] = useState(null);
+  const [now, setNow] = useState(() => Date.now());
   
   // Фильтруем посадки для текущего здания
   const buildingPlots = plots?.filter(p => p.building_id === buildingId) || [];
@@ -24,12 +25,10 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
       ? { name: seed.harvest_name, slug: seed.harvest_slug }
       : seedOf(plot);
   };
-  const hasGrowing = buildingPlots.some(p => p.status === "growing");
-  const growingPlot = buildingPlots.find(p => p.status === "growing");
-  const readyPlot = buildingPlots.find(p => p.status === "ready");
-  
-  // Проверяем, есть ли активные процессы
-  const hasActiveProcess = buildingPlots.some(p => p.status === "growing");
+  // Все посадки поля (клеток может быть несколько): созревшие — со сбором, растущие — с таймером
+  const readyPlots = buildingPlots.filter((p) => isPlotReady(p, now));
+  const growingPlots = buildingPlots.filter((p) => !isPlotReady(p, now));
+  const hasActiveProcess = growingPlots.length > 0;
   
   async function handleSell() {
     if (buildingId && hasActiveProcess) {
@@ -48,34 +47,13 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
     }
   }, [isOpen]);
 
-  // Таймер обратного отсчета
+  // Таймер обратного отсчета: тикает, пока в окне есть растущие посадки
   useEffect(() => {
-    if (!growingPlot?.ready_at) {
-      setTimeLeft(null);
-      return;
-    }
-    
-    const updateTimer = () => {
-      const now = new Date();
-      const ready = new Date(growingPlot.ready_at);
-      const diff = ready - now;
-      
-      if (diff <= 0) {
-        setTimeLeft(null);
-        return;
-      }
-      
-      const hours = Math.floor(diff / (1000 * 60 * 60));
-      const minutes = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
-      const seconds = Math.floor((diff % (1000 * 60)) / 1000);
-      
-      setTimeLeft({ hours, minutes, seconds, total: diff });
-    };
-    
-    updateTimer();
-    const interval = setInterval(updateTimer, 1000);
+    if (!isOpen || !hasActiveProcess) return undefined;
+    setNow(Date.now());
+    const interval = setInterval(() => setNow(Date.now()), 1000);
     return () => clearInterval(interval);
-  }, [growingPlot?.ready_at]);
+  }, [isOpen, hasActiveProcess]);
 
   async function loadSeeds() {
     try {
@@ -115,7 +93,10 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
     }
   }
 
-  function formatTime(hours, minutes, seconds) {
+  function formatTime(ms) {
+    const hours = Math.floor(ms / (1000 * 60 * 60));
+    const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60));
+    const seconds = Math.floor((ms % (1000 * 60)) / 1000);
     const parts = [];
     if (hours > 0) parts.push(`${hours}ч`);
     if (minutes > 0) parts.push(`${minutes}м`);
@@ -131,47 +112,46 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
         <div className="seed-modal-header">
           <h2>🌾 Фермерское поле</h2>
           <div className="seed-modal-header-actions">
-            {onCustomize && <button className="customize-btn" onClick={onCustomize}>🎨 Внешний вид</button>}
             <button className="seed-modal-close" onClick={onClose}>&times;</button>
           </div>
         </div>
 
         <div className="seed-modal-body">
-          {/* Если есть готовый урожай - показываем кнопку сбора */}
-          {readyPlot && (
-            <div className="harvest-ready">
+          {/* Готовый урожай - кнопка сбора */}
+          {readyPlots.map((plot) => (
+            <div key={plot.id} className="harvest-ready">
               <div className="harvest-icon">
-                <PlantIcon plant={harvestOf(readyPlot)} size={40} />
+                <PlantIcon plant={harvestOf(plot)} size={40} />
               </div>
               <div className="harvest-text">
                 <div className="harvest-title">Урожай готов!</div>
-                <div className="harvest-seed">{readyPlot.seed_name}</div>
+                <div className="harvest-seed">{plot.seed_name}</div>
               </div>
-              <button className="harvest-btn" onClick={() => handleHarvest(readyPlot.id)}>
+              <button className="harvest-btn" onClick={() => handleHarvest(plot.id)}>
                 Собрать
               </button>
             </div>
-          )}
+          ))}
           
-          {/* Если растет - показываем таймер */}
-          {growingPlot && !readyPlot && timeLeft && (
-            <div className="growing-timer">
+          {/* Растёт - таймер */}
+          {growingPlots.map((plot) => (
+            <div key={plot.id} className="growing-timer">
               <div className="timer-icon">
-                <PlantIcon plant={seedOf(growingPlot)} size={40} />
+                <PlantIcon plant={seedOf(plot)} size={40} />
               </div>
               <div className="timer-info">
                 <div className="timer-title">Растёт...</div>
-                <div className="timer-seed">{growingPlot.seed_name}</div>
+                <div className="timer-seed">{plot.seed_name}</div>
               </div>
               <div className="timer-countdown">
-                <div className="timer-value">{formatTime(timeLeft.hours, timeLeft.minutes, timeLeft.seconds)}</div>
+                <div className="timer-value">{formatTime(Math.max(0, plotReadyAt(plot) - now))}</div>
                 <div className="timer-label">до созревания</div>
               </div>
             </div>
-          )}
+          ))}
           
           {/* Кнопки Ускорить и Удобрить */}
-          {growingPlot && !readyPlot && (
+          {hasActiveProcess && readyPlots.length === 0 && (
             <div className="plot-actions">
               <button className="action-btn accelerate-btn" onClick={() => alert("Ускорение будет доступно в будущем!")}>
                 ⚡ Ускорить
@@ -182,8 +162,8 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
             </div>
           )}
           
-          {/* Если ничего не растет - показываем магазин семян */}
-          {!hasGrowing && !readyPlot && (
+          {/* Поле пустое - магазин семян */}
+          {buildingPlots.length === 0 && (
             <>
               <div className="shop-title">Купить семена</div>
               

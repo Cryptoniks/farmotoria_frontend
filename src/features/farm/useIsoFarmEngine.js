@@ -366,22 +366,22 @@ export function useIsoFarmEngine() {
 
   // Auto-refresh status
   useEffect(() => {
+    // Запросы независимы: ошибка одного не должна останавливать обновление остальных (иначе иконки «зависают»)
     const checkStatus = async () => {
-      try {
-        const [extRes, procRes, plotsRes] = await Promise.all([
-          api.get("/api/extraction/status/"),
-          api.get("/api/processing/status/"),
-          api.get("/api/iso/plots/"),
-        ]);
-        setState(prev => ({
-          ...prev,
-          extractionProcesses: extRes.data.processes || [],
-          processingProcesses: procRes.data || [],
-          plots: plotsRes.data.plots || [],
-        }));
-      } catch (e) {
-        console.error("Status check error:", e);
+      const [extRes, procRes, plotsRes] = await Promise.allSettled([
+        api.get("/api/extraction/status/"),
+        api.get("/api/processing/status/"),
+        api.get("/api/iso/plots/"),
+      ]);
+      for (const r of [extRes, procRes, plotsRes]) {
+        if (r.status === "rejected") console.error("Status check error:", r.reason);
       }
+      setState(prev => ({
+        ...prev,
+        ...(extRes.status === "fulfilled" && { extractionProcesses: extRes.value.data.processes || [] }),
+        ...(procRes.status === "fulfilled" && { processingProcesses: procRes.value.data || [] }),
+        ...(plotsRes.status === "fulfilled" && { plots: plotsRes.value.data.plots || [] }),
+      }));
     };
     
     const interval = setInterval(checkStatus, 5000);

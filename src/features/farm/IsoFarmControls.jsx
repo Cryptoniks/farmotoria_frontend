@@ -325,7 +325,6 @@ const IsoFarmControls = ({
         building={buildings.find((b) => b.id === clickedBuilding?.id)}
         coins={coins}
         onUpgrade={tryUpgradeBuilding}
-        onCustomize={() => onCustomize?.(buildings.find((b) => b.id === clickedBuilding?.id))}
         plots={plots}
         onPlant={tryPlantSeed}
         onHarvest={loadPlots}
