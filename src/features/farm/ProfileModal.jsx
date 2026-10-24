@@ -2,6 +2,7 @@ import { useEffect, useState } from "react";
 import { api } from "../../shared/services/api";
 import "./SeedSelectModal.css";
 import "./FarmModals.css";
+import SkillRow from "./SkillRow";
 
 const percent = (exp, next) => (next > 0 ? Math.min(100, Math.round((exp / next) * 100)) : 100);
 
@@ -114,20 +115,7 @@ export default function ProfileModal({ isOpen, onClose, onSaved }) {
 
               <div className="profile-skills-title">Общие навыки</div>
               <div className="farm-modal-list">
-                {(profile.skills || []).map((s) => (
-                  <div key={s.id} className="profile-skill">
-                    <div>
-                      <div className="farm-modal-name">{s.name} <span className="farm-modal-sub">ур. {s.level} / {s.max_level}</span></div>
-                      <div className="farm-modal-sub">{s.effect_name}</div>
-                    </div>
-                    <div className="profile-skill-bar">
-                      <div className="capacity-bar">
-                        <div className="capacity-bar-fill" style={{ width: `${percent(s.exp, s.exp_to_next)}%` }} />
-                      </div>
-                      <div className="farm-modal-sub">{s.exp} / {s.exp_to_next}</div>
-                    </div>
-                  </div>
-                ))}
+                {(profile.skills || []).map((s) => <SkillRow key={s.id} skill={s} />)}
                 {(!profile.skills || profile.skills.length === 0) && <div className="farm-modal-empty">Навыки пока не прокачаны</div>}
               </div>
 

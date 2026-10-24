@@ -2,8 +2,8 @@ import { useEffect, useState } from "react";
 import { api } from "../../shared/services/api";
 import "./SeedSelectModal.css";
 import "./FarmModals.css";
+import SkillRow from "./SkillRow";
 
-const percent = (exp, next) => (next > 0 ? Math.min(100, Math.round((exp / next) * 100)) : 100);
 const BRANCH_TITLES = { processing: "🪚 Переработка", production: "🏭 Производство" };
 
 /** Карточка квалификации: ступени уровней, что они открывают, кнопка «Получить квалификацию». */
@@ -135,20 +135,7 @@ export default function AcademyModal({ isOpen, onClose, onCoinsChange, onLearned
 
               {tab === "skills" && (
                 <div className="farm-modal-list">
-                  {data.skills.map((s) => (
-                    <div key={s.code} className="profile-skill">
-                      <div>
-                        <div className="farm-modal-name">{s.name} <span className="farm-modal-sub">ур. {s.level} / {s.max_level}</span></div>
-                        <div className="farm-modal-sub">{s.effect_name}: {s.effect_description}</div>
-                      </div>
-                      <div className="profile-skill-bar">
-                        <div className="capacity-bar">
-                          <div className="capacity-bar-fill" style={{ width: `${percent(s.exp, s.exp_to_next)}%` }} />
-                        </div>
-                        <div className="farm-modal-sub">{s.exp} / {s.exp_to_next}</div>
-                      </div>
-                    </div>
-                  ))}
+                  {data.skills.map((s) => <SkillRow key={s.code} skill={s} />)}
                   <div className="farm-modal-sub">Общие навыки растут сами, от работы в зданиях своей группы.</div>
                 </div>
               )}

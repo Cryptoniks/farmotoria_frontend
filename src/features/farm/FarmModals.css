@@ -983,3 +983,17 @@
   opacity: 0.5;
   cursor: default;
 }
+
+.skill-bonus-now,
+.skill-bonus-next {
+  font-size: 12px;
+  margin-top: 3px;
+}
+
+.skill-bonus-now {
+  color: #a5d6a7;
+}
+
+.skill-bonus-next {
+  color: #ffcc80;
+}
