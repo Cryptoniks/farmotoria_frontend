@@ -776,14 +776,9 @@ const IsoFarmRenderer = (props) => {
           return;
         }
 
+        // Покупка участка — через окно подтверждения в игре
         const chunk = availableChunkAt(cell.row, cell.col);
-        if (chunk) {
-          if ((p.coins ?? 0) < chunk.cost) {
-            alert(`Недостаточно монет: участок стоит ${chunk.cost}`);
-          } else if (confirm(`Купить участок за ${chunk.cost} монет?`)) {
-            p.onBuyChunk?.(chunk.chunk_row, chunk.chunk_col);
-          }
-        }
+        if (chunk) p.onChunkClick?.(chunk);
       }
 
       const drag = { down: false, moved: false, startX: 0, startY: 0, worldX: 0, worldY: 0 };

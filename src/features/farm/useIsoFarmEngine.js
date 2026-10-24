@@ -132,11 +132,9 @@ export function useIsoFarmEngine() {
       
       const availableRes = await api.get("/api/iso/available-chunks/");
       setState(prev => ({ ...prev, availableChunks: availableRes.data.available_chunks || [] }));
+      return { success: true };
     } catch (e) {
-      setState(prev => ({
-        ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка покупки чанка",
-      }));
+      return { error: e?.response?.data?.detail || e.message || "Ошибка покупки участка" };
     }
   }, []);
 

@@ -10,6 +10,7 @@ import IsoFarmControls from "./IsoFarmControls";
 import ShopModal from "./ShopModal";
 import AcademyModal from "./AcademyModal";
 import GuideModal from "./GuideModal";
+import BuyChunkModal from "./BuyChunkModal";
 
 const GUIDE_HIDE_KEY = "farm.guide.hide";
 import MarketModal from "./MarketModal";
@@ -66,6 +67,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
   const [shopOpen, setShopOpen] = useState(false);
   const [marketOpen, setMarketOpen] = useState(false);
   const [academyOpen, setAcademyOpen] = useState(false);
+  const [chunkToBuy, setChunkToBuy] = useState(null); // участок, покупку которого подтверждает игрок
   // «Как играть»: показывается при каждом входе в игру, пока игрок не отметит «Не показывать при входе»
   const [guideHidden, setGuideHidden] = useState(() => {
     try {
@@ -233,6 +235,14 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
         onToggleAnimate={toggleAnimate}
       />
 
+      <BuyChunkModal
+        chunk={chunkToBuy}
+        coins={engine.coins}
+        chunkSize={engine.fieldCfg?.chunk_size}
+        onBuy={engine.tryBuyChunk}
+        onClose={() => setChunkToBuy(null)}
+      />
+
       <GuideModal
         isOpen={guideOpen}
         onClose={() => setGuideOpen(false)}
@@ -306,7 +316,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
           workingIds={workingIds}
           animate={animate}
           onBuildingClick={handleBuildingClick}
-          onBuyChunk={engine.tryBuyChunk}
+          onChunkClick={setChunkToBuy}
           onPlaceBuilding={engine.tryPlaceBuilding}
           onMoveBuilding={engine.tryMoveBuilding}
         />

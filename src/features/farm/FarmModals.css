@@ -1093,3 +1093,34 @@
 .profile-help:hover {
   background: #ffecb3;
 }
+
+/* ------------------------------------------------- Окно подтверждения -- */
+.seed-modal-content.confirm-modal {
+  max-width: 420px;
+}
+
+.confirm-text {
+  font-size: 15px;
+  color: #fff;
+}
+
+.confirm-prices {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  margin-top: 10px;
+  font-size: 14px;
+  color: #e0e0e0;
+}
+
+.confirm-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.confirm-actions .farm-modal-btn {
+  padding: 9px 22px;
+  font-size: 14px;
+}
