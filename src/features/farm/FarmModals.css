@@ -484,3 +484,167 @@
     grid-template-columns: 1fr;
   }
 }
+
+/* Значок игрока в левом верхнем углу карты */
+.profile-badge {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  z-index: 110;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 12px 8px 8px;
+  border-radius: 16px;
+  background: rgba(255, 248, 225, 0.94);
+  border: 2px solid #8d5a2b;
+  box-shadow: 0 3px 0 #6d4c41, 0 6px 14px rgba(0, 0, 0, 0.25);
+  color: #3e2723;
+}
+
+.profile-badge-avatar,
+.profile-avatar {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  border-radius: 50%;
+  border: 3px solid #5d4037;
+  background: radial-gradient(circle at 35% 30%, #a5d6a7, #43a047);
+  color: #fff;
+  font-size: 24px;
+  font-weight: 900;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.profile-badge-info {
+  display: grid;
+  grid-template-columns: auto auto;
+  column-gap: 8px;
+  align-items: center;
+}
+
+.profile-badge-name {
+  font-weight: 800;
+  max-width: 130px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.profile-badge-level {
+  font-size: 12px;
+  font-weight: 800;
+  color: #fff;
+  background: #2e7d32;
+  border-radius: 8px;
+  padding: 0 6px;
+}
+
+.profile-badge-bar {
+  grid-column: 1 / -1;
+  height: 6px;
+  border-radius: 3px;
+  background: #d7ccc8;
+  overflow: hidden;
+  margin: 3px 0;
+}
+
+.profile-badge-bar > div {
+  height: 100%;
+  background: linear-gradient(90deg, #ffca28, #ff8f00);
+}
+
+.profile-badge-link {
+  grid-column: 1 / -1;
+  justify-self: start;
+  border: none;
+  background: none;
+  padding: 0;
+  color: #2e7d32;
+  font-weight: 800;
+  font-size: 13px;
+  text-decoration: underline;
+  cursor: pointer;
+}
+
+/* Окно профиля */
+.profile-head {
+  display: flex;
+  gap: 16px;
+  align-items: center;
+  color: #eceff1;
+}
+
+.profile-avatar {
+  width: 72px;
+  height: 72px;
+  font-size: 32px;
+  cursor: default;
+}
+
+.profile-head-info {
+  flex: 1;
+}
+
+.profile-level {
+  font-size: 18px;
+  font-weight: 800;
+}
+
+.profile-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px 14px;
+  margin: 14px 0;
+  color: #cfd8dc;
+  font-size: 13px;
+}
+
+.profile-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.profile-form .farm-modal-btn,
+.profile-form .farm-modal-status {
+  justify-self: start;
+}
+
+.farm-modal-input {
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  background: rgba(0, 0, 0, 0.25);
+  color: #fff;
+  font-size: 14px;
+}
+
+.profile-skills-title {
+  color: #a5d6a7;
+  font-weight: 800;
+  margin: 6px 0 8px;
+}
+
+.profile-skill {
+  display: grid;
+  grid-template-columns: 1fr 200px;
+  gap: 12px;
+  align-items: center;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  color: #eceff1;
+}
+
+@media (max-width: 560px) {
+  .profile-form,
+  .profile-skill {
+    grid-template-columns: 1fr;
+  }
+}

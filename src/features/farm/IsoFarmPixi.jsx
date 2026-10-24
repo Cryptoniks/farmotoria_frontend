@@ -11,12 +11,13 @@ import ShopModal from "./ShopModal";
 import MarketModal from "./MarketModal";
 import StorageModal from "./StorageModal";
 import AppearanceModal from "./AppearanceModal";
+import ProfileModal, { ProfileBadge } from "./ProfileModal";
 import { api } from "../../shared/services/api";
 
 // Здания с рецептами: окно показывает список рецептов из /api/processing/recipes/
 const RECIPE_BUILDING_TYPES = ["processing", "production", "agroproduction"];
 
-const IsoFarmPixi = ({ setCoinsBalance }) => {
+const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
   const engine = useIsoFarmEngine();
   const rootRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -53,6 +54,7 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
   const storageBuilding = engine.buildings.find((b) => b.id === storageId) || null;
   // Смена внешнего вида: { slug, name } типа здания, окно открывается поверх окна здания
   const [customize, setCustomize] = useState(null);
+  const [profileOpen, setProfileOpen] = useState(false);
   const openCustomize = (building) => building && setCustomize({ slug: building.slug, name: building.name });
   const byType = (type) => engine.buildings.find((b) => b.building_type === type);
 
@@ -134,7 +136,7 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
       style={
         isFullscreen
           ? { position: "fixed", inset: 0, zIndex: 1500, background: "#2b2b2b" }
-          : { position: "relative", width: "100%", height: "72vh" }
+          : { position: "relative", width: "100%", height: "100%" }
       }
     >
       {/* Controls: статус и кнопки поверх карты, модальные окна */}
@@ -209,6 +211,8 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
         onSell={engine.tryRemoveBuilding}
         onCustomize={() => openCustomize(storageBuilding)}
       />
+      <ProfileBadge user={user} onOpen={() => setProfileOpen(true)} />
+      <ProfileModal isOpen={profileOpen} onClose={() => setProfileOpen(false)} onSaved={onUserChanged} />
       {customize && (
         <AppearanceModal
           key={customize.slug}

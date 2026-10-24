@@ -27,14 +27,18 @@ npm run build        # сборка в dist/
 
 ```
 src/
-├── features/        # страницы со своими стилями: auth, farm, home, profile
-│                    #   farm/ — карта и окна зданий: Магазин, Рынок, хранилища, уровни
-├── components/      # Header, LeftMenu, PlantIcon, …
-├── layout/
+├── App.jsx          # две зоны: «/» — главная со входом (гости), «/farm» — игра (вошедшие)
+├── features/
+│   ├── landing/     # главная страница: описание игры, вход и регистрация вкладками
+│   └── farm/        # карта и окна: здания, Магазин, Рынок, хранилища, профиль, внешний вид, анимация,
+│                    #   пейзаж (scenery.js: лес, луга, камни, холмы, забор с воротами)
+├── layout/GameLayout.jsx    # игровая страница: шапка и карта на всё окно
+├── components/      # PlantIcon
 ├── shared/services/api.js   # axios + автообновление JWT
-└── assets/          # иконки по slug: plants/, items/, buildings/ (.svg, .webp или .png)
+└── assets/          # логотип, иконки по slug: plants/, items/, buildings/ (.svg, .webp или .png)
 tools/
-└── gen_buildings.mjs # сохраняет стандартные картинки зданий в src/assets/buildings
+├── gen_buildings.mjs # стандартные картинки зданий в src/assets/buildings
+└── gen_logo.mjs      # логотип (src/assets/logo.svg) и иконка вкладки (public/favicon.svg)
 ```
 
 Иконка культуры общая для семени (`wheat`) и урожая (`wheat_harvest`). Для товаров без картинки показывается эмодзи (`components/PlantIcon.jsx`).

@@ -1,0 +1,215 @@
+/* Главная страница: небо, холмы с грядками, деревянные таблички */
+.landing {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  color: #3e2723;
+  background:
+    url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1440 320' preserveAspectRatio='none'><path d='M0,190 C240,120 420,230 720,170 C980,118 1180,210 1440,150 L1440,320 L0,320 Z' fill='%239ccc65'/><path d='M0,240 C300,190 520,280 820,230 C1080,190 1260,260 1440,220 L1440,320 L0,320 Z' fill='%237cb342'/><path d='M0,285 C360,255 700,310 1040,275 C1220,258 1340,282 1440,270 L1440,320 L0,320 Z' fill='%23689f38'/></svg>") bottom / 100% 42vh no-repeat,
+    linear-gradient(180deg, #a7dbff 0%, #d9f1ff 45%, #eef8e4 70%, #c5e1a5 100%);
+}
+
+.landing-header {
+  padding: 18px 32px 0;
+}
+
+.landing-logo {
+  height: 96px;
+  display: block;
+}
+
+.landing-main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(320px, 420px);
+  gap: 40px;
+  align-items: start;
+  max-width: 1180px;
+  width: 100%;
+  margin: 0 auto;
+  padding: 24px 32px 48px;
+  box-sizing: border-box;
+}
+
+.landing-intro h1 {
+  font-size: clamp(28px, 3.4vw, 44px);
+  line-height: 1.15;
+  margin: 8px 0 14px;
+  color: #2e7d32;
+  text-shadow: 0 2px 0 #fff8e1;
+}
+
+.landing-intro p {
+  font-size: 17px;
+  line-height: 1.6;
+  max-width: 620px;
+  margin: 0 0 22px;
+}
+
+.landing-features {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.landing-feature {
+  display: flex;
+  gap: 12px;
+  align-items: center;
+  padding: 10px 12px;
+  border-radius: 14px;
+  background: rgba(255, 248, 225, 0.88);
+  border: 2px solid #c8a165;
+  box-shadow: 0 3px 0 #a1887f;
+}
+
+.landing-feature img {
+  width: 74px;
+  height: 64px;
+  object-fit: contain;
+  flex: none;
+}
+
+.landing-feature-title {
+  font-weight: 800;
+  color: #5d4037;
+}
+
+.landing-feature-text {
+  font-size: 13.5px;
+  line-height: 1.4;
+}
+
+/* Карточка входа — деревянная табличка */
+.auth-card {
+  background: #fff8e1;
+  border: 3px solid #8d5a2b;
+  border-radius: 18px;
+  box-shadow: 0 6px 0 #6d4c41, 0 16px 30px rgba(62, 39, 35, 0.25);
+  overflow: hidden;
+}
+
+.auth-tabs {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #d7b98a;
+}
+
+.auth-tabs button {
+  border: none;
+  border-radius: 0;
+  padding: 14px;
+  font-size: 16px;
+  font-weight: 800;
+  color: #6d4c41;
+  background: transparent;
+  cursor: pointer;
+}
+
+.auth-tabs button.active {
+  background: #fff8e1;
+  color: #2e7d32;
+}
+
+.auth-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  padding: 20px 22px 22px;
+}
+
+.auth-form label {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  font-weight: 700;
+  font-size: 14px;
+  color: #5d4037;
+}
+
+.auth-optional {
+  font-weight: 400;
+  color: #8d6e63;
+}
+
+.auth-form input {
+  padding: 11px 12px;
+  border-radius: 10px;
+  border: 2px solid #c8a165;
+  background: #fff;
+  color: #3e2723;
+  font-size: 15px;
+}
+
+.auth-form input:focus {
+  outline: none;
+  border-color: #43a047;
+  box-shadow: 0 0 0 3px rgba(67, 160, 71, 0.2);
+}
+
+.auth-submit {
+  margin-top: 4px;
+  padding: 13px;
+  border: none;
+  border-radius: 12px;
+  font-size: 17px;
+  font-weight: 800;
+  color: #fff;
+  background: linear-gradient(180deg, #66bb6a, #2e7d32);
+  box-shadow: 0 4px 0 #1b5e20;
+  cursor: pointer;
+}
+
+.auth-submit:disabled {
+  opacity: 0.7;
+  cursor: wait;
+}
+
+.auth-status {
+  font-size: 14px;
+  color: #2e7d32;
+}
+
+.auth-status.error {
+  color: #c62828;
+}
+
+.auth-hint {
+  font-size: 14px;
+  color: #6d4c41;
+  text-align: center;
+}
+
+.auth-link {
+  border: none;
+  background: none;
+  padding: 0;
+  color: #2e7d32;
+  font-weight: 800;
+  text-decoration: underline;
+  cursor: pointer;
+  font-size: inherit;
+}
+
+.landing-footer {
+  text-align: center;
+  padding: 14px;
+  font-size: 13px;
+  color: #33691e;
+}
+
+@media (max-width: 860px) {
+  .landing-main {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+  .landing-header {
+    padding: 14px 16px 0;
+  }
+  .landing-logo {
+    height: 64px;
+  }
+  .landing-features {
+    grid-template-columns: 1fr;
+  }
+}

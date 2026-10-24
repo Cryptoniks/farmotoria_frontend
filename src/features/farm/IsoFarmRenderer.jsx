@@ -26,6 +26,9 @@ import {
 import { buildingIcons } from "../../assets/buildings";
 import { appearanceKey, hasBuildingArt, renderBuildingSvg, svgToDataUrl } from "./buildingArt";
 import { buildAnimatedBuilding, loadBuildingAnimation } from "./buildingAnimation";
+import { CHUNK_COLORS, SCENERY_ART, chunkDecor, chunkKind, fenceEdges, wildDecor } from "./scenery";
+
+const WILD_MARGIN = 26; // ширина лесного кольца вокруг поля, клеток
 
 const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 6;
@@ -129,7 +132,7 @@ const IsoFarmRenderer = (props) => {
       const app = new PIXI.Application();
       await app.init({
         resizeTo: host,
-        backgroundColor: 0x2b2b2b,
+        backgroundColor: 0x3f6b35,
         antialias: true,
         autoDensity: true,
         resolution: window.devicePixelRatio || 1,
@@ -147,6 +150,12 @@ const IsoFarmRenderer = (props) => {
         })
       );
 
+      // Пейзаж: деревья, кусты, камни, цветы
+      const scenery = {};
+      await Promise.all(Object.entries(SCENERY_ART).map(async ([name, art]) => {
+        scenery[name] = await PIXI.Assets.load({ src: svgToDataUrl(art.svg), loadParser: "loadSVG" });
+      }));
+
       if (cancelled) {
         app.destroy(true, { children: true });
         return;
@@ -162,11 +171,18 @@ const IsoFarmRenderer = (props) => {
       app.stage.addChild(world);
 
       const groundLayer = new PIXI.Container();
+      const decorLayer = new PIXI.Container();      // деревья, кусты, камни
+      const wildLayer = new PIXI.Container();       // лес вокруг поля (не меняется)
       const chunkLayer = new PIXI.Container();
+      const fenceBackLayer = new PIXI.Container();  // дальний забор — под зданиями
+      const fenceFrontLayer = new PIXI.Container(); // ближний забор — поверх зданий
+      const fxLayer = new PIXI.Container();         // эффекты (расчистка участка)
+      decorLayer.sortableChildren = true;
+      wildLayer.sortableChildren = true;
       const buildingsLayer = new PIXI.Container();
       const ghostLayer = new PIXI.Container();
       buildingsLayer.sortableChildren = true;
-      world.addChild(groundLayer, chunkLayer, buildingsLayer, ghostLayer);
+      world.addChild(groundLayer, wildLayer, decorLayer, chunkLayer, fenceBackLayer, buildingsLayer, fenceFrontLayer, fxLayer, ghostLayer);
 
       const ghost = new PIXI.Graphics();
       ghostLayer.addChild(ghost);
@@ -176,6 +192,9 @@ const IsoFarmRenderer = (props) => {
         pickedId: null, // здание, выбранное в режиме перемещения
         cameraReady: false,
         anim: [], // update(t) анимированных зданий
+        fx: [],   // эффекты расчистки купленных участков: { r, c, start }
+        groundKey: null,
+        ownedKey: null,
       };
 
       // Анимации работающих зданий: ключ внешнего вида → текстуры | null (нечего анимировать) | "loading"
@@ -189,9 +208,9 @@ const IsoFarmRenderer = (props) => {
       }
       // Время одно на все здания: анимация не сбивается при перерисовке карты
       app.ticker.add(() => {
-        if (!view.anim.length) return;
         const t = performance.now() / 1000;
         for (const update of view.anim) update(t);
+        if (view.fx.length) drawFx(t);
       });
 
       // ----------------------------------------------------------- helpers --
@@ -288,35 +307,177 @@ const IsoFarmRenderer = (props) => {
         for (const child of layer.removeChildren()) child.destroy({ children: true });
       }
 
+      const ownedSet = () => new Set((propsRef.current.chunks || []).map((ch) => chunkKey(ch.chunk_row, ch.chunk_col)));
+      const gridVisible = () => {
+        const p = propsRef.current;
+        return Boolean(p.buildingToPlace || p.selected || p.movingBuilding || p.moveMode);
+      };
+
+      function isoEllipse(g, r, c, R, color, alpha = 1) {
+        const p = gridToIsoTop(r, c);
+        g.ellipse(p.x, p.y, R * TILE_W * 0.72, R * TILE_H * 0.72).fill({ color, alpha });
+      }
+
+      function sceneryPiece(layer, item) {
+        const tex = scenery[item.art];
+        if (!tex) return;
+        const s = new PIXI.Sprite(tex);
+        const p = gridToIsoTop(item.r, item.c);
+        s.anchor.set(0.5, 54 / 56);
+        s.scale.set((SCENERY_ART[item.art].w * TILE_W) / tex.width);
+        s.position.set(p.x, p.y);
+        const k = item.tint;
+        s.tint = (Math.round(255 * k) << 16) | (Math.round(255 * k) << 8) | Math.round(255 * k);
+        s.zIndex = item.r + item.c;
+        layer.addChild(s);
+      }
+
+      // Лес и холмы вокруг поля рисуются один раз
+      function drawWild() {
+        clearLayer(wildLayer);
+        const { maxSize } = cfg();
+        const { trees } = wildDecor(maxSize, WILD_MARGIN);
+        for (const t of trees) sceneryPiece(wildLayer, t);
+      }
+
+      /** Земля: лесное кольцо с холмами, закрытые участки (лес/луг/камни), купленная трава, сетка при постройке. */
       function drawGround() {
-        clearLayer(groundLayer);
         const { chunkSize, maxSize } = cfg();
+        const owned = ownedSet();
+        const grid = gridVisible();
+        const key = [...owned].sort().join(";") + "|" + grid + "|" + maxSize;
+        if (key === view.groundKey) return;
+        view.groundKey = key;
+        clearLayer(groundLayer);
         const g = new PIXI.Graphics();
 
-        // Всё поле до максимального размера — закрытая земля
-        const all = footprint(0, 0, maxSize, maxSize);
-        g.poly(poly(all.top, all.right, all.bottom, all.left)).fill({ color: 0x3d3d3d });
+        const M = WILD_MARGIN;
+        const wild = footprint(-M, -M, maxSize + 2 * M, maxSize + 2 * M);
+        g.poly(poly(wild.top, wild.right, wild.bottom, wild.left)).fill({ color: CHUNK_COLORS.wild });
+        for (const h of wildDecor(maxSize, M).hills) isoEllipse(g, h.r, h.c, h.R, h.light ? 0x5f9445 : 0x44723a, 0.9);
 
-        // Купленные чанки — трава с сеткой клеток
-        const owned = propsRef.current.chunks || [];
-        for (const ch of owned) {
-          const f = footprint(ch.chunk_row * chunkSize, ch.chunk_col * chunkSize, chunkSize, chunkSize);
-          g.poly(poly(f.top, f.right, f.bottom, f.left)).fill({ color: 0x7cc36a });
-        }
-        for (const ch of owned) {
-          const r0 = ch.chunk_row * chunkSize;
-          const c0 = ch.chunk_col * chunkSize;
-          for (let i = 0; i <= chunkSize; i++) {
-            const a = gridToIsoTop(r0 + i, c0);
-            const b = gridToIsoTop(r0 + i, c0 + chunkSize);
-            const c = gridToIsoTop(r0, c0 + i);
-            const d = gridToIsoTop(r0 + chunkSize, c0 + i);
-            g.moveTo(a.x, a.y).lineTo(b.x, b.y);
-            g.moveTo(c.x, c.y).lineTo(d.x, d.y);
+        const n = Math.ceil(maxSize / chunkSize);
+        for (let cr = 0; cr < n; cr++) {
+          for (let cc = 0; cc < n; cc++) {
+            const f = footprint(cr * chunkSize, cc * chunkSize, chunkSize, chunkSize);
+            const color = owned.has(chunkKey(cr, cc))
+              ? CHUNK_COLORS.owned[(cr + cc) % 2]
+              : CHUNK_COLORS[chunkKind(cr, cc)];
+            g.poly(poly(f.top, f.right, f.bottom, f.left)).fill({ color });
           }
         }
-        g.stroke({ width: 0.5, color: 0x000000, alpha: 0.12 });
+        // Рамка поля: край расчищенной земли
+        const all = footprint(0, 0, maxSize, maxSize);
+        g.poly(poly(all.top, all.right, all.bottom, all.left)).stroke({ width: 1, color: 0x33691e, alpha: 0.5 });
+
+        if (grid) {
+          for (const k of owned) {
+            const [cr, cc] = k.split(",").map(Number);
+            const r0 = cr * chunkSize;
+            const c0 = cc * chunkSize;
+            for (let i = 0; i <= chunkSize; i++) {
+              const a = gridToIsoTop(r0 + i, c0);
+              const b = gridToIsoTop(r0 + i, c0 + chunkSize);
+              const c = gridToIsoTop(r0, c0 + i);
+              const d = gridToIsoTop(r0 + chunkSize, c0 + i);
+              g.moveTo(a.x, a.y).lineTo(b.x, b.y);
+              g.moveTo(c.x, c.y).lineTo(d.x, d.y);
+            }
+          }
+          g.stroke({ width: 0.5, color: 0x000000, alpha: 0.14 });
+        }
         groundLayer.addChild(g);
+
+        // Пейзаж и забор зависят только от купленной земли
+        const ownedKey = [...owned].sort().join(";");
+        if (ownedKey !== view.ownedKey) {
+          const before = view.ownedKey === null ? null : new Set(view.ownedKey.split(";"));
+          view.ownedKey = ownedKey;
+          drawDecor(owned);
+          drawFences(owned);
+          if (before) {
+            const t = performance.now() / 1000;
+            for (const k of owned) {
+              if (before.has(k)) continue;
+              const [cr, cc] = k.split(",").map(Number);
+              view.fx.push({ r: (cr + 0.5) * chunkSize, c: (cc + 0.5) * chunkSize, start: t });
+            }
+          }
+        }
+      }
+
+      function drawDecor(owned) {
+        clearLayer(decorLayer);
+        const { chunkSize, maxSize } = cfg();
+        const n = Math.ceil(maxSize / chunkSize);
+        for (let cr = 0; cr < n; cr++) {
+          for (let cc = 0; cc < n; cc++) {
+            if (owned.has(chunkKey(cr, cc))) continue;
+            for (const item of chunkDecor(cr, cc, chunkSize)) sceneryPiece(decorLayer, item);
+          }
+        }
+      }
+
+      /** Забор по краю купленной земли: столбики, две жерди, ворота посередине некоторых сторон. */
+      function drawFences(owned) {
+        clearLayer(fenceBackLayer);
+        clearLayer(fenceFrontLayer);
+        const { chunkSize } = cfg();
+        const back = new PIXI.Graphics();
+        const front = new PIXI.Graphics();
+        const H = 7; // высота столбика, пикселей мира
+        const up = (p, k) => ({ x: p.x, y: p.y - H * k });
+        for (const e of fenceEdges(owned, chunkSize)) {
+          const g = e.near ? front : back;
+          const len = Math.round(Math.max(Math.abs(e.r1 - e.r0), Math.abs(e.c1 - e.c0)));
+          const at = (i) => gridToIsoTop(e.r0 + ((e.r1 - e.r0) * i) / len, e.c0 + ((e.c1 - e.c0) * i) / len);
+          const [g0, g1] = e.gate ? [Math.floor(len / 2) - 1, Math.floor(len / 2) + 1] : [-1, -1];
+          for (let i = 0; i < len; i++) {
+            if (i >= g0 && i < g1) continue;
+            const a = at(i);
+            const b = at(i + 1);
+            for (const k of [0.45, 0.9]) g.moveTo(up(a, k).x, up(a, k).y).lineTo(up(b, k).x, up(b, k).y);
+          }
+          g.stroke({ width: 1.3, color: 0x8d6e63 });
+          for (let i = 0; i <= len; i++) {
+            if (i > g0 && i < g1) continue;
+            const a = at(i);
+            const gatePost = i === g0 || i === g1;
+            g.moveTo(a.x, a.y).lineTo(a.x, a.y - H * (gatePost ? 1.35 : 1));
+            g.stroke({ width: gatePost ? 2.6 : 1.7, color: 0x5d4037 });
+          }
+          if (e.gate) {
+            // Ворота: две створки с перекладиной
+            for (const [i0, i1] of [[g0, g0 + 1], [g0 + 1, g1]]) {
+              const a = at(i0);
+              const b = at(i1);
+              g.poly(poly(up(a, 0.15), up(b, 0.15), up(b, 0.95), up(a, 0.95))).fill({ color: 0xa1887f }).stroke({ width: 0.8, color: 0x3e2723 });
+              g.moveTo(up(a, 0.15).x, up(a, 0.15).y).lineTo(up(b, 0.95).x, up(b, 0.95).y).stroke({ width: 0.9, color: 0x5d4037 });
+            }
+          }
+        }
+        fenceBackLayer.addChild(back);
+        fenceFrontLayer.addChild(front);
+      }
+
+      /** Расчистка нового участка: клубы пыли и летящие листья ~2 секунды. */
+      const fxGraphics = new PIXI.Graphics();
+      fxLayer.addChild(fxGraphics);
+      function drawFx(t) {
+        fxGraphics.clear();
+        view.fx = view.fx.filter((f) => t - f.start < 2.2);
+        for (const f of view.fx) {
+          const p = (t - f.start) / 2.2;
+          const center = gridToIsoTop(f.r, f.c);
+          for (let i = 0; i < 14; i++) {
+            const ang = (i / 14) * Math.PI * 2 + i;
+            const dist = (20 + (i % 4) * 9) * (0.3 + p);
+            const x = center.x + Math.cos(ang) * dist * 1.6;
+            const y = center.y + Math.sin(ang) * dist * 0.8 - p * 18;
+            fxGraphics.circle(x, y, (6 + (i % 3) * 3) * (0.6 + p)).fill({ color: 0xd7ccc8, alpha: 0.7 * (1 - p) });
+            if (i % 2) fxGraphics.circle(x * 0.98 + center.x * 0.02, y - p * 30, 1.8).fill({ color: 0x7cb342, alpha: 1 - p });
+          }
+        }
       }
 
       function drawAvailableChunks() {
@@ -486,10 +647,12 @@ const IsoFarmRenderer = (props) => {
       drawRef.current = drawAll;
       drawGhostRef.current = () => {
         if (!propsRef.current.moveMode) view.pickedId = null;
+        drawGround(); // сетка клеток видна только при постройке/перемещении
         drawGhost();
       };
       appearanceRef.current = loadAppearanceTextures;
       centerCamera();
+      drawWild();
       drawAll();
       loadAppearanceTextures();
 

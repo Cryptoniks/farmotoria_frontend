@@ -1,0 +1,80 @@
+/* Игровая страница: шапка-доска и карта на всё окно */
+.game-root {
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+  background: #3f6b35;
+  overflow: hidden;
+}
+
+.game-header {
+  flex: none;
+  height: 60px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0 16px;
+  background:
+    repeating-linear-gradient(0deg, rgba(0, 0, 0, 0.06) 0 2px, transparent 2px 14px),
+    linear-gradient(180deg, #a87a4d, #8d5a2b);
+  border-bottom: 3px solid #5d4037;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+  z-index: 10;
+}
+
+.game-logo {
+  height: 50px;
+  display: block;
+  filter: drop-shadow(0 1px 1px rgba(0, 0, 0, 0.3));
+}
+
+.game-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.game-coins {
+  padding: 6px 14px;
+  border-radius: 999px;
+  background: #fff8e1;
+  color: #5d4037;
+  font-weight: 800;
+  border: 2px solid #5d4037;
+  white-space: nowrap;
+}
+
+.game-username {
+  color: #fff8e1;
+  font-weight: 700;
+  text-shadow: 0 1px 1px rgba(0, 0, 0, 0.5);
+}
+
+.game-logout {
+  padding: 6px 14px;
+  border-radius: 10px;
+  border: 2px solid #5d4037;
+  background: #d7b98a;
+  color: #3e2723;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.game-logout:hover {
+  background: #e6cfa6;
+}
+
+.game-main {
+  flex: 1;
+  min-height: 0;
+  position: relative;
+}
+
+@media (max-width: 560px) {
+  .game-logo {
+    height: 38px;
+  }
+  .game-username {
+    display: none;
+  }
+}

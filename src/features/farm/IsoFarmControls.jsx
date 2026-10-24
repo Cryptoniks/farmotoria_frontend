@@ -127,7 +127,7 @@ const IsoFarmControls = ({
       )}
 
       {/* Статус поверх карты: режим размещения/перемещения и ошибки */}
-      <div style={{ position: "absolute", top: 12, left: 12, right: 12, display: "flex", gap: 8, alignItems: "center", flexWrap: "wrap", zIndex: 100, pointerEvents: "none" }}>
+      <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", maxWidth: "min(640px, 60%)", display: "flex", gap: 8, alignItems: "center", justifyContent: "center", flexWrap: "wrap", zIndex: 100, pointerEvents: "none" }}>
         {buildingToPlace && (
           <span style={{
             background: "#ff9800",
