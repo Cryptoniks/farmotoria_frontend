@@ -103,7 +103,7 @@ const IsoFarmRenderer = (props) => {
   const {
     fieldCfg, chunks, buildings, plots, availableChunks, expansion, coins,
     buildingToPlace, selected, movingBuilding, moveMode, moveChanges, appearances,
-    workingIds, animate,
+    workingIds, animate, plantingSeed,
   } = props;
 
   useEffect(() => {
@@ -124,7 +124,7 @@ const IsoFarmRenderer = (props) => {
 
   useEffect(() => {
     drawGhostRef.current?.();
-  }, [buildingToPlace, selected, movingBuilding, moveMode]);
+  }, [buildingToPlace, selected, movingBuilding, moveMode, plantingSeed, plots]);
 
   useEffect(() => {
     appearanceRef.current?.();
@@ -676,7 +676,21 @@ const IsoFarmRenderer = (props) => {
         }
         const target = ghostTarget();
         const cell = view.hoverCell;
-        if (!target || !cell) return;
+        if (!cell) return;
+        // Множественный посев: подсвечиваем поле под курсором — зелёным пустое, красным уже засеянное
+        if (!target && propsRef.current.plantingSeed) {
+          const b = findBuildingAtCell(currentBuildings(), cell.row, cell.col);
+          if (b?.building_type !== "field") return;
+          const { w, h } = getBuildingDimensions(b);
+          const f = footprint(b.row, b.col, w, h);
+          const busy = (propsRef.current.plots || []).some((p) => p.building_id === b.id);
+          const color = busy ? 0xf44336 : 0x8bc34a;
+          ghost.poly(poly(f.top, f.right, f.bottom, f.left))
+            .fill({ color, alpha: 0.35 })
+            .stroke({ width: 1.5, color, alpha: 0.95 });
+          return;
+        }
+        if (!target) return;
         const ok = canPlaceAt(cell.row, cell.col, target.w, target.h, target.excludeId);
         const f = footprint(cell.row, cell.col, target.w, target.h);
         const color = ok ? 0x4caf50 : 0xf44336;
@@ -827,6 +841,7 @@ const IsoFarmRenderer = (props) => {
         const building = findBuildingAtCell(currentBuildings(), cell.row, cell.col);
         updateTooltip(ghostTarget() ? null : building, e);
         canvas.style.cursor = building || availableChunkAt(cell.row, cell.col) || ghostTarget() ? "pointer" : "grab";
+        if (propsRef.current.plantingSeed && building?.building_type !== "field") canvas.style.cursor = "grab";
       }
 
       function onPointerUp(e) {

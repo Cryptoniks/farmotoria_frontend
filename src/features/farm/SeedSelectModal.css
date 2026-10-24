@@ -437,3 +437,35 @@
   color: #b0bec5;
   margin-bottom: 10px;
 }
+
+/* Сбор со всех созревших полей (Премиум) */
+.bulk-harvest {
+  margin-top: 10px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(66, 165, 245, 0.1);
+  border: 1px solid rgba(144, 202, 249, 0.4);
+}
+
+.bulk-harvest-title {
+  font-size: 13px;
+  font-weight: 700;
+  color: #fff;
+  margin-bottom: 8px;
+}
+
+.bulk-harvest-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.bulk-result {
+  margin-top: 10px;
+  font-size: 13px;
+  font-weight: 600;
+  color: #a5d6a7;
+}
+
+.bulk-result.error {
+  color: #ef9a9a;
+}

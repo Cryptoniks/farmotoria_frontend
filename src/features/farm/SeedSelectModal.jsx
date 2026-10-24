@@ -7,6 +7,7 @@ import "./SeedSelectModal.css";
 
 export default function SeedSelectModal({
   isOpen, onClose, buildingId, building, coins, onUpgrade, plots, onPlant, onHarvest, onSell, isPremium, onStartMulti,
+  onCoinsChange,
 }) {
   const [seeds, setSeeds] = useState([]);
   // Одиночная посадка — одно поле; множественная (Премиум) — то же семя и на другие поля кликом по карте
@@ -17,6 +18,9 @@ export default function SeedSelectModal({
   const [now, setNow] = useState(() => Date.now());
   // Только что собранный урожай: окно остаётся открытым и предлагает повторить посадку или выбрать другие семена
   const [harvested, setHarvested] = useState(null);
+  // Сбор со всех созревших полей (Премиум): итог последней операции
+  const [bulk, setBulk] = useState(null);
+  const [bulkBusy, setBulkBusy] = useState(false);
 
   // Одно поле — одна посадка — один тип урожая (собранная уже не считается, даже пока список не обновился)
   const plot = plots?.find((p) => p.building_id === buildingId && p.id !== harvested?.plotId) || null;
@@ -50,6 +54,7 @@ export default function SeedSelectModal({
   useEffect(() => {
     if (isOpen) {
       setHarvested(null);
+      setBulk(null);
       loadSeeds();
     }
   }, [isOpen]);
@@ -91,6 +96,21 @@ export default function SeedSelectModal({
       console.error("Plant error:", e);
       alert("Ошибка посадки: " + (e?.response?.data?.detail || e?.message || "Unknown"));
     }
+  }
+
+  const readyCount = (plots || []).filter((p) => isPlotReady(p, now)).length;
+
+  async function harvestAll(replant) {
+    setBulkBusy(true);
+    try {
+      const res = await api.post("/api/iso/harvest-all/", { replant });
+      setBulk({ ...res.data, replant });
+      onCoinsChange?.(res.data.coins_balance);
+      onHarvest?.();
+    } catch (e) {
+      setBulk({ error: e?.response?.data?.detail || "Не удалось собрать урожай" });
+    }
+    setBulkBusy(false);
   }
 
   async function handleHarvest(harvestPlot) {
@@ -135,6 +155,7 @@ export default function SeedSelectModal({
         <div className="seed-modal-body">
           {/* Готовый урожай - кнопка сбора */}
           {plot && ready && (
+            <>
             <div className="harvest-ready">
               <div className="harvest-icon">
                 <PlantIcon plant={harvestOf(plot)} size={40} />
@@ -146,6 +167,37 @@ export default function SeedSelectModal({
               <button className="harvest-btn" onClick={() => handleHarvest(plot)}>
                 Собрать
               </button>
+            </div>
+            <div className="bulk-harvest">
+              <div className="bulk-harvest-title">
+                👑 Все созревшие поля: {readyCount}
+              </div>
+              {isPremium ? (
+                <div className="bulk-harvest-actions">
+                  <button className="action-btn other-seeds-btn" disabled={bulkBusy} onClick={() => harvestAll(false)}>
+                    🧺 Собрать все
+                  </button>
+                  <button className="action-btn replant-btn" disabled={bulkBusy} onClick={() => harvestAll(true)}>
+                    🔁 Собрать и посадить снова
+                  </button>
+                </div>
+              ) : (
+                <div className="plant-mode-hint">С Премиумом — собрать урожай со всех полей и пересадить те же семена одной кнопкой.</div>
+              )}
+            </div>
+            </>
+          )}
+
+          {/* Итог сбора со всех полей */}
+          {bulk && (
+            <div className={`bulk-result ${bulk.error ? "error" : ""}`}>
+              {bulk.error || (
+                <>
+                  ✅ Собрано с {bulk.harvested} пол{bulk.harvested === 1 ? "я" : "ей"}: {bulk.items.map((i) => `${i.name} ×${i.quantity}`).join(", ")}
+                  {bulk.replant && <> · пересажено {bulk.replanted}</>}
+                  {bulk.errors?.map((e) => <div key={e} className="farm-modal-error">{e}</div>)}
+                </>
+              )}
             </div>
           )}
           

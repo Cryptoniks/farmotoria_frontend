@@ -18,6 +18,7 @@ const IsoFarmControls = ({
   plantingSeed,
   setPlantingSeed,
   isPremium,
+  onCoinsChange,
   movingBuilding,
   setMovingBuilding,
   moveMode,
@@ -366,6 +367,7 @@ const IsoFarmControls = ({
         onSell={tryRemoveBuilding}
         isPremium={isPremium}
         onStartMulti={setPlantingSeed}
+        onCoinsChange={onCoinsChange}
       />
 
       <ExtractionModal

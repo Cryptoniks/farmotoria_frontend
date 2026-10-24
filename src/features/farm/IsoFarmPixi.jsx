@@ -214,6 +214,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
         plantingSeed={engine.plantingSeed}
         setPlantingSeed={engine.setPlantingSeed}
         isPremium={Boolean(user?.is_premium)}
+        onCoinsChange={engine.applyCoins}
         movingBuilding={engine.movingBuilding}
         setMovingBuilding={engine.setMovingBuilding}
         moveMode={engine.moveMode}
@@ -366,6 +367,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
           onBuildingClick={handleBuildingClick}
           onChunkClick={setChunkToBuy}
           expansion={engine.expansion}
+          plantingSeed={engine.plantingSeed}
           onPlaceBuilding={engine.tryPlaceBuilding}
           onMoveBuilding={engine.tryMoveBuilding}
         />
