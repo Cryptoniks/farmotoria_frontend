@@ -12,6 +12,7 @@ const INITIAL_STATE = {
   fieldCfg: null,
   chunks: [],
   availableChunks: [],
+  expansion: null, // сколько участков ещё можно купить на уровне: за монеты и за алмазы
   buildings: [],
   catalog: [],
   plots: [],
@@ -96,6 +97,7 @@ export function useIsoFarmEngine() {
       setState(prev => ({
         ...prev,
         availableChunks: availableRes.data.available_chunks || [],
+        expansion: availableRes.data.expansion || null,
       }));
     } catch (e) {
       setState(prev => ({
@@ -114,29 +116,46 @@ export function useIsoFarmEngine() {
     }
   }, []);
 
-  const tryBuyChunk = useCallback(async (cr, cc) => {
+  // Участки для покупки и лимиты расширения (зависят от уровня и Премиума — перечитываются при их смене)
+  const loadAvailableChunks = useCallback(async () => {
+    try {
+      const res = await api.get("/api/iso/available-chunks/");
+      setState(prev => ({
+        ...prev,
+        availableChunks: res.data.available_chunks || [],
+        expansion: res.data.expansion || null,
+      }));
+      return res.data.expansion || null;
+    } catch (e) {
+      console.error("Failed to load available chunks:", e);
+      return null;
+    }
+  }, []);
+
+  // currency: "coins" — в пределах лимита по уровню, "diamonds" — участок сверх лимита за алмазы
+  const tryBuyChunk = useCallback(async (cr, cc, currency = "coins") => {
     try {
       const res = await api.post("/api/iso/expand-chunk/", {
         chunk_row: cr,
         chunk_col: cc,
+        currency,
       });
-      
+
       setState(prev => ({
         ...prev,
         coins: res.data.coins_balance,
-        chunks: [...prev.chunks, { chunk_row: cr, chunk_col: cc, price_paid: res.data.paid }],
-        fieldCfg: prev.fieldCfg 
-          ? { ...prev.fieldCfg, next_chunk_cost: res.data.next_cost } 
+        chunks: [...prev.chunks, { chunk_row: cr, chunk_col: cc, price_paid: currency === "coins" ? res.data.paid : 0 }],
+        fieldCfg: prev.fieldCfg
+          ? { ...prev.fieldCfg, next_chunk_cost: res.data.next_cost }
           : prev.fieldCfg,
       }));
-      
-      const availableRes = await api.get("/api/iso/available-chunks/");
-      setState(prev => ({ ...prev, availableChunks: availableRes.data.available_chunks || [] }));
-      return { success: true };
+
+      await loadAvailableChunks();
+      return { success: true, data: res.data };
     } catch (e) {
       return { error: e?.response?.data?.detail || e.message || "Ошибка покупки участка" };
     }
-  }, []);
+  }, [loadAvailableChunks]);
 
   const tryPlantSeed = useCallback(async (buildingId, seedId) => {
     try {
@@ -479,6 +498,7 @@ export function useIsoFarmEngine() {
     loadPlots,
     tryBuyChunk,
     tryPlantSeed,
+    loadAvailableChunks,
     tryOpenCycle,
     tryBuyAnimal,
     tryPlaceBuilding,

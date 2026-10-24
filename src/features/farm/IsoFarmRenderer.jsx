@@ -101,7 +101,7 @@ const IsoFarmRenderer = (props) => {
   const appearanceRef = useRef(null); // подгрузка текстур выбранного игроком внешнего вида
 
   const {
-    fieldCfg, chunks, buildings, plots, availableChunks, coins,
+    fieldCfg, chunks, buildings, plots, availableChunks, expansion, coins,
     buildingToPlace, selected, movingBuilding, moveMode, moveChanges, appearances,
     workingIds, animate,
   } = props;
@@ -112,7 +112,7 @@ const IsoFarmRenderer = (props) => {
 
   useEffect(() => {
     drawRef.current?.();
-  }, [fieldCfg, chunks, buildings, plots, availableChunks, coins, moveChanges, moveMode, workingIds, animate]);
+  }, [fieldCfg, chunks, buildings, plots, availableChunks, expansion, coins, moveChanges, moveMode, workingIds, animate]);
 
   // Посадка созрела — сразу меняем иконку на поле, не дожидаясь опроса сервера
   useEffect(() => {
@@ -531,7 +531,7 @@ const IsoFarmRenderer = (props) => {
       function drawAvailableChunks() {
         clearLayer(chunkLayer);
         const { chunkSize } = cfg();
-        const { availableChunks: list = [], coins: money = 0 } = propsRef.current;
+        const { availableChunks: list = [], coins: money = 0, expansion } = propsRef.current;
         const g = new PIXI.Graphics();
         for (const ch of list) {
           const f = footprint(ch.chunk_row * chunkSize, ch.chunk_col * chunkSize, chunkSize, chunkSize);
@@ -541,10 +541,22 @@ const IsoFarmRenderer = (props) => {
         }
         chunkLayer.addChild(g);
 
+        // Подпись: цена в монетах, пока не исчерпан лимит по уровню; потом — участок за алмазы; потом — замок
+        const coinsLeft = expansion ? expansion.coin_slots_left > 0 : true;
+        const diamondsLeft = expansion ? expansion.diamond_slots_left > 0 : false;
         for (const ch of list) {
           const center = gridToIsoTop((ch.chunk_row + 0.5) * chunkSize, (ch.chunk_col + 0.5) * chunkSize);
-          const label = makeLabel(`+ ${ch.cost}`, 32);
-          label.style.fill = money >= ch.cost ? 0xffe082 : 0xbdbdbd;
+          let text = `+ ${ch.cost}`;
+          let fill = money >= ch.cost ? 0xffe082 : 0xbdbdbd;
+          if (!coinsLeft && diamondsLeft) {
+            text = `💎 ${expansion.diamond_price}`;
+            fill = 0x90caf9;
+          } else if (!coinsLeft) {
+            text = `🔒 ур. ${expansion.level + 1}`;
+            fill = 0xbdbdbd;
+          }
+          const label = makeLabel(text, 32);
+          label.style.fill = fill;
           label.position.set(center.x, center.y);
           chunkLayer.addChild(label);
         }

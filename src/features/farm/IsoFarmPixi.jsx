@@ -71,6 +71,12 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
   const [academyOpen, setAcademyOpen] = useState(false);
   const [chunkToBuy, setChunkToBuy] = useState(null); // участок, покупку которого подтверждает игрок
   const [premiumOpen, setPremiumOpen] = useState(false);
+
+  // Лимит участков зависит от уровня и Премиума — перечитываем, когда они меняются
+  const { loadAvailableChunks } = engine;
+  useEffect(() => {
+    loadAvailableChunks();
+  }, [user?.level, user?.is_premium, loadAvailableChunks]);
   // «Как играть»: показывается при каждом входе в игру, пока игрок не отметит «Не показывать при входе»
   const [guideHidden, setGuideHidden] = useState(() => {
     try {
@@ -252,8 +258,15 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
       <BuyChunkModal
         chunk={chunkToBuy}
         coins={engine.coins}
+        diamonds={user?.diamonds_balance ?? 0}
+        expansion={engine.expansion}
         chunkSize={engine.fieldCfg?.chunk_size}
-        onBuy={engine.tryBuyChunk}
+        onRefresh={engine.loadAvailableChunks}
+        onBuy={async (cr, cc, currency) => {
+          const res = await engine.tryBuyChunk(cr, cc, currency);
+          if (res?.success && currency === "diamonds") onUserChanged?.(); // алмазы в шапке — из профиля
+          return res;
+        }}
         onClose={() => setChunkToBuy(null)}
       />
 
@@ -336,6 +349,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
           animate={animate}
           onBuildingClick={handleBuildingClick}
           onChunkClick={setChunkToBuy}
+          expansion={engine.expansion}
           onPlaceBuilding={engine.tryPlaceBuilding}
           onMoveBuilding={engine.tryMoveBuilding}
         />

@@ -1217,3 +1217,32 @@
     grid-template-columns: 1fr;
   }
 }
+
+.chunk-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-top: 12px;
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 213, 79, 0.4);
+}
+
+.chunk-option.diamonds {
+  border-color: rgba(144, 202, 249, 0.5);
+}
+
+.chunk-option .farm-modal-name {
+  color: #fff;
+}
+
+.chunk-option .farm-modal-btn {
+  flex-shrink: 0;
+  padding: 8px 18px;
+}
+
+.farm-modal-btn.premium {
+  background: linear-gradient(135deg, #42a5f5, #1565c0);
+}
