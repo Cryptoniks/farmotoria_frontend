@@ -572,10 +572,9 @@ const IsoFarmRenderer = (props) => {
           g.stroke({ width: 0.6, color: 0x5d4037, alpha: 0.7 });
           node.addChild(g);
 
-          const plots = (propsRef.current.plots || []).filter((p) => p.building_id === b.id);
-          if (plots.length) {
-            const ready = plots.some((p) => isPlotReady(p));
-            const icon = makeLabel(ready ? "🧺" : "🌱", 40);
+          const plot = (propsRef.current.plots || []).find((p) => p.building_id === b.id);
+          if (plot) {
+            const icon = makeLabel(isPlotReady(plot) ? "🧺" : "🌱", 40);
             const c = gridToIsoTop(b.row + h / 2, b.col + w / 2);
             icon.position.set(c.x, c.y - 2);
             node.addChild(icon);

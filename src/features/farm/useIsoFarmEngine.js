@@ -140,12 +140,10 @@ export function useIsoFarmEngine() {
     }
   }, []);
 
-  const tryPlantSeed = useCallback(async (buildingId, cellRow, cellCol, seedId) => {
+  const tryPlantSeed = useCallback(async (buildingId, seedId) => {
     try {
       const res = await api.post("/api/iso/plant-seed/", {
         building_id: buildingId,
-        cell_row: cellRow,
-        cell_col: cellCol,
         seed_id: seedId,
       });
       
