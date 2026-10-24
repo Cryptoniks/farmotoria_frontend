@@ -159,10 +159,19 @@ export function useIsoFarmEngine() {
     }
   }, [loadPlots]);
 
+  // Постройка серией: выбранное здание остаётся «в руке», пока игрок не отменит (кнопка или Esc)
+  // или пока хватает монет. Пока идёт запрос, новые клики не принимаются — баланс не уйдёт в минус.
+  const placingRef = useRef(false);
   const tryPlaceBuilding = useCallback(async (row, col) => {
     const sel = buildingToPlaceRef.current || selected;
-    if (!sel) return;
-    
+    if (!sel || placingRef.current) return;
+    if (stateRef.current.coins < sel.price) {
+      setBuildingToPlace(null);
+      setState(prev => ({ ...prev, err: `Недостаточно монет: «${sel.name}» стоит ${sel.price}` }));
+      return;
+    }
+
+    placingRef.current = true;
     try {
       const res = await api.post("/api/iso/place-building/", {
         row,
@@ -179,14 +188,25 @@ export function useIsoFarmEngine() {
         ...prev,
         coins: res.data.coins_balance,
         buildings: [...prev.buildings, newBuilding],
+        err: "",
       }));
-      setBuildingToPlace(null);
-      setTimeout(() => load(), 100);
+      // На следующее такое же здание денег нет — выходим из режима постройки.
+      // Сообщение — после перезагрузки поля: load() очищает ошибки.
+      const exhausted = res.data.coins_balance < sel.price;
+      if (exhausted) setBuildingToPlace(null);
+      setTimeout(async () => {
+        await load();
+        if (exhausted) {
+          setState(prev => ({ ...prev, err: `Постройка завершена: на ещё одно «${sel.name}» не хватает монет` }));
+        }
+      }, 100);
     } catch (e) {
       setState(prev => ({
         ...prev,
         err: e?.response?.data?.detail || e.message || "Ошибка размещения",
       }));
+    } finally {
+      placingRef.current = false;
     }
   }, [selected, load]);
 

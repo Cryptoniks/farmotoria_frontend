@@ -143,7 +143,7 @@ const IsoFarmControls = ({
             fontSize: 12,
             pointerEvents: "auto",
           }}>
-            🎯 Размещение: {buildingToPlace.name} (кликните на поле) •
+            🏗 Строительство: {buildingToPlace.name} (💰 {buildingToPlace.price}) — кликайте на карту, можно несколько подряд •
             <button
               onClick={() => setBuildingToPlace(null)}
               style={{
@@ -155,7 +155,7 @@ const IsoFarmControls = ({
                 marginLeft: 4,
               }}
             >
-              Отмена
+              Отмена (Esc)
             </button>
           </span>
         )}

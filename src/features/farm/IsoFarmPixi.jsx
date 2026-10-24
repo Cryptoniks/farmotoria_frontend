@@ -22,6 +22,17 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
   const engine = useIsoFarmEngine();
   const rootRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+  // Для Esc: идёт ли сейчас постройка или перемещение и как их отменить
+  const placementRef = useRef(null);
+  useEffect(() => {
+    placementRef.current = {
+      active: Boolean(engine.buildingToPlace || engine.movingBuilding),
+      cancel: () => {
+        engine.setBuildingToPlace(null);
+        engine.setMovingBuilding(null);
+      },
+    };
+  });
 
   // Анимация работающих зданий: по умолчанию включена, если в системе не выбрано «уменьшить движение»
   const [animate, setAnimate] = useState(() => {
@@ -92,7 +103,13 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
     const root = rootRef.current;
     const onChange = () => setIsFullscreen(document.fullscreenElement === root);
     const onKey = (e) => {
-      if (e.key === "Escape" && !document.fullscreenElement) setIsFullscreen(false);
+      if (e.key !== "Escape") return;
+      // Esc сначала отменяет постройку или перемещение, и только потом сворачивает карту
+      if (placementRef.current?.active) {
+        placementRef.current.cancel();
+        return;
+      }
+      if (!document.fullscreenElement) setIsFullscreen(false);
     };
     document.addEventListener("fullscreenchange", onChange);
     window.addEventListener("keydown", onKey);
