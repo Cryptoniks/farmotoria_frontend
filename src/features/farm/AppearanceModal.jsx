@@ -46,6 +46,7 @@ export default function AppearanceModal({ target, saved, coins, price, onSave, o
   const [look, setLook] = useState(saved || DEFAULT);
   const [locked, setLocked] = useState({});
   const [picker, setPicker] = useState(null); // слот, для которого открыта палитра
+  const [showColors, setShowColors] = useState(false); // блок цветов открывается кнопкой «🎨 Цвета»
   const [busy, setBusy] = useState(false);
   const [status, setStatus] = useState({ text: "", error: false });
 
@@ -117,37 +118,53 @@ export default function AppearanceModal({ target, saved, coins, price, onSave, o
               onClick={() => update({ details: randomSeed() })}>
               🪵 Детали
             </button>
-            <button className="farm-modal-btn ghost" disabled={busy} onClick={() => update({ colors: rollColors() })}>
-              🎨 Цвета
+            <button className={`farm-modal-btn ghost ${showColors ? "active" : ""}`} disabled={busy}
+              onClick={() => { setShowColors((v) => !v); setPicker(null); }}>
+              🎨 Цвета {showColors ? "▴" : "▾"}
             </button>
             <button className="farm-modal-btn ghost" disabled={busy || !look.shape} onClick={() => update({ shape: 0, details: 0 })}>
               ↩ Исходная форма
             </button>
           </div>
 
-          {/* Цвета: образец + замок; клик по образцу открывает палитру */}
-          <div className="appearance-colors">
-            {COLOR_SLOTS.map((slot) => (
-              <div key={slot} className={`appearance-color ${picker === slot ? "active" : ""}`}>
-                <button className="appearance-swatch" style={{ background: colors[slot] }}
-                  onClick={() => setPicker(picker === slot ? null : slot)} title="Выбрать цвет" />
-                <div className="appearance-color-label">
-                  <div>{labels[slot]}</div>
-                  <code>{colors[slot]}</code>
-                </div>
-                <button className="appearance-lock" onClick={() => setLocked((p) => ({ ...p, [slot]: !p[slot] }))}
-                  title={locked[slot] ? "Цвет закреплён: 🎲 его не меняет" : "Закрепить цвет"}>
-                  {locked[slot] ? "🔒" : "🔓"}
+          {/* Цвета: появляются по кнопке «🎨 Цвета». Клик по карточке открывает палитру, замок — отдельно */}
+          {showColors && (
+            <div className="appearance-colors-panel">
+              <div className="appearance-colors">
+                {COLOR_SLOTS.map((slot) => {
+                  const toggle = () => setPicker(picker === slot ? null : slot);
+                  return (
+                    <div key={slot} role="button" tabIndex={0} title="Выбрать цвет"
+                      className={`appearance-color ${picker === slot ? "active" : ""}`}
+                      onClick={toggle}
+                      onKeyDown={(e) => (e.key === "Enter" || e.key === " ") && (e.preventDefault(), toggle())}>
+                      <span className="appearance-swatch" style={{ background: colors[slot] }} />
+                      <div className="appearance-color-label">
+                        <div>{labels[slot]}</div>
+                        <code>{colors[slot]}</code>
+                      </div>
+                      <button className="appearance-lock"
+                        onClick={(e) => { e.stopPropagation(); setLocked((p) => ({ ...p, [slot]: !p[slot] })); }}
+                        title={locked[slot] ? "Цвет закреплён: 🎲 его не меняет" : "Закрепить цвет"}>
+                        {locked[slot] ? "🔒" : "🔓"}
+                      </button>
+                    </div>
+                  );
+                })}
+              </div>
+              <div className="appearance-colors-actions">
+                <button className="farm-modal-btn ghost" disabled={busy} onClick={() => update({ colors: rollColors() })}>
+                  🎲 Случайные цвета
+                </button>
+                <button className="farm-modal-btn ghost" disabled={busy}
+                  onClick={() => { update({ colors: defaultColors(slug) }); setLocked({}); }}>
+                  Исходные цвета
                 </button>
               </div>
-            ))}
-          </div>
-          <button className="farm-modal-btn ghost appearance-default-colors" disabled={busy}
-            onClick={() => { update({ colors: defaultColors(slug) }); setLocked({}); }}>
-            Исходные цвета
-          </button>
+            </div>
+          )}
 
-          {picker && (
+          {showColors && picker && (
             <div className="appearance-palette">
               <div className="appearance-palette-head">
                 <span>{labels[picker]}: выберите цвет</span>

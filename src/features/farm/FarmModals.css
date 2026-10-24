@@ -363,8 +363,39 @@
   font-size: 12px;
 }
 
+.appearance-color {
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s;
+}
+
+.appearance-color:hover {
+  background: rgba(255, 255, 255, 0.1);
+}
+
+.appearance-color:focus-visible {
+  outline: 2px solid #90caf9;
+  outline-offset: 1px;
+}
+
 .appearance-color.active {
   border-color: #4caf50;
+  background: rgba(76, 175, 80, 0.15);
+}
+
+.appearance-colors-panel {
+  margin-bottom: 4px;
+}
+
+.appearance-colors-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.farm-modal-btn.ghost.active {
+  background: rgba(76, 175, 80, 0.3);
+  outline: 1px solid #4caf50;
 }
 
 .appearance-swatch {
@@ -373,7 +404,6 @@
   flex: none;
   border-radius: 8px;
   border: 2px solid rgba(255, 255, 255, 0.6);
-  cursor: pointer;
 }
 
 .appearance-color-label {
@@ -393,10 +423,6 @@
   cursor: pointer;
   font-size: 16px;
   padding: 2px;
-}
-
-.appearance-default-colors {
-  margin-top: 8px;
 }
 
 /* Палитра 256 цветов */
