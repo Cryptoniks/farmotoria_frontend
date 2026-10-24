@@ -187,6 +187,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
         load={engine.load}
         tryUpgradeBuilding={engine.tryUpgradeBuilding}
         tryOpenCycle={engine.tryOpenCycle}
+        tryBuyAnimal={engine.tryBuyAnimal}
         onCustomize={openCustomize}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}

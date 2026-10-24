@@ -3,6 +3,7 @@ import "./SeedSelectModal.css";
 import "./FarmModals.css";
 import PlantIcon from "../../components/PlantIcon";
 import BuildingLevel from "./BuildingLevel";
+import AnimalsPanel from "./AnimalsPanel";
 
 // Иконки по slug здания (для животноводства)
 const ANIMAL_ICONS = {
@@ -183,6 +184,7 @@ export default function ExtractionModal({
   onUpgrade = null,
   onCustomize = null,
   onOpenCycle = null,
+  onBuyAnimal = null,
 }) {
   const [quantities, setQuantities] = useState({});
 
@@ -199,6 +201,7 @@ export default function ExtractionModal({
   // Процессы этого здания: у добычи один, у переработки и производства — по одному на открытый цикл
   const buildingProcesses = (processes || []).filter((p) => p.building_id === building?.id && p.status !== "stopped");
   const hasRunning = buildingProcesses.length > 0;
+  const hasAnimals = building?.animals != null;
   const cycles = building?.cycles ?? 1;
   const freeCycles = Math.max(0, cycles - buildingProcesses.length);
 
@@ -251,12 +254,26 @@ export default function ExtractionModal({
             <CyclesPanel building={building} busyCount={buildingProcesses.length} coins={coins} onOpenCycle={onOpenCycle} />
           )}
 
-          {buildingProcesses.map((p) => (
+          {/* Животноводство: сетка животных, каждое кормится отдельно */}
+          {hasAnimals && (
+            <AnimalsPanel
+              building={building}
+              processes={processes}
+              recipes={recipes}
+              coins={coins}
+              onStart={onStart}
+              onStop={handleStop}
+              onCollect={handleCollect}
+              onBuyAnimal={onBuyAnimal}
+            />
+          )}
+
+          {!hasAnimals && buildingProcesses.map((p) => (
             <ProcessCard key={p.id} process={p} kind={buildingType} icon={icon} onStop={handleStop} onCollect={handleCollect} />
           ))}
 
           {/* Рецепты — пока в здании есть свободный цикл */}
-          {isRecipeBuilding && recipes && recipes.length > 0 && freeCycles > 0 && (
+          {isRecipeBuilding && !hasAnimals && recipes && recipes.length > 0 && freeCycles > 0 && (
             <div className="recipes-section">
               <div className="recipes-title">
                 Доступные рецепты{cycles > 1 ? ` (свободно циклов: ${freeCycles})` : ""}:

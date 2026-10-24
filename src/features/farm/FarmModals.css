@@ -856,3 +856,130 @@
 .farm-modal-list + .profile-skills-title {
   margin-top: 16px;
 }
+
+/* --------------------------------------------------- Животные здания -- */
+.animals-panel {
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-bottom: 12px;
+}
+
+.animals-panel .farm-modal-name {
+  color: #fff;
+  font-size: 15px;
+}
+
+.animals-feed {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  margin: 8px 0;
+  font-size: 13px;
+  color: #e0e0e0;
+}
+
+.animals-qty {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.animals-qty input {
+  width: 60px;
+  padding: 4px;
+}
+
+.animals-qty button {
+  padding: 4px 10px;
+  font-size: 12px;
+}
+
+.animals-actions {
+  display: flex;
+  gap: 8px;
+}
+
+.animals-actions .farm-modal-btn {
+  flex: 1;
+  padding: 8px 10px;
+}
+
+.animals-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 8px;
+}
+
+.animal-cell {
+  min-height: 104px;
+  border-radius: 10px;
+  padding: 6px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 3px;
+  text-align: center;
+  background: rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+}
+
+.animal-cell.hungry {
+  border-color: rgba(255, 179, 0, 0.6);
+}
+
+.animal-cell.eating {
+  background: rgba(33, 150, 243, 0.15);
+  border-color: rgba(33, 150, 243, 0.6);
+}
+
+.animal-cell.ready {
+  background: rgba(76, 175, 80, 0.18);
+  border-color: #4caf50;
+}
+
+.animal-cell.buy {
+  border: 1px dashed #4caf50;
+}
+
+.animal-cell.locked {
+  opacity: 0.55;
+}
+
+.animal-emoji {
+  font-size: 28px;
+  line-height: 1;
+}
+
+.animal-state {
+  font-size: 12px;
+  color: #e0e0e0;
+}
+
+.animal-timer {
+  font-size: 13px;
+  font-weight: 700;
+  color: #90caf9;
+}
+
+.animal-btn {
+  border: none;
+  border-radius: 6px;
+  padding: 4px 8px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+  cursor: pointer;
+  background: linear-gradient(135deg, #4caf50, #388e3c);
+}
+
+.animal-btn.ghost {
+  background: rgba(255, 255, 255, 0.12);
+}
+
+.animal-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}

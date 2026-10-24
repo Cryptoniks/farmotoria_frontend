@@ -53,6 +53,7 @@ const IsoFarmControls = ({
   load,
   tryUpgradeBuilding,
   tryOpenCycle,
+  tryBuyAnimal,
   onCustomize,
   isFullscreen,
   onToggleFullscreen,
@@ -408,6 +409,7 @@ const IsoFarmControls = ({
         }}
         onSell={tryRemoveBuilding}
         onOpenCycle={tryOpenCycle}
+        onBuyAnimal={tryBuyAnimal}
         recipes={processingRecipes}
         isProcessing={["processing", "production", "agroproduction"].includes(extractionBuilding?.building_type)}
       />

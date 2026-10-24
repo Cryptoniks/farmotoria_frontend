@@ -265,6 +265,21 @@ export function useIsoFarmEngine() {
     }
   }, []);
 
+  // Купить животное в здание животноводства (ячейки 2–9 открываются уровнем «Животноводства»)
+  const tryBuyAnimal = useCallback(async (buildingId) => {
+    try {
+      const res = await api.post("/api/iso/buy-animal/", { placement_id: buildingId });
+      setState(prev => ({
+        ...prev,
+        coins: res.data.coins_balance,
+        buildings: prev.buildings.map((b) => (b.id === buildingId ? { ...b, ...res.data.building } : b)),
+      }));
+      return { success: true };
+    } catch (e) {
+      return { error: e?.response?.data?.detail || e.message || "Ошибка покупки животного" };
+    }
+  }, []);
+
   // Внешний вид типа здания: appearance — зёрна {c, r, d} (за монеты), null — вернуть стандартный (бесплатно)
   const tryChangeAppearance = useCallback(async (slug, appearance) => {
     try {
@@ -447,6 +462,7 @@ export function useIsoFarmEngine() {
     tryBuyChunk,
     tryPlantSeed,
     tryOpenCycle,
+    tryBuyAnimal,
     tryPlaceBuilding,
     tryRemoveBuilding,
     tryMoveBuilding,
