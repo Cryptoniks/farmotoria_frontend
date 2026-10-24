@@ -9,10 +9,13 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
   const [seeds, setSeeds] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [now, setNow] = useState(() => Date.now());
   
-  // Одно поле — одна посадка — один тип урожая
-  const plot = plots?.find((p) => p.building_id === buildingId) || null;
+  const [now, setNow] = useState(() => Date.now());
+  // Только что собранный урожай: окно остаётся открытым и предлагает повторить посадку или выбрать другие семена
+  const [harvested, setHarvested] = useState(null);
+
+  // Одно поле — одна посадка — один тип урожая (собранная уже не считается, даже пока список не обновился)
+  const plot = plots?.find((p) => p.building_id === buildingId && p.id !== harvested?.plotId) || null;
 
   // Иконки: семя — при посадке и росте, готовый продукт — когда урожай созрел
   const seedOf = (plot) => {
@@ -42,6 +45,7 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
 
   useEffect(() => {
     if (isOpen) {
+      setHarvested(null);
       loadSeeds();
     }
   }, [isOpen]);
@@ -79,14 +83,17 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
     }
   }
 
-  async function handleHarvest(plotId) {
+  async function handleHarvest(harvestPlot) {
     try {
-      await api.post("/api/iso/harvest/", { plot_id: plotId });
-      // Закрываем и обновляем данные через коллбэк
-      onClose();
-      if (onHarvest) {
-        onHarvest();
-      }
+      const res = await api.post("/api/iso/harvest/", { plot_id: harvestPlot.id });
+      setHarvested({
+        plotId: harvestPlot.id,
+        seedId: harvestPlot.seed_id,
+        seedName: harvestPlot.seed_name,
+        itemName: res.data.harvest?.item_name,
+        quantity: res.data.harvest?.quantity,
+      });
+      onHarvest?.();
     } catch (e) {
       alert("Ошибка сбора: " + (e?.response?.data?.detail || e?.message || "Unknown"));
     }
@@ -126,7 +133,7 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
                 <div className="harvest-title">Урожай готов!</div>
                 <div className="harvest-seed">{plot.seed_name}</div>
               </div>
-              <button className="harvest-btn" onClick={() => handleHarvest(plot.id)}>
+              <button className="harvest-btn" onClick={() => handleHarvest(plot)}>
                 Собрать
               </button>
             </div>
@@ -161,8 +168,37 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
             </div>
           )}
           
+          {/* Урожай только что собран - повторить посадку или выбрать другие семена */}
+          {!plot && harvested && (() => {
+            const lastSeed = seeds.find((s) => s.id === harvested.seedId);
+            return (
+              <>
+                {harvested.itemName && (
+                  <div className="harvest-done">
+                    ✅ Собрано: {harvested.itemName} × {harvested.quantity}
+                  </div>
+                )}
+                <div className="plot-actions">
+                  <button
+                    className="action-btn replant-btn"
+                    disabled={!lastSeed}
+                    onClick={() => handlePlant(harvested.seedId)}
+                  >
+                    🔁 Повторить посадку
+                    <span className="action-btn-sub">
+                      {lastSeed ? `${lastSeed.name} · 💰 ${lastSeed.price_coins}` : harvested.seedName}
+                    </span>
+                  </button>
+                  <button className="action-btn other-seeds-btn" onClick={() => setHarvested(null)}>
+                    🌱 Выбрать другие семена
+                  </button>
+                </div>
+              </>
+            );
+          })()}
+
           {/* Поле пустое - магазин семян */}
-          {!plot && (
+          {!plot && !harvested && (
             <>
               <div className="shop-title">Купить семена</div>
               
