@@ -401,3 +401,39 @@
   vertical-align: middle;
   margin-right: 4px;
 }
+
+/* Одиночная / множественная посадка */
+.plant-mode {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 6px;
+}
+
+.plant-mode-btn {
+  flex: 1;
+  padding: 8px 10px;
+  border-radius: 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  background: rgba(255, 255, 255, 0.06);
+  color: #cfd8dc;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.plant-mode-btn.active {
+  background: rgba(76, 175, 80, 0.25);
+  border-color: #4caf50;
+  color: #fff;
+}
+
+.plant-mode-btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.plant-mode-hint {
+  font-size: 12px;
+  color: #b0bec5;
+  margin-bottom: 10px;
+}

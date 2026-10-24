@@ -5,8 +5,12 @@ import BuildingLevel from "./BuildingLevel";
 import { isPlotReady, plotReadyAt } from "./plots";
 import "./SeedSelectModal.css";
 
-export default function SeedSelectModal({ isOpen, onClose, buildingId, building, coins, onUpgrade, plots, onPlant, onHarvest, onSell }) {
+export default function SeedSelectModal({
+  isOpen, onClose, buildingId, building, coins, onUpgrade, plots, onPlant, onHarvest, onSell, isPremium, onStartMulti,
+}) {
   const [seeds, setSeeds] = useState([]);
+  // Одиночная посадка — одно поле; множественная (Премиум) — то же семя и на другие поля кликом по карте
+  const [multi, setMulti] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
   
@@ -76,6 +80,12 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
       return;
     }
     try {
+      if (multi && isPremium) {
+        const res = await onPlant(buildingId, seedId, { multi: true });
+        const seed = seeds.find((s) => s.id === seedId);
+        if (res?.success && seed) onStartMulti?.(seed);
+        return;
+      }
       await onPlant(buildingId, seedId);
     } catch (e) {
       console.error("Plant error:", e);
@@ -200,6 +210,26 @@ export default function SeedSelectModal({ isOpen, onClose, buildingId, building,
           {/* Поле пустое - магазин семян */}
           {!plot && !harvested && (
             <>
+              <div className="plant-mode">
+                <button className={`plant-mode-btn ${!multi ? "active" : ""}`} onClick={() => setMulti(false)}>
+                  🌱 Одиночная посадка
+                </button>
+                <button
+                  className={`plant-mode-btn ${multi ? "active" : ""}`}
+                  disabled={!isPremium}
+                  onClick={() => setMulti(true)}
+                  title={isPremium ? "Семя сажается сюда и на другие поля кликом по карте" : "Доступно с Премиумом"}
+                >
+                  🌾 Множественная 👑
+                </button>
+              </div>
+              <div className="plant-mode-hint">
+                {!isPremium
+                  ? "Множественная посадка — с Премиумом: выбранное семя сажается и на другие поля одним кликом по карте."
+                  : multi
+                    ? "Выберите семя: оно посадится сюда, а дальше кликайте по пустым полям на карте. Выход — «Отмена» или Esc."
+                    : "Одно поле — одна посадка."}
+              </div>
               <div className="shop-title">Купить семена</div>
               
               {loading && <div className="seed-loading">Загрузка...</div>}

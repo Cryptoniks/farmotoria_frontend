@@ -15,6 +15,9 @@ const IsoFarmControls = ({
   catalog,
   buildingToPlace,
   setBuildingToPlace,
+  plantingSeed,
+  setPlantingSeed,
+  isPremium,
   movingBuilding,
   setMovingBuilding,
   moveMode,
@@ -134,6 +137,32 @@ const IsoFarmControls = ({
 
       {/* Статус поверх карты: режим размещения/перемещения и ошибки */}
       <div style={{ position: "absolute", top: 12, left: "50%", transform: "translateX(-50%)", maxWidth: "min(640px, 60%)", display: "flex", gap: 8, alignItems: "center", justifyContent: "center", flexWrap: "wrap", zIndex: 100, pointerEvents: "none" }}>
+        {plantingSeed && (
+          <span style={{
+            background: "#7cb342",
+            color: "#000",
+            padding: "4px 8px",
+            borderRadius: 4,
+            fontSize: 12,
+            pointerEvents: "auto",
+          }}>
+            🌾 Посев: {plantingSeed.name} (💰 {plantingSeed.price_coins}) — кликайте на пустые поля •
+            <button
+              onClick={() => setPlantingSeed(null)}
+              style={{
+                background: "none",
+                border: "none",
+                color: "#000",
+                cursor: "pointer",
+                textDecoration: "underline",
+                marginLeft: 4,
+              }}
+            >
+              Отмена (Esc)
+            </button>
+          </span>
+        )}
+
         {buildingToPlace && (
           <span style={{
             background: "#ff9800",
@@ -335,6 +364,8 @@ const IsoFarmControls = ({
         onPlant={tryPlantSeed}
         onHarvest={loadPlots}
         onSell={tryRemoveBuilding}
+        isPremium={isPremium}
+        onStartMulti={setPlantingSeed}
       />
 
       <ExtractionModal

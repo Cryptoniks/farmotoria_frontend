@@ -32,10 +32,11 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
   const placementRef = useRef(null);
   useEffect(() => {
     placementRef.current = {
-      active: Boolean(engine.buildingToPlace || engine.movingBuilding),
+      active: Boolean(engine.buildingToPlace || engine.movingBuilding || engine.plantingSeed),
       cancel: () => {
         engine.setBuildingToPlace(null);
         engine.setMovingBuilding(null);
+        engine.setPlantingSeed(null);
       },
     };
   });
@@ -160,6 +161,18 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
 
   // Клик по зданию: поле — окно посадки, остальное — окно добычи/переработки
   const handleBuildingClick = async (building) => {
+    // Множественный посев: клик по пустому полю сразу сажает выбранное семя, без окна
+    const seed = engine.plantingSeed;
+    if (seed) {
+      if (building.building_type !== "field") return;
+      if (engine.plots.some((p) => p.building_id === building.id)) {
+        engine.showError("Это поле уже засеяно — выберите пустое");
+        return;
+      }
+      const res = await engine.tryPlantSeed(building.id, seed.id, { multi: true });
+      if (res?.error) engine.setPlantingSeed(null); // нет монет или Премиум закончился — выходим из режима
+      return;
+    }
     if (building.building_type === "shop") return setShopOpen(true);
     if (building.building_type === "market") return setMarketOpen(true);
     if (building.building_type === "academy") return setAcademyOpen(true);
@@ -198,6 +211,9 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, o
         catalog={engine.catalog}
         buildingToPlace={engine.buildingToPlace}
         setBuildingToPlace={engine.setBuildingToPlace}
+        plantingSeed={engine.plantingSeed}
+        setPlantingSeed={engine.setPlantingSeed}
+        isPremium={Boolean(user?.is_premium)}
         movingBuilding={engine.movingBuilding}
         setMovingBuilding={engine.setMovingBuilding}
         moveMode={engine.moveMode}

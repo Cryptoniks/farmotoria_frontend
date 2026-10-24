@@ -40,6 +40,8 @@ export function useIsoFarmEngine() {
   const [buildMenuOpen, setBuildMenuOpen] = useState(false);
   const [buildMenuMode, setBuildMenuMode] = useState("build");
   const [buildingToPlace, setBuildingToPlace] = useState(null);
+  // Множественный посев (Премиум): выбранное семя сажается кликом по пустым полям, пока игрок не отменит
+  const [plantingSeed, setPlantingSeed] = useState(null);
   const [movingBuilding, setMovingBuilding] = useState(null);
   const [moveMode, setMoveMode] = useState(false);
   const [moveChanges, setMoveChanges] = useState({});
@@ -157,24 +159,29 @@ export function useIsoFarmEngine() {
     }
   }, [loadAvailableChunks]);
 
-  const tryPlantSeed = useCallback(async (buildingId, seedId) => {
+  // multi: посадка в режиме множественного посева — сервер проверяет Премиум
+  const tryPlantSeed = useCallback(async (buildingId, seedId, { multi = false } = {}) => {
     try {
       const res = await api.post("/api/iso/plant-seed/", {
         building_id: buildingId,
         seed_id: seedId,
+        multi,
       });
-      
-      setState(prev => ({ ...prev, coins: res.data.coins_balance }));
+
+      setState(prev => ({ ...prev, coins: res.data.coins_balance, err: "" }));
       setSeedModalOpen(false);
       setClickedBuilding(null);
       loadPlots();
+      return { success: true };
     } catch (e) {
-      setState(prev => ({
-        ...prev,
-        err: e?.response?.data?.detail || e.message || "Ошибка посадки",
-      }));
+      const error = e?.response?.data?.detail || e.message || "Ошибка посадки";
+      setState(prev => ({ ...prev, err: error }));
+      return { error };
     }
   }, [loadPlots]);
+
+  // Сообщение в строке статуса над картой
+  const showError = useCallback((err) => setState(prev => ({ ...prev, err })), []);
 
   // Постройка серией: выбранное здание остаётся «в руке», пока игрок не отменит (кнопка или Esc)
   // или пока хватает монет. Пока идёт запрос, новые клики не принимаются — баланс не уйдёт в минус.
@@ -498,6 +505,9 @@ export function useIsoFarmEngine() {
     loadPlots,
     tryBuyChunk,
     tryPlantSeed,
+    plantingSeed,
+    setPlantingSeed,
+    showError,
     loadAvailableChunks,
     tryOpenCycle,
     tryBuyAnimal,
