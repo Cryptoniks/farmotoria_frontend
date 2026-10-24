@@ -6,8 +6,8 @@ import SkillRow from "./SkillRow";
 
 const percent = (exp, next) => (next > 0 ? Math.min(100, Math.round((exp / next) * 100)) : 100);
 
-/** Угол карты: значок игрока (аватар, имя, уровень, опыт, ссылка на профиль) и рядом отдельный блок «❓ Как играть». */
-export function ProfileBadge({ user, onOpen, onHelp }) {
+/** Угол карты: значок игрока (аватар, имя, уровень, опыт, ссылка на профиль) и рядом блоки «❓ Как играть» и «💎 Премиум-магазин». */
+export function ProfileBadge({ user, onOpen, onHelp, onPremium }) {
   if (!user) return null;
   return (
     <div className="profile-corner">
@@ -16,7 +16,10 @@ export function ProfileBadge({ user, onOpen, onHelp }) {
           {(user.username || "?").slice(0, 1).toUpperCase()}
         </button>
         <div className="profile-badge-info">
-          <div className="profile-badge-name">{user.username}</div>
+          <div className="profile-badge-name">
+            {user.username}
+            {user.is_premium && <span className="profile-premium" title="Премиум активен"> 👑</span>}
+          </div>
           <div className="profile-badge-level">
             Ур. {user.level}
             {user.qualification_points > 0 && <span title="Очки квалификации — тратятся в Академии"> · 🎓 {user.qualification_points}</span>}
@@ -29,6 +32,9 @@ export function ProfileBadge({ user, onOpen, onHelp }) {
       </div>
       {onHelp && (
         <button className="profile-help" onClick={onHelp} title="Как играть: разделы игры" aria-label="Как играть">❓</button>
+      )}
+      {onPremium && (
+        <button className="profile-help premium" onClick={onPremium} title="Премиум-магазин" aria-label="Премиум-магазин">💎</button>
       )}
     </div>
   );

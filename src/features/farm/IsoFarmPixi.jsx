@@ -11,6 +11,8 @@ import ShopModal from "./ShopModal";
 import AcademyModal from "./AcademyModal";
 import GuideModal from "./GuideModal";
 import BuyChunkModal from "./BuyChunkModal";
+import BankModal from "./BankModal";
+import PremiumModal from "./PremiumModal";
 
 const GUIDE_HIDE_KEY = "farm.guide.hide";
 import MarketModal from "./MarketModal";
@@ -22,7 +24,7 @@ import { api } from "../../shared/services/api";
 // Здания с рецептами: окно показывает список рецептов из /api/processing/recipes/
 const RECIPE_BUILDING_TYPES = ["processing", "production", "agroproduction"];
 
-const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
+const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged, bankOpen = false, onBankClose }) => {
   const engine = useIsoFarmEngine();
   const rootRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
@@ -68,6 +70,7 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
   const [marketOpen, setMarketOpen] = useState(false);
   const [academyOpen, setAcademyOpen] = useState(false);
   const [chunkToBuy, setChunkToBuy] = useState(null); // участок, покупку которого подтверждает игрок
+  const [premiumOpen, setPremiumOpen] = useState(false);
   // «Как играть»: показывается при каждом входе в игру, пока игрок не отметит «Не показывать при входе»
   const [guideHidden, setGuideHidden] = useState(() => {
     try {
@@ -235,6 +238,17 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
         onToggleAnimate={toggleAnimate}
       />
 
+      <BankModal
+        isOpen={bankOpen}
+        onClose={() => onBankClose?.()}
+        onChanged={(data) => {
+          // Монеты — в движок карты (оттуда и в шапку), алмазы — из профиля
+          engine.applyCoins(data.coins_balance);
+          onUserChanged?.();
+        }}
+      />
+      <PremiumModal isOpen={premiumOpen} onClose={() => setPremiumOpen(false)} onChanged={() => onUserChanged?.()} />
+
       <BuyChunkModal
         chunk={chunkToBuy}
         coins={engine.coins}
@@ -281,7 +295,12 @@ const IsoFarmPixi = ({ setCoinsBalance, user, onUserChanged }) => {
         onSell={engine.tryRemoveBuilding}
         onCustomize={() => openCustomize(storageBuilding)}
       />
-      <ProfileBadge user={user} onOpen={() => setProfileOpen(true)} onHelp={() => setGuideOpen(true)} />
+      <ProfileBadge
+        user={user}
+        onOpen={() => setProfileOpen(true)}
+        onHelp={() => setGuideOpen(true)}
+        onPremium={() => setPremiumOpen(true)}
+      />
       <ProfileModal isOpen={profileOpen} onClose={() => setProfileOpen(false)} onSaved={onUserChanged} />
       {customize && (
         <AppearanceModal

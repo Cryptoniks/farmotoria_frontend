@@ -40,8 +40,38 @@
   background: #fff8e1;
   color: #5d4037;
   font-weight: 800;
+  font-size: inherit;
   border: 2px solid #5d4037;
   white-space: nowrap;
+  cursor: pointer;
+}
+
+.game-coins:hover {
+  background: #ffecb3;
+}
+
+.game-coins.diamonds {
+  background: #e3f2fd;
+  color: #0d47a1;
+}
+
+.game-coins.diamonds:hover {
+  background: #bbdefb;
+}
+
+.game-bank {
+  padding: 6px 12px;
+  border-radius: 10px;
+  border: 2px solid #5d4037;
+  background: #d7b98a;
+  color: #3e2723;
+  font-weight: 800;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+.game-bank:hover {
+  background: #e6caa0;
 }
 
 .game-username {
@@ -73,6 +103,15 @@
 @media (max-width: 560px) {
   .game-logo {
     height: 38px;
+  }
+  .game-header-right {
+    gap: 6px;
+  }
+  .game-coins {
+    padding: 5px 9px;
+  }
+  .game-bank-label {
+    display: none;
   }
   .game-username {
     display: none;

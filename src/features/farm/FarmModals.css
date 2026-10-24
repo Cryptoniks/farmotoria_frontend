@@ -1124,3 +1124,96 @@
   padding: 9px 22px;
   font-size: 14px;
 }
+
+.profile-help.premium {
+  background: #e3f2fd;
+  border-color: #1565c0;
+  box-shadow: 0 3px 0 #0d47a1, 0 6px 14px rgba(0, 0, 0, 0.25);
+}
+
+.profile-help.premium:hover {
+  background: #bbdefb;
+}
+
+/* ------------------------------------------------- Банк и Премиум -- */
+.bank-grid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.bank-grid .academy-card {
+  margin-top: 0;
+}
+
+.bank-row {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+
+.bank-row .farm-modal-input {
+  flex: 1;
+  min-width: 0;
+}
+
+.bank-total {
+  margin-top: 8px;
+  font-size: 14px;
+  font-weight: 700;
+  color: #ffcc80;
+}
+
+.bank-action {
+  width: 100%;
+  margin-top: 10px;
+  padding: 9px 12px;
+}
+
+.premium-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  margin-top: 12px;
+}
+
+.premium-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 10px;
+  border-radius: 12px;
+  background: linear-gradient(160deg, rgba(66, 165, 245, 0.18), rgba(255, 255, 255, 0.04));
+  border: 1px solid rgba(144, 202, 249, 0.5);
+  text-align: center;
+}
+
+.premium-card-title {
+  font-size: 16px;
+  font-weight: 800;
+  color: #fff;
+}
+
+.premium-card-price {
+  font-size: 15px;
+  font-weight: 700;
+  color: #90caf9;
+}
+
+.premium-card-bonus {
+  font-size: 12px;
+  font-weight: 700;
+  color: #a5d6a7;
+}
+
+.premium-card .farm-modal-btn {
+  width: 100%;
+}
+
+@media (max-width: 640px) {
+  .bank-grid,
+  .premium-grid {
+    grid-template-columns: 1fr;
+  }
+}
