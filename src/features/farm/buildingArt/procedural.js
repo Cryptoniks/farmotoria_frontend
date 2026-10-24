@@ -202,9 +202,7 @@ function herd(b, D, species, [r0, c0, r1, c1], min, max) {
   spots.slice(0, n).sort((a, b2) => a[0] + a[1] - (b2[0] + b2[1])).forEach(([r, c]) => {
     const [body, head] = pick(D, COATS[species]);
     if (species === "chicken") {
-      b.animal(r, c, body, head, "#f9a825", { k: 0.7 });
-      const [x, y] = b.P(r, c, 0.16 * 0.7);
-      b.raw(`<circle cx="${(x + 0.16 * b.a).toFixed(2)}" cy="${(y - 0.1 * b.a).toFixed(2)}" r="${(0.03 * b.a).toFixed(2)}" fill="#e53935"/>`);
+      b.animal(r, c, body, head, "#f9a825", { k: 0.7, comb: "#e53935" });
     } else if (species === "pig") b.animal(r, c, body, head, "#c2185b");
     else if (species === "cow") b.animal(r, c, body, body, "#424242", { k: 1.25, spots: [[-0.08, -0.02], [0.07, 0.03]], spotColor: head });
     else b.animal(r, c, body, head, "#424242", { fluffy: true });
@@ -279,9 +277,12 @@ export const RECIPES = {
       b.onFace("side", 1.85, 0.25 + len, 0.06, [[0.1, 0.08], [0.25, 0.08], [0.175, 0.22]]
         .map(([u, v]) => `<circle cx="${u}" cy="${v}" r="0.07" fill="#deb887" stroke="${OUT}" stroke-width="0.8" NS/>`).join(""));
       b.cyl(1.6, 1.6, 0.16, 0.06, 0.25, "#8d6e63", "#e3c08a");
-      const [x, y] = b.P(1.6, 1.6, 0.25);
-      b.line([x - 2, y], [x + 0.25 * b.a, y - 0.35 * b.a], "#6d4c41", 2.2);
-      b.poly([[x + 0.18 * b.a, y - 0.4 * b.a], [x + 0.34 * b.a, y - 0.36 * b.a], [x + 0.3 * b.a, y - 0.24 * b.a]], "#b0bec5", OUT, 1);
+      b.sprite(1.6, 1.6, 0.25, [0.45, 0.5, 0.08], { kind: "chop", amp: 0.12 * b.a }, () => {
+        const [x, y] = b.P(1.6, 1.6, 0.25);
+        b.line([x - 2, y], [x + 0.25 * b.a, y - 0.35 * b.a], "#6d4c41", 2.2);
+        b.poly([[x + 0.18 * b.a, y - 0.4 * b.a], [x + 0.34 * b.a, y - 0.36 * b.a], [x + 0.3 * b.a, y - 0.24 * b.a]], "#b0bec5", OUT, 1);
+      });
+      b.emit("chips", 1.6, 1.6, 0.3);
     },
   },
 
@@ -305,9 +306,12 @@ export const RECIPES = {
       if (chance(D, 0.8)) {
         b.line(b.P(2.45, 2.55, 0.06), b.P(2.45, 2.55, 1.4), C.roof, 3);
         b.line(b.P(2.45, 2.55, 1.35), b.P(2.0, 1.9, 1.25), C.roof, 2.4);
-        b.line(b.P(2.0, 1.9, 1.25), b.P(2.0, 1.9, 0.75), "#424242", 1);
-        b.box(1.92, 1.82, 2.08, 1.98, 0.55, 0.72, shade(C.wall, 1.3));
+        b.sprite(2.0, 1.9, 0.72, [0.25, 0.6, 0.35], { kind: "lift", amp: 0.12 * b.a }, () => {
+          b.line(b.P(2.0, 1.9, 1.25), b.P(2.0, 1.9, 0.75), "#424242", 1);
+          b.box(1.92, 1.82, 2.08, 1.98, 0.55, 0.72, shade(C.wall, 1.3));
+        });
       }
+      b.emit("dust", 2.05, 0.4, 0.4);
       if (chance(D, 0.8)) {
         b.box(2.45, 0.6, 2.8, 1.25, 0.12, 0.38, C.window);
         b.box(2.5, 0.68, 2.75, 1.17, 0.38, 0.48, shade(C.wall, 1.2));
@@ -340,15 +344,18 @@ export const RECIPES = {
         `<rect x="${tu + 0.75}" y="0" width="0.1" height="${th + 0.06}" fill="${C.roof}" stroke="${OUT}" stroke-width="1" NS/>` +
         `<rect x="${tu - 0.05}" y="${th}" width="0.95" height="0.1" fill="${C.roof}" stroke="${OUT}" stroke-width="1" NS/>` +
         (chance(D, 0.7) ? `<circle cx="${tu + 1.05}" cy="${th * 0.8}" r="0.06" fill="#ffb300" stroke="${OUT}" stroke-width="0.8" NS/>` : ""));
+      b.emit("glow", 2.25, 0.1 + tu + 0.42, 0.06 + th * 0.5, { size: 0.3, color: 0xffb300 });
       const cm = 0.1 + tu + 0.42;
       for (const c of [cm - 0.17, cm + 0.17]) b.line(b.P(2.25, c, 0.07), b.P(2.95, c, 0.07), "#5d4037", 1.6);
       for (const r of [2.4, 2.6, 2.8]) b.line(b.P(r, cm - 0.25, 0.07), b.P(r, cm + 0.25, 0.07), "#795548", 1.4);
       if (chance(D, 0.8)) {
-        b.box(2.4, cm - 0.25, 2.8, cm + 0.25, 0.1, 0.38, C.window);
-        const [x, y] = b.P(2.6, cm, 0.38);
-        for (const [dx, dy, col] of [[-0.1, 0, "#424242"], [0.08, -0.02, "#5d4037"], [0, -0.07, "#ff8f00"]]) {
-          b.raw(`<circle cx="${(x + dx * b.a).toFixed(2)}" cy="${(y + dy * b.a).toFixed(2)}" r="${(0.07 * b.a).toFixed(2)}" fill="${col}" stroke="${OUT}" stroke-width="0.8"/>`);
-        }
+        b.sprite(2.6, cm, 0.3, [0.45, 0.4, 0.35], { kind: "shuttle", vec: b.delta([2.6, cm, 0], [2.3, cm, 0]), period: 3 }, () => {
+          b.box(2.4, cm - 0.25, 2.8, cm + 0.25, 0.1, 0.38, C.window);
+          const [x, y] = b.P(2.6, cm, 0.38);
+          for (const [dx, dy, col] of [[-0.1, 0, "#424242"], [0.08, -0.02, "#5d4037"], [0, -0.07, "#ff8f00"]]) {
+            b.raw(`<circle cx="${(x + dx * b.a).toFixed(2)}" cy="${(y + dy * b.a).toFixed(2)}" r="${(0.07 * b.a).toFixed(2)}" fill="${col}" stroke="${OUT}" stroke-width="0.8"/>`);
+          }
+        });
       }
     },
   },
@@ -368,11 +375,11 @@ export const RECIPES = {
       const wheel = pick(D, WOOD);
       const zc = Math.min(0.45, ctx.z1 - 0.1);
       const angles = [...Array(8).keys()].map((i) => (i * Math.PI) / 4);
-      b.onFace("side", 0.95, 1.55, zc,
+      b.rotor("side", 0.95, 1.55, zc, 0.5,
         `<circle cx="0" cy="0" r="0.45" fill="none" stroke="${wheel}" stroke-width="3" NS/>` +
         angles.map((t) => `<line x1="0" y1="0" x2="${(0.45 * Math.cos(t)).toFixed(3)}" y2="${(0.45 * Math.sin(t)).toFixed(3)}" stroke="${wheel}" stroke-width="1.4" NS/>`).join("") +
         angles.map((t) => `<rect x="${(0.42 * Math.cos(t) - 0.05).toFixed(3)}" y="${(0.42 * Math.sin(t) - 0.05).toFixed(3)}" width="0.1" height="0.1" fill="#8d6e63" stroke="${OUT}" stroke-width="0.8" NS/>`).join("") +
-        `<circle cx="0" cy="0" r="0.07" fill="#4e342e" NS/>`);
+        `<circle cx="0" cy="0" r="0.07" fill="#4e342e" NS/>`, { symmetry: 45, period: 1.4 });
     },
   },
 
@@ -387,9 +394,11 @@ export const RECIPES = {
       for (const [r, c] of [[r0, c0], [r0, c1 - 0.09], [r1 - 0.09, c0], [r1 - 0.09, c1 - 0.09]]) b.box(r, c, r + 0.09, c + 0.09, 0.06, z1, C.window);
       b.box(0.65, 0.5, 1.1, 2.1, 0.06, 0.42, shade(C.wall, 1.15));
       b.box(0.75, 0.6, 1.0, 2.0, 0.42, 0.62, C.wall);
-      b.onFace("front", 0.95, 1.3, 0.55,
+      b.rotor("front", 0.95, 1.3, 0.55, 0.3,
         `<circle cx="0" cy="0" r="0.26" fill="#cfd8dc" stroke="${OUT}" stroke-width="1" NS/>` +
-        `<circle cx="0" cy="0" r="0.05" fill="#607d8b" NS/>`);
+        [...Array(8).keys()].map((i) => `<line x1="0" y1="0" x2="${(0.24 * Math.cos((i * Math.PI) / 4)).toFixed(3)}" y2="${(0.24 * Math.sin((i * Math.PI) / 4)).toFixed(3)}" stroke="#90a4ae" stroke-width="0.8" NS/>`).join("") +
+        `<circle cx="0" cy="0" r="0.05" fill="#607d8b" NS/>`, { symmetry: 45, period: 0.25 });
+      b.emit("chips", 0.95, 1.45, 0.6);
       const rise = between(R, 0.3, 0.6);
       const kind = pick(R, ["gable-c", "gable-r", "hip", "shed"]);
       if (kind === "hip") b.hip(r0, c0, r1, c1, z1, z1 + rise, C.roof);
@@ -414,6 +423,7 @@ export const RECIPES = {
       const stone = pick(D, ["#d5d8da", "#e0d6c8", "#cfd8dc", "#d7ccc8"]);
       const blocks = [[1.45, 0.3, 0.06], [1.45, 0.75, 0.06], [1.45, 0.52, 0.36], [1.5, 1.35, 0.06]];
       blocks.slice(0, 1 + Math.floor(D() * 4)).forEach(([r0, c0, z0]) => b.box(r0, c0, r0 + 0.35, c0 + 0.35, z0, z0 + 0.3, stone));
+      b.emit("dust", 1.62, 0.5, 0.4);
     },
   },
 
@@ -430,6 +440,7 @@ export const RECIPES = {
           `<rect x="${(c.front.len * 0.2).toFixed(2)}" y="0.12" width="0.7" height="0.45" fill="#ff8f00" stroke="${OUT}" stroke-width="1.2" NS/>` +
           `<rect x="${(c.front.len * 0.2 + 0.1).toFixed(2)}" y="0.17" width="0.5" height="0.2" fill="#ffd54f" NS/>`),
       });
+      b.emit("glow", ctx.front.r, ctx.front.c + ctx.front.len * 0.2 + 0.35, ctx.z0 + 0.35, { size: 0.35, color: 0xff8f00 });
       // подпись: большая труба горна с огнём и наковальня
       const top = ctx.top + 0.45;
       b.box(0.6, ctx.c1 - 0.65, 1.0, ctx.c1 - 0.25, ctx.z1 - 0.1, top, shade(C.wall, 0.8));
@@ -468,7 +479,7 @@ export const RECIPES = {
         `<g transform="rotate(${ang})"><rect x="0.06" y="-0.09" width="0.85" height="0.18" fill="${blades}" stroke="${OUT}" stroke-width="1" NS/>` +
         [1, 2, 3, 4].map((k) => `<line x1="${(0.06 + 0.17 * k).toFixed(2)}" y1="-0.09" x2="${(0.06 + 0.17 * k).toFixed(2)}" y2="0.09" stroke="#9e9e9e" stroke-width="0.7" NS/>`).join("") +
         "</g>").join("");
-      b.onFace("front", r1 + 0.05, 1.0, z1 - 0.1, svg + `<circle cx="0" cy="0" r="0.08" fill="#5d4037" stroke="${OUT}" stroke-width="1" NS/>`);
+      b.rotor("front", r1 + 0.05, 1.0, z1 - 0.1, 0.95, svg + `<circle cx="0" cy="0" r="0.08" fill="#5d4037" stroke="${OUT}" stroke-width="1" NS/>`, { symmetry: 90, period: 2.2 });
       props(b, D, [[1.75, 0.35], [1.75, 1.7]], ["bush", "sack", "sack"]);
     },
   },
@@ -535,6 +546,7 @@ export const RECIPES = {
         const h = between(R, 1.2, 1.6);
         b.cyl(r, c, 0.36, 0.06, h, silo);
         b.cone(r, c, 0.36, h, h + 0.4, C.roof);
+        b.emit("steam", r, c, h + 0.4);
       });
       if (chance(D, 0.7)) b.cyl(2.7, 1.85, 0.1, 0.06, 0.32, "#b0bec5", "#eceff1");
     },

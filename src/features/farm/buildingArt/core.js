@@ -41,6 +41,60 @@ export class Builder {
     this.H = this.oy + ((w + h) * this.a) / 2;
     this.el = [];
     this.windowColor = null; // цвет рам окон (перекраска игроком); null — стандартные белые переплёты
+    // Анимация. mode "full" — обычная картинка «в покое». mode "base" — картинка «в работе»:
+    // движущиеся части (лопасти, колёса, тележки, животные) не рисуются, а собираются в parts,
+    // их оживляет рендерер. Эффекты (дым, свечение, пыль) — только точки в emitters, в картинку не рисуются.
+    this.mode = "full";
+    this.parts = [];
+    this.emitters = [];
+  }
+
+  // ------------------------------------------------------------- анимация --
+  /** Вращающаяся часть в плоскости грани (лопасти, колесо, пила). inner — разметка в координатах грани,
+   *  ось вращения в (0,0). symmetry — через сколько градусов картинка повторяется. */
+  rotor(kind, r, c, z, radius, inner, { symmetry = 90, period = 1.2 } = {}) {
+    if (this.mode === "full") {
+      this.onFace(kind, r, c, z, inner);
+      return;
+    }
+    const [x, y] = this.P(r, c, z);
+    const hx = radius * this.a * 1.15 + 3;
+    const hy = radius * this.a * 1.65 + 3;
+    const ns = (svg) => svg.replaceAll("NS", 'vector-effect="non-scaling-stroke"');
+    this.parts.push({
+      type: "rotor", box: [x - hx, y - hy, 2 * hx, 2 * hy], symmetry, period,
+      frame: (theta) => this.face(kind, r, c, z) + `<g transform="rotate(${theta.toFixed(2)})">` + ns(inner) + "</g></g>",
+    });
+  }
+
+  /** Подвижный предмет (тележка, груз, топор, животное). box — полуширина и высота над/под точкой (в клетках);
+   *  motion — как двигается: { kind: "bob" | "shuttle" | "wander", ... } — параметры в пикселях картинки. */
+  sprite(r, c, z, [half, up, down], motion, draw) {
+    if (this.mode === "full") {
+      draw();
+      return;
+    }
+    const saved = this.el;
+    this.el = [];
+    draw();
+    const els = this.el;
+    this.el = saved;
+    const [x, y] = this.P(r, c, z);
+    const a = this.a;
+    this.parts.push({ type: "sprite", box: [x - half * a, y - up * a, 2 * half * a, (up + down) * a], motion, els });
+  }
+
+  /** Точка эффекта: smoke (дым), steam (пар), dust (пыль), chips (щепки/опилки), glow (свечение). */
+  emit(type, r, c, z, opts = {}) {
+    const [x, y] = this.P(r, c, z);
+    this.emitters.push({ type, x, y, a: this.a, ...opts });
+  }
+
+  /** Вектор смещения в пикселях картинки между двумя точками поля (для движения тележек). */
+  delta(from, to) {
+    const [x0, y0] = this.P(...from);
+    const [x1, y1] = this.P(...to);
+    return [x1 - x0, y1 - y0];
   }
 
   // ------------------------------------------------------------ геометрия --
@@ -278,15 +332,19 @@ export class Builder {
   }
 
   // ----------------------------------------------------------------- мелочи --
+  /** Дым из трубы: появляется только во время работы здания (анимация), в картинку не рисуется. */
   smoke(r, c, z) {
-    const [x, y] = this.P(r, c, z);
-    const a = this.a;
-    [[0.05, -0.25, 0.13], [0.2, -0.55, 0.17], [0.1, -0.9, 0.2]].forEach(([dx, dy, rr], i) => {
-      this.raw(`<circle cx="${f2(x + dx * a)}" cy="${f2(y + dy * a)}" r="${f2(rr * a)}" fill="#eceff1" fill-opacity="${(0.85 - i * 0.2).toFixed(2)}" stroke="#b0bec5" stroke-width="0.8"/>`);
-    });
+    this.emit("smoke", r, c, z);
   }
 
-  animal(r, c, body, head, legs = OUT, { k = 1, spots = null, spotColor = "#212121", fluffy = false } = {}) {
+  /** Животное; во время работы фермы бродит по загону (часть анимации). comb — гребешок курицы. */
+  animal(r, c, body, head, legs = OUT, opts = {}) {
+    const k = opts.k || 1;
+    this.sprite(r, c, 0.16 * k, [0.36 * k, 0.32 * k, 0.24 * k], { kind: "wander", range: 0.35 * this.a, seed: r * 7 + c * 13 },
+      () => this.drawAnimal(r, c, body, head, legs, opts));
+  }
+
+  drawAnimal(r, c, body, head, legs, { k = 1, spots = null, spotColor = "#212121", fluffy = false, comb = null } = {}) {
     const a = this.a * k;
     const [x, y] = this.P(r, c, 0.16 * k);
     for (const dx of [-0.12, 0.1]) this.line([x + dx * a, y + 0.05 * a], [x + dx * a, y + 0.16 * a], legs, 1.6);
@@ -301,6 +359,7 @@ export class Builder {
       this.raw(`<ellipse cx="${f2(x + sx * a)}" cy="${f2(y + sy * a)}" rx="${f2(0.05 * a)}" ry="${f2(0.035 * a)}" fill="${spotColor}"/>`);
     }
     this.raw(`<ellipse cx="${f2(x + 0.21 * a)}" cy="${f2(y - 0.06 * a)}" rx="${f2(0.08 * a)}" ry="${f2(0.065 * a)}" fill="${head}" stroke="${OUT}" stroke-width="1"/>`);
+    if (comb) this.raw(`<circle cx="${f2(x + 0.23 * a)}" cy="${f2(y - 0.14 * a)}" r="${f2(0.043 * a)}" fill="${comb}"/>`);
   }
 
   /** Забор по отрезку на земле (r0,c0)→(r1,c1): столбики и две жерди. */
@@ -328,5 +387,10 @@ export class Builder {
     const W = 256;
     const H = Math.ceil(this.H);
     return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 ${W} ${H}" width="${W * 2}" height="${H * 2}">\n  ${this.el.join("\n  ")}\n</svg>\n`;
+  }
+
+  /** Отдельная картинка части: тот же масштаб, что у здания, обрезана по box. */
+  static partSvg([bx, by, bw, bh], content) {
+    return `<svg xmlns="http://www.w3.org/2000/svg" viewBox="${f2(bx)} ${f2(by)} ${f2(bw)} ${f2(bh)}" width="${Math.ceil(bw * 2)}" height="${Math.ceil(bh * 2)}">${content}</svg>`;
   }
 }

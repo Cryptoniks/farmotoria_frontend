@@ -82,29 +82,59 @@ export function randomColors(rand, slug, current = null, locked = {}) {
 
 export const isDefaultAppearance = (a) => !a || (!a.shape && !a.colors);
 
-/** SVG-разметка здания. appearance=null — стандартный вид. */
-export function renderBuildingSvg(slug, appearance = null) {
+/** Нарисовать здание. mode "full" — картинка «в покое», "base" — «в работе» (без движущихся частей). */
+function drawBuilding(slug, appearance, mode) {
   const classic = CLASSIC[slug];
   if (isDefaultAppearance(appearance) || !appearance.shape) {
     if (!classic) return null;
     const [w, h, zmax] = classic.size;
     const b = new Builder(w, h, zmax + HEADROOM);
+    b.mode = mode;
     const look = { ...classic.base };
     if (appearance?.colors) {
       Object.assign(look, paintOf(slug).set(appearance.colors));
       b.windowColor = appearance.colors.window;
     }
     classic.draw(b, look);
-    return b.svg();
+    return b;
   }
   const recipe = RECIPES[slug];
-  if (!recipe) return renderBuildingSvg(slug, { ...appearance, shape: 0 });
+  if (!recipe) return drawBuilding(slug, { ...appearance, shape: 0 }, mode);
   const [w, h, zmax] = recipe.size;
   const b = new Builder(w, h, zmax + HEADROOM * 0.5);
+  b.mode = mode;
   const colors = appearance.colors || randomColors(rng(appearance.shape), slug);
   b.windowColor = colors.window;
   recipe.compose(b, rng(appearance.shape), rng(appearance.details || 1), colors);
-  return b.svg();
+  return b;
+}
+
+/** SVG-разметка здания «в покое». appearance=null — стандартный вид. */
+export function renderBuildingSvg(slug, appearance = null) {
+  return drawBuilding(slug, appearance, "full")?.svg() ?? null;
+}
+
+const ROTOR_FRAMES = 12;
+
+/**
+ * Анимация здания «в работе»: картинка без движущихся частей + части + эффекты.
+ * Координаты — в единицах картинки (ширина 256, высота H), как у svg здания.
+ *   parts: rotor  — { box, frames: [svg × 12 на один шаг симметрии], period (сек на шаг) }
+ *          sprite — { box, svg, motion: { kind: "bob" | "chop" | "lift" | "shuttle" | "wander", … } }
+ *   emitters: { type: "smoke" | "steam" | "dust" | "chips" | "glow", x, y, a, … }
+ * null — у здания нечего анимировать.
+ */
+export function renderBuildingAnimation(slug, appearance = null) {
+  const b = drawBuilding(slug, appearance, "base");
+  if (!b || (!b.parts.length && !b.emitters.length)) return null;
+  const parts = b.parts.map((p) => {
+    if (p.type === "rotor") {
+      const frames = Array.from({ length: ROTOR_FRAMES }, (_, i) => Builder.partSvg(p.box, p.frame((p.symmetry * i) / ROTOR_FRAMES)));
+      return { type: "rotor", box: p.box, frames, period: p.period };
+    }
+    return { type: "sprite", box: p.box, svg: Builder.partSvg(p.box, p.els.join("")), motion: p.motion };
+  });
+  return { svg: b.svg(), H: Math.ceil(b.H), parts, emitters: b.emitters };
 }
 
 export const svgToDataUrl = (svg) => `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;

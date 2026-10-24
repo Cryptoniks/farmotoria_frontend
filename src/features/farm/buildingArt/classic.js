@@ -91,9 +91,12 @@ export const CLASSIC = {
       }
       if (L.stump) {
         b.cyl(1.6, 1.6, 0.16, 0.06, 0.25, "#8d6e63", "#e3c08a");
-        const [x, y] = b.P(1.6, 1.6, 0.25);
-        b.line([x - 2, y], [x + 0.25 * b.a, y - 0.35 * b.a], "#6d4c41", 2.2);
-        b.poly([[x + 0.18 * b.a, y - 0.4 * b.a], [x + 0.34 * b.a, y - 0.36 * b.a], [x + 0.3 * b.a, y - 0.24 * b.a]], "#b0bec5", OUT, 1);
+        b.sprite(1.6, 1.6, 0.25, [0.45, 0.5, 0.08], { kind: "chop", amp: 0.12 * b.a }, () => {
+          const [x, y] = b.P(1.6, 1.6, 0.25);
+          b.line([x - 2, y], [x + 0.25 * b.a, y - 0.35 * b.a], "#6d4c41", 2.2);
+          b.poly([[x + 0.18 * b.a, y - 0.4 * b.a], [x + 0.34 * b.a, y - 0.36 * b.a], [x + 0.3 * b.a, y - 0.24 * b.a]], "#b0bec5", OUT, 1);
+        });
+        b.emit("chips", 1.6, 1.6, 0.3);
       }
     },
   },
@@ -113,9 +116,12 @@ export const CLASSIC = {
       if (L.crane) {
         b.line(b.P(2.45, 2.55, 0.06), b.P(2.45, 2.55, 1.4), "#5d4037", 3);
         b.line(b.P(2.45, 2.55, 1.35), b.P(2.0, 1.9, 1.25), "#5d4037", 2.4);
-        b.line(b.P(2.0, 1.9, 1.25), b.P(2.0, 1.9, 0.75), "#424242", 1);
-        b.box(1.92, 1.82, 2.08, 1.98, 0.55, 0.72, L.load);
+        b.sprite(2.0, 1.9, 0.72, [0.25, 0.6, 0.35], { kind: "lift", amp: 0.12 * b.a }, () => {
+          b.line(b.P(2.0, 1.9, 1.25), b.P(2.0, 1.9, 0.75), "#424242", 1);
+          b.box(1.92, 1.82, 2.08, 1.98, 0.55, 0.72, L.load);
+        });
       }
+      b.emit("dust", 1.9, 2.0, h1);
       if (L.cart_) {
         b.box(2.45, 0.6, 2.8, 1.25, 0.12, 0.38, L.cart);
         b.box(2.5, 0.68, 2.75, 1.17, 0.38, 0.48, "#bdbdbd", "#cfcfcf");
@@ -139,14 +145,17 @@ export const CLASSIC = {
         `<rect x="1.55" y="0" width="0.1" height="0.68" fill="${L.frame}" stroke="${OUT}" stroke-width="1" NS/>` +
         `<rect x="0.75" y="0.62" width="0.95" height="0.1" fill="${L.frame}" stroke="${OUT}" stroke-width="1" NS/>` +
         (L.lamp ? `<circle cx="1.85" cy="0.5" r="0.06" fill="#ffb300" stroke="${OUT}" stroke-width="0.8" NS/>` : ""));
+      if (L.lamp) b.emit("glow", 2.25, 1.95, 0.56, { size: 0.12, color: 0xffb300 });
       for (const c of [1.08, 1.42]) b.line(b.P(2.25, c, 0.07), b.P(2.95, c, 0.07), "#5d4037", 1.6);
       for (const r of [2.4, 2.6, 2.8]) b.line(b.P(r, 1.0, 0.07), b.P(r, 1.5, 0.07), "#795548", 1.4);
       if (L.cart_) {
-        b.box(2.4, 1.0, 2.8, 1.5, 0.1, 0.38, L.cart);
-        const [x, y] = b.P(2.6, 1.25, 0.38);
-        for (const [dx, dy, col] of [[-0.1, 0, "#424242"], [0.08, -0.02, "#5d4037"], [0, -0.07, "#ff8f00"]]) {
-          b.raw(`<circle cx="${(x + dx * b.a).toFixed(2)}" cy="${(y + dy * b.a).toFixed(2)}" r="${(0.07 * b.a).toFixed(2)}" fill="${col}" stroke="${OUT}" stroke-width="0.8"/>`);
-        }
+        b.sprite(2.6, 1.25, 0.3, [0.45, 0.4, 0.35], { kind: "shuttle", vec: b.delta([2.6, 1.25, 0], [2.3, 1.25, 0]), period: 3 }, () => {
+          b.box(2.4, 1.0, 2.8, 1.5, 0.1, 0.38, L.cart);
+          const [x, y] = b.P(2.6, 1.25, 0.38);
+          for (const [dx, dy, col] of [[-0.1, 0, "#424242"], [0.08, -0.02, "#5d4037"], [0, -0.07, "#ff8f00"]]) {
+            b.raw(`<circle cx="${(x + dx * b.a).toFixed(2)}" cy="${(y + dy * b.a).toFixed(2)}" r="${(0.07 * b.a).toFixed(2)}" fill="${col}" stroke="${OUT}" stroke-width="0.8"/>`);
+          }
+        });
       }
     },
   },
@@ -164,9 +173,9 @@ export const CLASSIC = {
       const angles = [...Array(8).keys()].map((i) => (i * Math.PI) / 4);
       const spokes = angles.map((t) => `<line x1="0" y1="0" x2="${(0.45 * Math.cos(t)).toFixed(3)}" y2="${(0.45 * Math.sin(t)).toFixed(3)}" stroke="${L.wheel}" stroke-width="1.4" NS/>`).join("");
       const paddles = angles.map((t) => `<rect x="${(0.42 * Math.cos(t) - 0.05).toFixed(3)}" y="${(0.42 * Math.sin(t) - 0.05).toFixed(3)}" width="0.1" height="0.1" fill="#8d6e63" stroke="${OUT}" stroke-width="0.8" NS/>`).join("");
-      b.onFace("side", 0.95, 1.55, 0.45,
+      b.rotor("side", 0.95, 1.55, 0.45, 0.5,
         `<circle cx="0" cy="0" r="0.45" fill="none" stroke="${L.wheel}" stroke-width="3" NS/>` + spokes + paddles +
-        `<circle cx="0" cy="0" r="0.07" fill="#4e342e" NS/>`);
+        `<circle cx="0" cy="0" r="0.07" fill="#4e342e" NS/>`, { symmetry: 45, period: 1.4 });
     },
   },
 
@@ -178,9 +187,11 @@ export const CLASSIC = {
       for (const [r, c] of [[0.3, 0.3], [0.3, 2.3], [1.42, 0.3], [1.42, 2.3]]) b.box(r, c, r + 0.09, c + 0.09, 0.06, 1.0, L.post);
       b.box(0.65, 0.5, 1.1, 2.1, 0.06, 0.42, "#a1887f");
       b.box(0.75, 0.6, 1.0, 2.0, 0.42, 0.62, L.log);
-      b.onFace("front", 0.95, 1.3, 0.55,
+      b.rotor("front", 0.95, 1.3, 0.55, 0.3,
         `<circle cx="0" cy="0" r="0.26" fill="#cfd8dc" stroke="${OUT}" stroke-width="1" NS/>` +
-        `<circle cx="0" cy="0" r="0.05" fill="#607d8b" NS/>`);
+        [...Array(8).keys()].map((i) => `<line x1="0" y1="0" x2="${(0.24 * Math.cos((i * Math.PI) / 4)).toFixed(3)}" y2="${(0.24 * Math.sin((i * Math.PI) / 4)).toFixed(3)}" stroke="#90a4ae" stroke-width="0.8" NS/>`).join("") +
+        `<circle cx="0" cy="0" r="0.05" fill="#607d8b" NS/>`, { symmetry: 45, period: 0.25 });
+      b.emit("chips", 0.95, 1.45, 0.6);
       b.gable(0.3, 0.3, 1.51, 2.39, 1.0, ridge(1.0, 0.45, L.pitch), L.roof, L.roof, L.axis);
       for (let i = 0; i < L.planks; i++) b.box(1.62, 0.35, 1.92, 1.65, 0.06 + i * 0.12, 0.18 + i * 0.12, "#deb887");
     },
@@ -200,6 +211,7 @@ export const CLASSIC = {
       b.gable(0.25, 0.25, 1.3, 1.75, 0.75, ridge(0.75, 0.45, L.pitch), L.roof, L.wall, L.axis);
       const blocks = [[1.45, 0.3, 0.06], [1.45, 0.75, 0.06], [1.45, 0.52, 0.36], [1.5, 1.35, 0.06]].slice(0, L.blocks);
       for (const [r0, c0, z0] of blocks) b.box(r0, c0, r0 + 0.35, c0 + 0.35, z0, z0 + 0.3, L.blockColor);
+      b.emit("dust", 1.62, 0.5, 0.4);
     },
   },
 
@@ -213,6 +225,7 @@ export const CLASSIC = {
       b.onFace("front", 2.0, 0.3, 0.06,
         `<rect x="0.5" y="0.12" width="0.7" height="0.45" fill="#ff8f00" stroke="${OUT}" stroke-width="1.2" NS/>` +
         `<rect x="0.6" y="0.17" width="0.5" height="0.2" fill="#ffd54f" NS/>`);
+      b.emit("glow", 2.0, 1.15, 0.4, { size: 0.35, color: 0xff8f00 });
       b.door("side", 2.0, 2.4, 0.06, 0.5, 0.35, 0.6, L.door);
       const zr = ridge(1.0, 0.6, L.pitch);
       b.gable(0.3, 0.3, 2.0, 2.4, 1.0, zr, L.roof, L.wall, L.axis);
@@ -240,7 +253,7 @@ export const CLASSIC = {
         `<g transform="rotate(${ang})"><rect x="0.06" y="-0.09" width="0.85" height="0.18" fill="${L.blades}" stroke="${OUT}" stroke-width="1" NS/>` +
         [1, 2, 3, 4].map((k) => `<line x1="${(0.06 + 0.17 * k).toFixed(2)}" y1="-0.09" x2="${(0.06 + 0.17 * k).toFixed(2)}" y2="0.09" stroke="#9e9e9e" stroke-width="0.7" NS/>`).join("") +
         "</g>").join("");
-      b.onFace("front", 1.5, 1.0, 1.35, blades + `<circle cx="0" cy="0" r="0.08" fill="#5d4037" stroke="${OUT}" stroke-width="1" NS/>`);
+      b.rotor("front", 1.5, 1.0, 1.35, 0.95, blades + `<circle cx="0" cy="0" r="0.08" fill="#5d4037" stroke="${OUT}" stroke-width="1" NS/>`, { symmetry: 90, period: 2.2 });
       if (L.flowers) {
         b.bush(1.75, 0.35, L.flowerColor);
         b.bush(1.75, 1.7, L.flowerColor);
@@ -289,7 +302,11 @@ export const CLASSIC = {
         `<path d="M1.95,0.88 L2.0,0.97 L2.06,0.88 Z" fill="#43a047" stroke="${OUT}" stroke-width="0.7" NS/>`);
       const zr = ridge(1.05, 0.55, L.pitch);
       b.gable(0.3, 0.3, 2.4, 2.6, 1.05, zr, L.roof, L.wall, L.axis);
-      if (L.stack) b.cyl(0.75, 0.75, 0.12, 1.2, Math.max(2.1, zr + 0.5), "#9e9e9e");
+      if (L.stack) {
+        const top = Math.max(2.1, zr + 0.5);
+        b.cyl(0.75, 0.75, 0.12, 1.2, top, "#9e9e9e");
+        b.smoke(0.75, 0.75, top);
+      }
       for (const r of [0.9, 2.05]) b.cyl(r, 3.3, 0.36, 0.06, 1.3, L.tank, L.tankTop);
       if (L.pipe) b.line(b.P(1.4, 2.6, 0.8), b.P(1.4, 3.05, 0.8), "#757575", 3);
     },
@@ -310,6 +327,7 @@ export const CLASSIC = {
       for (const r of [0.85, 2.0]) {
         b.cyl(r, 3.3, 0.38, 0.06, 1.45, L.silo);
         b.cone(r, 3.3, 0.38, 1.45, 1.85, L.cap);
+        b.emit("steam", r, 3.3, 1.85);
       }
       if (L.can) b.cyl(2.7, 1.85, 0.1, 0.06, 0.32, "#b0bec5", "#eceff1");
     },
@@ -328,9 +346,7 @@ export const CLASSIC = {
       b.gable(0.3, 0.3, 1.05, 1.3, 0.75, ridge(0.75, 0.35, L.pitch), L.roof, L.wall, L.axis);
       b.fence(1.95, 0.05, 1.95, 1.95);
       for (const [r, c] of [[1.35, 1.35], [1.55, 0.45], [1.7, 1.15]].slice(0, L.birds)) {
-        b.animal(r, c, L.chicken, L.chicken, "#f9a825", { k: 0.7 });
-        const [x, y] = b.P(r, c, 0.16 * 0.7);
-        b.raw(`<circle cx="${(x + 0.16 * b.a).toFixed(2)}" cy="${(y - 0.1 * b.a).toFixed(2)}" r="${(0.03 * b.a).toFixed(2)}" fill="#e53935"/>`);
+        b.animal(r, c, L.chicken, L.chicken, "#f9a825", { k: 0.7, comb: "#e53935" });
       }
     },
   },

@@ -39,15 +39,15 @@
   <line x1="132.48" y1="232.67" x2="132.48" y2="237.60" stroke="#f9a825" stroke-width="1.6" stroke-linecap="round"/>
   <ellipse cx="128.00" cy="230.43" rx="8.96" ry="4.93" fill="#fafafa" stroke="#2b2118" stroke-width="1"/>
   <ellipse cx="137.41" cy="227.74" rx="3.58" ry="2.91" fill="#fafafa" stroke="#2b2118" stroke-width="1"/>
-  <circle cx="138.24" cy="224.03" r="1.92" fill="#e53935"/>
+  <circle cx="138.30" cy="224.16" r="1.93" fill="#e53935"/>
   <line x1="52.22" y1="210.27" x2="52.22" y2="215.20" stroke="#f9a825" stroke-width="1.6" stroke-linecap="round"/>
   <line x1="62.08" y1="210.27" x2="62.08" y2="215.20" stroke="#f9a825" stroke-width="1.6" stroke-linecap="round"/>
   <ellipse cx="57.60" cy="208.03" rx="8.96" ry="4.93" fill="#fafafa" stroke="#2b2118" stroke-width="1"/>
   <ellipse cx="67.01" cy="205.34" rx="3.58" ry="2.91" fill="#fafafa" stroke="#2b2118" stroke-width="1"/>
-  <circle cx="67.84" cy="201.63" r="1.92" fill="#e53935"/>
+  <circle cx="67.90" cy="201.76" r="1.93" fill="#e53935"/>
   <line x1="87.42" y1="237.47" x2="87.42" y2="242.40" stroke="#f9a825" stroke-width="1.6" stroke-linecap="round"/>
   <line x1="97.28" y1="237.47" x2="97.28" y2="242.40" stroke="#f9a825" stroke-width="1.6" stroke-linecap="round"/>
   <ellipse cx="92.80" cy="235.23" rx="8.96" ry="4.93" fill="#fafafa" stroke="#2b2118" stroke-width="1"/>
   <ellipse cx="102.21" cy="232.54" rx="3.58" ry="2.91" fill="#fafafa" stroke="#2b2118" stroke-width="1"/>
-  <circle cx="103.04" cy="228.83" r="1.92" fill="#e53935"/>
+  <circle cx="103.10" cy="228.96" r="1.93" fill="#e53935"/>
 </svg>

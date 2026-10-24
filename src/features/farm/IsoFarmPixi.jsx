@@ -3,7 +3,7 @@
  * Uses useIsoFarmEngine hook and renders IsoFarmRenderer + IsoFarmControls.
  */
 
-import React, { useCallback, useEffect, useRef, useState } from "react";
+import React, { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import { useIsoFarmEngine } from "./useIsoFarmEngine";
 import IsoFarmRenderer from "./IsoFarmRenderer";
 import IsoFarmControls from "./IsoFarmControls";
@@ -20,6 +20,33 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
   const engine = useIsoFarmEngine();
   const rootRef = useRef(null);
   const [isFullscreen, setIsFullscreen] = useState(false);
+
+  // Анимация работающих зданий: по умолчанию включена, если в системе не выбрано «уменьшить движение»
+  const [animate, setAnimate] = useState(() => {
+    try {
+      const saved = localStorage.getItem("farm.animate");
+      if (saved !== null) return saved === "1";
+    } catch {
+      /* хранилище недоступно — берём системную настройку */
+    }
+    return !window.matchMedia?.("(prefers-reduced-motion: reduce)").matches;
+  });
+  const toggleAnimate = () => setAnimate((v) => {
+    try {
+      localStorage.setItem("farm.animate", v ? "0" : "1");
+    } catch {
+      /* не сохранилось — не страшно */
+    }
+    return !v;
+  });
+
+  // Какие здания сейчас работают: идёт добыча или незавершённая переработка/кормление
+  const extraction = engine.extractionProcesses;
+  const processing = engine.processingProcesses;
+  const workingIds = useMemo(() => new Set([
+    ...extraction.filter((p) => p.status === "running").map((p) => p.building_id),
+    ...processing.filter((p) => p.status === "running" && !p.all_complete).map((p) => p.building_id),
+  ]), [extraction, processing]);
   const [shopOpen, setShopOpen] = useState(false);
   const [marketOpen, setMarketOpen] = useState(false);
   const [storageId, setStorageId] = useState(null);
@@ -157,6 +184,8 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
         onCustomize={openCustomize}
         isFullscreen={isFullscreen}
         onToggleFullscreen={toggleFullscreen}
+        animate={animate}
+        onToggleAnimate={toggleAnimate}
       />
 
       <ShopModal
@@ -210,6 +239,8 @@ const IsoFarmPixi = ({ setCoinsBalance }) => {
           moveChanges={engine.moveChanges}
           setMoveChanges={engine.setMoveChanges}
           appearances={engine.appearances}
+          workingIds={workingIds}
+          animate={animate}
           onBuildingClick={handleBuildingClick}
           onBuyChunk={engine.tryBuyChunk}
           onPlaceBuilding={engine.tryPlaceBuilding}

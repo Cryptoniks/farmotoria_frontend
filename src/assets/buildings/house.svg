@@ -16,8 +16,5 @@
   <polygon points="148.48,152.48 161.28,158.88 161.28,125.60 148.48,119.20" fill="#7f6359" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
   <polygon points="161.28,158.88 174.08,152.48 174.08,119.20 161.28,125.60" fill="#664f47" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
   <polygon points="161.28,112.80 174.08,119.20 161.28,125.60 148.48,119.20" fill="#98776b" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
-  <circle cx="163.84" cy="106.14" r="6.66" fill="#eceff1" fill-opacity="0.85" stroke="#b0bec5" stroke-width="0.8"/>
-  <circle cx="171.52" cy="90.78" r="8.70" fill="#eceff1" fill-opacity="0.65" stroke="#b0bec5" stroke-width="0.8"/>
-  <circle cx="166.40" cy="72.86" r="10.24" fill="#eceff1" fill-opacity="0.45" stroke="#b0bec5" stroke-width="0.8"/>
   <ellipse cx="74.24" cy="255.65" rx="8.69" ry="4.34" fill="#e57373" stroke="#2b2118" stroke-width="0.8" />
 </svg>

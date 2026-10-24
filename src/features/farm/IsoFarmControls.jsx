@@ -54,6 +54,8 @@ const IsoFarmControls = ({
   onCustomize,
   isFullscreen,
   onToggleFullscreen,
+  animate,
+  onToggleAnimate,
 }) => {
   const handleSaveMoves = async () => {
     const changes = Object.entries(moveChanges).map(([id, change]) => ({
@@ -268,6 +270,23 @@ const IsoFarmControls = ({
             </button>
           </>
         )}
+        <button
+          onClick={onToggleAnimate}
+          title={animate ? "Выключить анимацию зданий" : "Включить анимацию зданий"}
+          aria-label={animate ? "Выключить анимацию" : "Включить анимацию"}
+          style={{
+            background: animate ? "linear-gradient(135deg, #8e24aa 0%, #6a1b9a 100%)" : "linear-gradient(135deg, #546e7a 0%, #37474f 100%)",
+            border: "none",
+            color: "white",
+            width: 48,
+            borderRadius: "12px",
+            cursor: "pointer",
+            fontSize: 18,
+            boxShadow: "0 4px 12px rgba(0,0,0,0.3)",
+          }}
+        >
+          {animate ? "⏸" : "▶"}
+        </button>
         <button
           onClick={onToggleFullscreen}
           title={isFullscreen ? "Свернуть (Esc)" : "На весь экран"}

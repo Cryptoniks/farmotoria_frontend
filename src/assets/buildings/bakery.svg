@@ -14,7 +14,4 @@
   <polygon points="162.13,144.80 174.93,151.20 174.93,123.47 162.13,117.07" fill="#7f6359" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
   <polygon points="174.93,151.20 187.73,144.80 187.73,117.07 174.93,123.47" fill="#664f47" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
   <polygon points="174.93,110.67 187.73,117.07 174.93,123.47 162.13,117.07" fill="#98776b" stroke="#2b2118" stroke-width="1.2" stroke-linejoin="round" />
-  <circle cx="177.07" cy="106.40" r="5.55" fill="#eceff1" fill-opacity="0.85" stroke="#b0bec5" stroke-width="0.8"/>
-  <circle cx="183.47" cy="93.60" r="7.25" fill="#eceff1" fill-opacity="0.65" stroke="#b0bec5" stroke-width="0.8"/>
-  <circle cx="179.20" cy="78.67" r="8.53" fill="#eceff1" fill-opacity="0.45" stroke="#b0bec5" stroke-width="0.8"/>
 </svg>

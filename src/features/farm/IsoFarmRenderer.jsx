@@ -25,6 +25,7 @@ import {
 } from "./isoUtils";
 import { buildingIcons } from "../../assets/buildings";
 import { appearanceKey, hasBuildingArt, renderBuildingSvg, svgToDataUrl } from "./buildingArt";
+import { buildAnimatedBuilding, loadBuildingAnimation } from "./buildingAnimation";
 
 const MIN_ZOOM = 0.4;
 const MAX_ZOOM = 6;
@@ -98,6 +99,7 @@ const IsoFarmRenderer = (props) => {
   const {
     fieldCfg, chunks, buildings, plots, availableChunks, coins,
     buildingToPlace, selected, movingBuilding, moveMode, moveChanges, appearances,
+    workingIds, animate,
   } = props;
 
   useEffect(() => {
@@ -106,7 +108,7 @@ const IsoFarmRenderer = (props) => {
 
   useEffect(() => {
     drawRef.current?.();
-  }, [fieldCfg, chunks, buildings, plots, availableChunks, coins, moveChanges, moveMode]);
+  }, [fieldCfg, chunks, buildings, plots, availableChunks, coins, moveChanges, moveMode, workingIds, animate]);
 
   useEffect(() => {
     drawGhostRef.current?.();
@@ -173,7 +175,24 @@ const IsoFarmRenderer = (props) => {
         hoverCell: null,
         pickedId: null, // здание, выбранное в режиме перемещения
         cameraReady: false,
+        anim: [], // update(t) анимированных зданий
       };
+
+      // Анимации работающих зданий: ключ внешнего вида → текстуры | null (нечего анимировать) | "loading"
+      const animations = {};
+      function ensureAnimation(slug, look, key) {
+        animations[key] = "loading";
+        loadBuildingAnimation(slug, look)
+          .then((anim) => { animations[key] = anim; })
+          .catch((e) => { animations[key] = null; console.warn("Не удалось подготовить анимацию", slug, e); })
+          .finally(() => { if (!cancelled) drawBuildings(); });
+      }
+      // Время одно на все здания: анимация не сбивается при перерисовке карты
+      app.ticker.add(() => {
+        if (!view.anim.length) return;
+        const t = performance.now() / 1000;
+        for (const update of view.anim) update(t);
+      });
 
       // ----------------------------------------------------------- helpers --
       const cfg = () => {
@@ -353,12 +372,25 @@ const IsoFarmRenderer = (props) => {
             node.addChild(icon);
           }
         } else if (texture) {
-          const sprite = new PIXI.Sprite(texture);
           const width = (w + h) * (TILE_W / 2);
-          sprite.anchor.set(0.5, 1);
-          sprite.scale.set(width / texture.width);
-          sprite.position.set((f.left.x + f.right.x) / 2, f.bottom.y);
-          node.addChild(sprite);
+          const place = { x: (f.left.x + f.right.x) / 2, y: f.bottom.y, width };
+          // Здание работает (добыча, переработка, животные) — подставляем анимированную версию
+          const p = propsRef.current;
+          const key = appearanceKey(b.slug, look);
+          const working = p.animate !== false && p.workingIds?.has(b.id) && hasBuildingArt(b.slug);
+          if (working && animations[key] === undefined) ensureAnimation(b.slug, look, key);
+          const anim = working ? animations[key] : null;
+          if (anim && anim !== "loading") {
+            const animated = buildAnimatedBuilding(anim, place);
+            node.addChild(animated.node);
+            view.anim.push(animated.update);
+          } else {
+            const sprite = new PIXI.Sprite(texture);
+            sprite.anchor.set(0.5, 1);
+            sprite.scale.set(width / texture.width);
+            sprite.position.set(place.x, place.y);
+            node.addChild(sprite);
+          }
           if (DEBUG_BUILDING_BOX) {
             const box = new PIXI.Graphics();
             box.poly(poly(f.top, f.right, f.bottom, f.left)).stroke({ width: 0.5, color: 0xff00ff });
@@ -391,6 +423,7 @@ const IsoFarmRenderer = (props) => {
       }
 
       function drawBuildings() {
+        view.anim = [];
         clearLayer(buildingsLayer);
         for (const b of currentBuildings()) buildingsLayer.addChild(drawBuilding(b));
       }
