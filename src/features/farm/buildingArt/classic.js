@@ -1,42 +1,23 @@
-// Рисунки зданий. У каждого здания:
-//   size     — [ширина (колонки), высота (ряды), zmax] — совпадает с BUILDINGS в seed_game_data.py;
-//   base     — стандартный вид (совпадает с картинками в src/assets/buildings);
-//   colors / roof / details(rand) — случайные варианты трёх групп настроек внешнего вида;
-//   draw(b, L) — рисование по итоговым параметрам L.
-// Узнаваемые элементы (крест на воротах Сарая, лопасти мельницы, горн кузницы…) не меняются.
-import { OUT, between, chance, pick, shade } from "./core.js";
+// Классические (стандартные) рисунки зданий — те, что лежат файлами в src/assets/buildings.
+// У каждого здания:
+//   size  — [ширина (колонки), высота (ряды), zmax] — совпадает с BUILDINGS в seed_game_data.py;
+//   base  — параметры стандартного вида;
+//   draw(b, L) — рисование по параметрам L.
+// Игрок может перекрасить классическую форму (стены, окна, крышу) — см. paintClassic в index.js.
+import { OUT, shade } from "./core.js";
 
 const GRASS = "#8bc34a";
 const DIRT = "#b39a6b";
 const GRAVEL = "#a7a39b";
 
-// Палитры подобраны так, чтобы любые сочетания смотрелись спокойно
-const WALLS = ["#ecd9b0", "#f3d9a4", "#d7ccc8", "#fff3e0", "#cfd8dc", "#e0c9a6", "#f5f0e1", "#d9b99b", "#c5d6b8", "#e8c4b8", "#bcaaa4", "#b3c7d6"];
-const ROOFS = ["#c0392b", "#8e3b2b", "#4e342e", "#2e7d32", "#1e88e5", "#546e7a", "#6d4c41", "#d35400", "#455a64", "#6a1b9a", "#3e2723", "#00796b"];
-const DARK_ROOFS = ["#4e342e", "#3e2723", "#455a64", "#37474f", "#5d4037", "#263238", "#6d3a2c"];
-const WOODS = ["#8d5a2b", "#a0522d", "#795548", "#6d4c41", "#9c6b3f", "#b07a4a"];
-const RED_WALLS = ["#b23a2e", "#c62828", "#8d6e63", "#2e7d32", "#1565c0", "#6d4c41", "#ad1457", "#ef6c00"];
-const STONES = ["#a0a4a8", "#9e9e9e", "#b0a999", "#90a4ae", "#a1887f", "#bdb6a8"];
-const DARK_STONES = ["#6f6a66", "#5d5d5d", "#7b6f63", "#4e4a47", "#6d6d6d", "#5f6a6f"];
-const METALS = ["#8fa5b8", "#90a4ae", "#b0bec5", "#78909c", "#a5b4a0", "#c8b89a"];
-const DOORS = ["#7a4a24", "#5d4037", "#455a64", "#1b5e20", "#6a1b9a", "#b71c1c", "#37474f", "#0d47a1"];
-const FLOWERS = ["#e57373", "#ffb300", "#ba68c8", "#f06292", "#fff176", "#64b5f6"];
-const AWNINGS = [["#e53935", "#fafafa"], ["#1e88e5", "#fafafa"], ["#43a047", "#fff59d"], ["#fb8c00", "#fafafa"], ["#8e24aa", "#f3e5f5"], ["#00897b", "#e0f2f1"]];
-const TRIMS = ["#fafafa", "#ffe082", "#d7ccc8", "#fff8e1"];
-
 /** Стандартная высота конька × крутизна (pitch) */
 const ridge = (z, rise, pitch) => z + rise * pitch;
 
-const ROOF_VARIANT = (rand, axes = ["c", "r"]) => ({ axis: pick(rand, axes), pitch: between(rand, 0.8, 1.3) });
-
 // ============================================================================= здания ==
-export const BUILDINGS = {
+export const CLASSIC = {
   house: {
     size: [2, 3, 2.0],
     base: { wall: "#ecd9b0", roof: "#c0392b", door: "#7a4a24", axis: "r", pitch: 1, chimney: true, flowers: true, flowerColor: "#e57373" },
-    colors: (r) => ({ wall: pick(r, WALLS), roof: pick(r, ROOFS), door: pick(r, DOORS), flowerColor: pick(r, FLOWERS) }),
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ chimney: chance(r, 0.75), flowers: chance(r, 0.65) }),
     draw(b, L) {
       b.plate(GRASS);
       b.box(0.35, 0.3, 2.6, 1.7, 0.06, 0.95, L.wall);
@@ -59,12 +40,6 @@ export const BUILDINGS = {
   warehouse: {
     size: [5, 5, 2.6],
     base: { wall: "#8fa5b8", roof: "#5d6d7e", gate: "#4b5a69", gateLine: "#6b7b8a", axis: "c", pitch: 1, windows: true, crates: 4 },
-    colors: (r) => {
-      const gate = pick(r, ["#4b5a69", "#5d4037", "#37474f", "#1b5e20", "#7f2b1f"]);
-      return { wall: pick(r, METALS), roof: pick(r, [...DARK_ROOFS, "#5d6d7e", "#2e7d32", "#1565c0"]), gate, gateLine: shade(gate, 1.3) };
-    },
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ windows: chance(r, 0.7), crates: Math.floor(r() * 5) }),
     draw(b, L) {
       b.plate(GRAVEL);
       b.box(0.35, 0.35, 3.8, 4.65, 0.06, 1.55, L.wall);
@@ -85,12 +60,6 @@ export const BUILDINGS = {
   barn: {
     size: [2, 2, 1.7],
     base: { wall: "#b23a2e", roof: "#4e342e", door: "#7b241c", trim: "#fafafa", axis: "c", pitch: 1, hay: true, window: true },
-    colors: (r) => {
-      const wall = pick(r, RED_WALLS);
-      return { wall, door: shade(wall, 0.7), roof: pick(r, DARK_ROOFS), trim: pick(r, TRIMS) };
-    },
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ hay: chance(r, 0.7), window: chance(r, 0.75) }),
     draw(b, L) {
       b.plate(DIRT);
       b.box(0.25, 0.25, 1.7, 1.75, 0.06, 0.9, L.wall);
@@ -107,9 +76,6 @@ export const BUILDINGS = {
   lumberjack_hut: {
     size: [2, 2, 1.5],
     base: { wall: "#8d5a2b", roof: "#6d8b3a", door: "#7a4a24", axis: "c", pitch: 1, logs: true, stump: true },
-    colors: (r) => ({ wall: pick(r, WOODS), roof: pick(r, ["#6d8b3a", "#4e342e", "#8d6e63", "#2e7d32", "#546e7a", "#558b2f"]), door: pick(r, DOORS) }),
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ logs: chance(r, 0.8), stump: chance(r, 0.7) }),
     draw(b, L) {
       b.plate("#7cb342");
       b.box(0.2, 0.2, 1.25, 1.45, 0.06, 0.72, L.wall);
@@ -135,12 +101,6 @@ export const BUILDINGS = {
   quarry: {
     size: [3, 3, 1.8],
     base: { stone: "#9e9e9e", block: "#cfcfcf", load: "#d6d6d6", cart: "#6d4c41", height: 1, crane: true, cart_: true },
-    colors: (r) => {
-      const block = pick(r, ["#cfcfcf", "#e0d6c8", "#d7ccc8", "#bdbdbd"]);
-      return { stone: pick(r, ["#9e9e9e", "#a1887f", "#b0a999", "#8d8d8d", "#bcaaa4", "#90a4ae"]), block, load: shade(block, 1.04), cart: pick(r, WOODS) };
-    },
-    roof: (r) => ({ height: between(r, 0.8, 1.25) }),
-    details: (r) => ({ crane: chance(r, 0.75), cart_: chance(r, 0.75) }),
     draw(b, L) {
       const h = (z) => 0.06 + (z - 0.06) * L.height;
       const [h1, h2, h3] = [h(0.35), h(0.7), h(1.05)];
@@ -167,9 +127,6 @@ export const BUILDINGS = {
   mine: {
     size: [3, 3, 1.7],
     base: { rock: "#7b6a58", frame: "#8d6e63", cart: "#607d8b", height: 1, lamp: true, cart_: true },
-    colors: (r) => ({ rock: pick(r, ["#7b6a58", "#6d6d6d", "#8d7b68", "#5d4e3f", "#7a6f62", "#6f5f52"]), frame: pick(r, WOODS), cart: pick(r, ["#607d8b", "#8d6e63", "#546e7a", "#795548", "#455a64"]) }),
-    roof: (r) => ({ height: between(r, 0.85, 1.2) }),
-    details: (r) => ({ lamp: chance(r, 0.7), cart_: chance(r, 0.8) }),
     draw(b, L) {
       const h = (z) => 0.06 + (z - 0.06) * L.height;
       b.plate("#9c8a72");
@@ -197,9 +154,6 @@ export const BUILDINGS = {
   water_mill: {
     size: [2, 2, 1.6],
     base: { wall: "#d7ccc8", roof: "#8d4e2a", door: "#7a4a24", wheel: "#5d4037", axis: "r", pitch: 1, window: true },
-    colors: (r) => ({ wall: pick(r, [...WALLS, ...STONES]), roof: pick(r, ROOFS), door: pick(r, DOORS), wheel: pick(r, ["#5d4037", "#6d4c41", "#4e342e", "#795548"]) }),
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ window: chance(r, 0.75) }),
     draw(b, L) {
       b.plate(GRASS);
       b.box(0.0, 1.5, 2.0, 2.0, 0.0, 0.07, "#4fa3e0", "#64b5f6", 0.8);
@@ -219,9 +173,6 @@ export const BUILDINGS = {
   sawmill: {
     size: [3, 2, 1.7],
     base: { roof: "#8d6e63", post: "#5d4037", log: "#8d5a2b", axis: "c", pitch: 1, planks: 3 },
-    colors: (r) => ({ roof: pick(r, ["#8d6e63", ...DARK_ROOFS, "#2e7d32", "#c0392b"]), post: pick(r, ["#5d4037", "#4e342e", "#6d4c41", "#3e2723"]), log: pick(r, WOODS) }),
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ planks: 1 + Math.floor(r() * 4) }),
     draw(b, L) {
       b.plate(DIRT);
       for (const [r, c] of [[0.3, 0.3], [0.3, 2.3], [1.42, 0.3], [1.42, 2.3]]) b.box(r, c, r + 0.09, c + 0.09, 0.06, 1.0, L.post);
@@ -238,9 +189,6 @@ export const BUILDINGS = {
   stonecutter_hut: {
     size: [2, 2, 1.5],
     base: { wall: "#a0a4a8", roof: "#546e7a", door: "#6d4c41", blockColor: "#d5d8da", axis: "c", pitch: 1, blocks: 4 },
-    colors: (r) => ({ wall: pick(r, STONES), roof: pick(r, ROOFS), door: pick(r, DOORS), blockColor: pick(r, ["#d5d8da", "#e0d6c8", "#cfd8dc", "#d7ccc8"]) }),
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ blocks: 1 + Math.floor(r() * 4) }),
     draw(b, L) {
       b.plate(GRAVEL);
       b.box(0.25, 0.25, 1.3, 1.75, 0.06, 0.75, L.wall);
@@ -258,12 +206,6 @@ export const BUILDINGS = {
   blacksmith: {
     size: [3, 3, 2.4],
     base: { wall: "#6f6a66", roof: "#3e2723", door: "#4e342e", chimney: "#5a4a42", axis: "c", pitch: 1, anvil: true },
-    colors: (r) => {
-      const wall = pick(r, DARK_STONES);
-      return { wall, chimney: shade(wall, 0.85), roof: pick(r, DARK_ROOFS), door: pick(r, ["#4e342e", "#3e2723", "#37474f", "#5d4037"]) };
-    },
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ anvil: chance(r, 0.85) }),
     draw(b, L) {
       b.plate(GRAVEL);
       b.box(0.3, 0.3, 2.0, 2.4, 0.06, 1.0, L.wall);
@@ -288,9 +230,6 @@ export const BUILDINGS = {
   mill: {
     size: [2, 2, 2.6],
     base: { wall: "#f2e3c4", roof: "#8d4e2a", blades: "#fafafa", door: "#7a4a24", pitch: 1, turn: 20, flowers: false, flowerColor: "#e57373" },
-    colors: (r) => ({ wall: pick(r, WALLS), roof: pick(r, ROOFS), blades: pick(r, ["#fafafa", "#ffe0b2", "#d7ccc8", "#fff8e1"]), door: pick(r, DOORS), flowerColor: pick(r, FLOWERS) }),
-    roof: (r) => ({ pitch: between(r, 0.8, 1.15), turn: Math.round(between(r, 0, 90)) }),
-    details: (r) => ({ flowers: chance(r, 0.6) }),
     draw(b, L) {
       b.plate(GRASS);
       b.box(0.55, 0.55, 1.45, 1.45, 0.06, 1.45, L.wall);
@@ -312,9 +251,6 @@ export const BUILDINGS = {
   bakery: {
     size: [3, 3, 2.1],
     base: { wall: "#f3d9a4", roof: "#d35400", door: "#7a4a24", awning: ["#e53935", "#fafafa"], axis: "r", pitch: 1, bushes: false, flowerColor: "#e57373" },
-    colors: (r) => ({ wall: pick(r, WALLS), roof: pick(r, ROOFS), door: pick(r, DOORS), awning: pick(r, AWNINGS), flowerColor: pick(r, FLOWERS) }),
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ bushes: chance(r, 0.6) }),
     draw(b, L) {
       b.plate("#c8b08a");
       b.box(0.3, 0.3, 2.2, 2.5, 0.06, 1.0, L.wall);
@@ -342,12 +278,6 @@ export const BUILDINGS = {
   sauce_factory: {
     size: [4, 3, 2.3],
     base: { wall: "#b5533c", roof: "#6d3a2c", door: "#5d4037", tank: "#e53935", tankTop: "#ef9a9a", axis: "c", pitch: 1, stack: true, pipe: true },
-    colors: (r) => {
-      const tank = pick(r, ["#e53935", "#c62828", "#d84315", "#ad1457", "#ef6c00"]);
-      return { wall: pick(r, ["#b5533c", "#a1452e", "#8d6e63", "#c26a4a", "#9e4b3a", "#b0a999"]), roof: pick(r, DARK_ROOFS), door: pick(r, DOORS), tank, tankTop: shade(tank, 1.45) };
-    },
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ stack: chance(r, 0.75), pipe: chance(r, 0.75) }),
     draw(b, L) {
       b.plate("#b0b0b0");
       b.box(0.3, 0.3, 2.4, 2.6, 0.06, 1.05, L.wall);
@@ -368,9 +298,6 @@ export const BUILDINGS = {
   butter_factory: {
     size: [4, 3, 2.2],
     base: { wall: "#f5f0e1", roof: "#1e88e5", door: "#455a64", silo: "#eceff1", cap: "#90a4ae", axis: "c", pitch: 1, can: true },
-    colors: (r) => ({ wall: pick(r, WALLS), roof: pick(r, ROOFS), door: pick(r, DOORS), silo: pick(r, ["#eceff1", "#cfd8dc", "#fff8e1", "#e0e0e0"]), cap: pick(r, ["#90a4ae", "#1e88e5", "#c0392b", "#546e7a", "#2e7d32"]) }),
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ can: chance(r, 0.7) }),
     draw(b, L) {
       b.plate("#cfd8dc");
       b.box(0.3, 0.3, 2.4, 2.6, 0.06, 1.0, L.wall);
@@ -391,9 +318,6 @@ export const BUILDINGS = {
   "chicken-coop": {
     size: [2, 2, 1.4],
     base: { wall: "#c97b4a", roof: "#8e3b2b", chicken: "#fafafa", axis: "c", pitch: 1, birds: 3 },
-    colors: (r) => ({ wall: pick(r, [...WOODS, "#c97b4a", "#e0c9a6", "#b23a2e"]), roof: pick(r, ROOFS), chicken: pick(r, ["#fafafa", "#a1887f", "#5d4037", "#ffcc80", "#e0e0e0"]) }),
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ birds: 1 + Math.floor(r() * 3) }),
     draw(b, L) {
       b.plate("#e6c76a");
       b.fence(0.05, 1.95, 1.95, 1.95);
@@ -414,12 +338,6 @@ export const BUILDINGS = {
   pigsty: {
     size: [3, 3, 1.4],
     base: { wall: "#c48b5a", roof: "#6d4c41", pig: "#f8a5b8", pigHead: "#f48fb1", axis: "c", pitch: 1, puddle: true, pigs: 3 },
-    colors: (r) => {
-      const [pig, pigHead] = pick(r, [["#f8a5b8", "#f48fb1"], ["#d7a49a", "#c98f84"], ["#8d6e63", "#795548"], ["#f3d0c4", "#e8b4a6"], ["#5d4037", "#4e342e"]]);
-      return { wall: pick(r, [...WOODS, "#c48b5a", "#d9b99b"]), roof: pick(r, ROOFS), pig, pigHead };
-    },
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ puddle: chance(r, 0.75), pigs: 1 + Math.floor(r() * 3) }),
     draw(b, L) {
       b.plate("#8d6e4a");
       if (L.puddle) b.ellipseGround(1.9, 1.5, 0.45, 0.07, "#5d4033", OUT, 0.8);
@@ -435,13 +353,6 @@ export const BUILDINGS = {
   cowshed: {
     size: [4, 4, 2.4],
     base: { wall: "#c62828", gate: "#8e1c1c", roof: "#455a64", trim: "#fafafa", cow: "#fafafa", spot: "#424242", axis: "c", pitch: 1, silo: true, cows: 3 },
-    colors: (r) => {
-      const wall = pick(r, RED_WALLS);
-      const [cow, spot] = pick(r, [["#fafafa", "#424242"], ["#8d6e63", "#fafafa"], ["#fafafa", "#6d4c41"], ["#5d4037", "#3e2723"], ["#d7ccc8", "#5d4037"]]);
-      return { wall, gate: shade(wall, 0.72), roof: pick(r, DARK_ROOFS), trim: pick(r, TRIMS), cow, spot };
-    },
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ silo: chance(r, 0.75), cows: 1 + Math.floor(r() * 3) }),
     draw(b, L) {
       b.plate(DIRT);
       b.box(0.3, 0.3, 2.5, 2.9, 0.06, 1.1, L.wall);
@@ -465,12 +376,6 @@ export const BUILDINGS = {
   sheepfold: {
     size: [3, 3, 1.4],
     base: { wall: "#bca07a", roof: "#5d4037", stone: "#9e9e9e", wool: "#fafafa", head: "#424242", axis: "c", pitch: 1, sheep: 4 },
-    colors: (r) => {
-      const [wool, head] = pick(r, [["#fafafa", "#424242"], ["#efebe9", "#5d4037"], ["#d7ccc8", "#3e2723"], ["#424242", "#212121"], ["#fff8e1", "#6d4c41"]]);
-      return { wall: pick(r, [...WOODS, "#bca07a", "#d9b99b"]), roof: pick(r, ROOFS), stone: pick(r, STONES), wool, head };
-    },
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ sheep: 2 + Math.floor(r() * 3) }),
     draw(b, L) {
       b.plate(GRASS);
       b.box(0.25, 0.25, 1.2, 1.8, 0.06, 0.65, L.wall);
@@ -487,9 +392,6 @@ export const BUILDINGS = {
   shop: {
     size: [3, 3, 2.0],
     base: { wall: "#fff3e0", roof: "#2e7d32", door: "#6d4c41", awning: ["#e53935", "#fafafa"], axis: "c", pitch: 1, crates: 3 },
-    colors: (r) => ({ wall: pick(r, WALLS), roof: pick(r, ROOFS), door: pick(r, DOORS), awning: pick(r, AWNINGS) }),
-    roof: (r) => ROOF_VARIANT(r),
-    details: (r) => ({ crates: Math.floor(r() * 4) }),
     draw(b, L) {
       b.plate("#c8b08a");
       b.box(0.3, 0.3, 1.9, 2.6, 0.06, 1.0, L.wall);
@@ -514,9 +416,6 @@ export const BUILDINGS = {
       tents: [["#1e88e5", "#fafafa"], ["#43a047", "#fafafa"], ["#e53935", "#fff59d"]],
       post: "#5d4037", slope: 0.2, sign: true,
     },
-    colors: (r) => ({ tents: [pick(r, AWNINGS), pick(r, AWNINGS), pick(r, AWNINGS)], post: pick(r, ["#5d4037", "#4e342e", "#6d4c41", "#37474f"]) }),
-    roof: (r) => ({ slope: between(r, 0.1, 0.3) }),
-    details: (r) => ({ sign: chance(r, 0.8) }),
     draw(b, L) {
       b.plate("#d7c49e");
       const stalls = [

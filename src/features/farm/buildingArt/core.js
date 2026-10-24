@@ -40,6 +40,7 @@ export class Builder {
     this.oy = zmax * this.a + 4;
     this.H = this.oy + ((w + h) * this.a) / 2;
     this.el = [];
+    this.windowColor = null; // цвет рам окон (перекраска игроком); null — стандартные белые переплёты
   }
 
   // ------------------------------------------------------------ геометрия --
@@ -133,10 +134,132 @@ export class Builder {
   }
 
   window(kind, r, c, z, u, v, w = 0.28, h = 0.26, glass = "#9ad7ff") {
+    const frame = this.windowColor;
     this.onFace(kind, r, c, z,
-      `<rect x="${u}" y="${v}" width="${w}" height="${h}" fill="${glass}" stroke="${OUT}" stroke-width="1.1" NS/>` +
-      `<line x1="${u + w / 2}" y1="${v}" x2="${u + w / 2}" y2="${v + h}" stroke="#f5f5f5" stroke-width="1" NS/>` +
-      `<line x1="${u}" y1="${v + h / 2}" x2="${u + w}" y2="${v + h / 2}" stroke="#f5f5f5" stroke-width="1" NS/>`);
+      `<rect x="${u}" y="${v}" width="${w}" height="${h}" fill="${glass}" stroke="${frame || OUT}" stroke-width="${frame ? 1.8 : 1.1}" NS/>` +
+      `<line x1="${u + w / 2}" y1="${v}" x2="${u + w / 2}" y2="${v + h}" stroke="${frame || "#f5f5f5"}" stroke-width="1" NS/>` +
+      `<line x1="${u}" y1="${v + h / 2}" x2="${u + w}" y2="${v + h / 2}" stroke="${frame || "#f5f5f5"}" stroke-width="1" NS/>`);
+  }
+
+  /** Окно выбранного стиля: cross — с переплётом, shutters — со ставнями, arched — арочное, round — круглое. */
+  styledWindow(kind, r, c, z, u, v, w, h, style, color) {
+    const glass = "#9ad7ff";
+    const fr = `stroke="${color}" stroke-width="1.6" NS`;
+    if (style === "round") {
+      const R = Math.min(w, h) / 2;
+      this.onFace(kind, r, c, z,
+        `<circle cx="${u + w / 2}" cy="${v + h / 2}" r="${R}" fill="${glass}" ${fr}/>` +
+        `<line x1="${u + w / 2 - R}" y1="${v + h / 2}" x2="${u + w / 2 + R}" y2="${v + h / 2}" stroke="${color}" stroke-width="1" NS/>`);
+      return;
+    }
+    if (style === "arched") {
+      const R = w / 2;
+      this.onFace(kind, r, c, z,
+        `<path d="M${u},${v} L${u + w},${v} L${u + w},${v + h - R} A${R},${R} 0 0 0 ${u},${v + h - R} Z" fill="${glass}" ${fr}/>` +
+        `<line x1="${u + w / 2}" y1="${v}" x2="${u + w / 2}" y2="${v + h}" stroke="${color}" stroke-width="1" NS/>`);
+      return;
+    }
+    let s = `<rect x="${u}" y="${v}" width="${w}" height="${h}" fill="${glass}" ${fr}/>` +
+      `<line x1="${u + w / 2}" y1="${v}" x2="${u + w / 2}" y2="${v + h}" stroke="${color}" stroke-width="1" NS/>` +
+      `<line x1="${u}" y1="${v + h / 2}" x2="${u + w}" y2="${v + h / 2}" stroke="${color}" stroke-width="1" NS/>`;
+    if (style === "shutters") {
+      const sw = w * 0.42;
+      s += `<rect x="${u - sw}" y="${v}" width="${sw}" height="${h}" fill="${color}" stroke="${OUT}" stroke-width="0.9" NS/>` +
+        `<rect x="${u + w}" y="${v}" width="${sw}" height="${h}" fill="${color}" stroke="${OUT}" stroke-width="0.9" NS/>`;
+    }
+    this.onFace(kind, r, c, z, s);
+  }
+
+  /** Дверь выбранного стиля: plain, arched, double, barn (крест), gate (ворота с полосами). */
+  styledDoor(kind, r, c, z, u, w, h, style, color, trim = "#fafafa") {
+    const st = `stroke="${OUT}" stroke-width="1.1" NS`;
+    let s;
+    if (style === "arched") {
+      const R = w / 2;
+      s = `<path d="M${u},0 L${u + w},0 L${u + w},${h - R} A${R},${R} 0 0 0 ${u},${h - R} Z" fill="${color}" ${st}/>`;
+    } else if (style === "double") {
+      s = `<rect x="${u}" y="0" width="${w}" height="${h}" fill="${color}" ${st}/>` +
+        `<line x1="${u + w / 2}" y1="0" x2="${u + w / 2}" y2="${h}" stroke="${OUT}" stroke-width="1" NS/>`;
+    } else if (style === "barn") {
+      s = `<rect x="${u}" y="0" width="${w}" height="${h}" fill="${color}" stroke="${trim}" stroke-width="1.6" NS/>` +
+        `<line x1="${u}" y1="0" x2="${u + w}" y2="${h}" stroke="${trim}" stroke-width="1.4" NS/>` +
+        `<line x1="${u + w}" y1="0" x2="${u}" y2="${h}" stroke="${trim}" stroke-width="1.4" NS/>`;
+    } else if (style === "gate") {
+      s = `<rect x="${u}" y="0" width="${w}" height="${h}" fill="${color}" ${st}/>`;
+      for (let i = 1; i < 8; i++) {
+        const y = ((h * i) / 8).toFixed(3);
+        s += `<line x1="${u}" y1="${y}" x2="${u + w}" y2="${y}" stroke="${shade(color, 1.3)}" stroke-width="0.8" NS/>`;
+      }
+    } else {
+      s = `<rect x="${u}" y="0" width="${w}" height="${h}" fill="${color}" ${st}/>`;
+    }
+    if (style !== "gate" && style !== "barn") s += `<circle cx="${u + w * 0.78}" cy="${h * 0.45}" r="0.025" fill="#f2c94c"/>`;
+    this.onFace(kind, r, c, z, s);
+  }
+
+  /** Узор материала стены на грани длиной length и высотой height. */
+  material(kind, r, c, z, length, height, wallKind, wall) {
+    const line = shade(wall, 0.62);
+    const L = (x1, y1, x2, y2, sw = 0.7) =>
+      `<line x1="${x1.toFixed(3)}" y1="${y1.toFixed(3)}" x2="${x2.toFixed(3)}" y2="${y2.toFixed(3)}" stroke="${line}" stroke-width="${sw}" NS/>`;
+    let s = "";
+    if (wallKind === "planks") {
+      for (let u = 0.16; u < length; u += 0.16) s += L(u, 0, u, height, 0.6);
+    } else if (wallKind === "logs") {
+      for (let v = 0.12; v < height; v += 0.12) s += L(0, v, length, v, 1.1);
+    } else if (wallKind === "brick") {
+      let row = 0;
+      for (let v = 0.09; v < height; v += 0.09, row++) {
+        s += L(0, v, length, v, 0.5);
+        for (let u = row % 2 ? 0.09 : 0.18; u < length; u += 0.18) s += L(u, v - 0.09, u, v, 0.5);
+      }
+    } else if (wallKind === "stone") {
+      let row = 0;
+      for (let v = 0.16; v < height + 0.16; v += 0.16, row++) {
+        const top = Math.min(v, height);
+        if (v < height) s += L(0, v, length, v, 0.7);
+        for (let u = row % 2 ? 0.13 : 0.26; u < length; u += 0.26) s += L(u, v - 0.16, u, top, 0.7);
+      }
+    } else if (wallKind === "metal") {
+      for (let u = 0.2; u < length; u += 0.2) s += L(u, 0, u, height, 0.8);
+    } else {
+      // штукатурка: только цоколь
+      s += `<rect x="0" y="0" width="${length}" height="0.08" fill="${shade(wall, 0.75)}" stroke="none"/>`;
+    }
+    this.onFace(kind, r, c, z, s);
+  }
+
+  /** Вальмовая (четырёхскатная) крыша; конёк вдоль длинной стороны. */
+  hip(r0, c0, r1, c1, z, zr, roof, o = 0.12) {
+    const P = this.P.bind(this);
+    if (c1 - c0 >= r1 - r0) {
+      const rm = (r0 + r1) / 2;
+      const d = Math.min((r1 - r0) / 2, (c1 - c0) / 2);
+      this.poly([P(r0 - o, c0 - o, z), P(r0 - o, c1 + o, z), P(rm, c1 - d, zr), P(rm, c0 + d, zr)], shade(roof, 1.05));
+      this.poly([P(r0 - o, c0 - o, z), P(r1 + o, c0 - o, z), P(rm, c0 + d, zr)], shade(roof, 0.95));
+      this.poly([P(r0 - o, c1 + o, z), P(r1 + o, c1 + o, z), P(rm, c1 - d, zr)], shade(roof, 0.72));
+      this.poly([P(r1 + o, c0 - o, z), P(r1 + o, c1 + o, z), P(rm, c1 - d, zr), P(rm, c0 + d, zr)], shade(roof, 0.88));
+    } else {
+      const cm = (c0 + c1) / 2;
+      const d = Math.min((c1 - c0) / 2, (r1 - r0) / 2);
+      this.poly([P(r0 - o, c0 - o, z), P(r1 + o, c0 - o, z), P(r1 - d, cm, zr), P(r0 + d, cm, zr)], shade(roof, 1.05));
+      this.poly([P(r0 - o, c0 - o, z), P(r0 - o, c1 + o, z), P(r0 + d, cm, zr)], shade(roof, 0.95));
+      this.poly([P(r0 - o, c1 + o, z), P(r1 + o, c1 + o, z), P(r1 - d, cm, zr), P(r0 + d, cm, zr)], shade(roof, 0.78));
+      this.poly([P(r1 + o, c0 - o, z), P(r1 + o, c1 + o, z), P(r1 - d, cm, zr)], shade(roof, 0.9));
+    }
+  }
+
+  /** Односкатная крыша: высокая сторона сзади (r0), низкая — над фасадом (r1). */
+  shed(r0, c0, r1, c1, z, zhi, roof, wall, o = 0.12) {
+    const P = this.P.bind(this);
+    this.poly([P(r1, c1, z), P(r0, c1, z), P(r0, c1, zhi)], shade(wall, 0.72));
+    this.poly([P(r0 - o, c0 - o, zhi), P(r0 - o, c1 + o, zhi), P(r1 + o, c1 + o, z), P(r1 + o, c0 - o, z)], shade(roof, 0.95));
+  }
+
+  /** Плоская крыша с бортиком. */
+  flatRoof(r0, c0, r1, c1, z, roof) {
+    this.box(r0 - 0.06, c0 - 0.06, r1 + 0.06, c1 + 0.06, z, z + 0.1, roof, shade(roof, 0.8));
+    this.box(r0 + 0.12, c0 + 0.12, r1 - 0.12, c1 - 0.12, z + 0.1, z + 0.11, roof, shade(roof, 0.7), 0.6);
   }
 
   door(kind, r, c, z, u, w = 0.3, h = 0.5, color = "#7a4a24") {

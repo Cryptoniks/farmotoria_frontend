@@ -5,14 +5,15 @@
 //
 //   node tools/gen_buildings.mjs            # перезаписать src/assets/buildings/*.svg
 //   node tools/gen_buildings.mjs <папка>    # сохранить в другую папку (например, для сравнения)
-//   node tools/gen_buildings.mjs <папка> --variants 6   # + по 6 случайных вариантов каждого здания
+//   node tools/gen_buildings.mjs <папка> --variants 6   # + по 6 случайных вариантов (новая форма и цвета)
 //
-// Новое здание: рисунок в buildingArt/buildings.js (размеры как в seed_game_data.py на бэкенде).
+// Новое здание: стандартный рисунок в buildingArt/classic.js и рецепт в buildingArt/procedural.js
+// (размеры как в seed_game_data.py на бэкенде).
 import { mkdirSync, writeFileSync } from "node:fs";
 import { dirname, join, resolve } from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { BUILDINGS, randomSeed, renderBuildingSvg } from "../src/features/farm/buildingArt/index.js";
+import { CLASSIC, randomSeed, renderBuildingSvg } from "../src/features/farm/buildingArt/index.js";
 
 const root = dirname(fileURLToPath(import.meta.url));
 const args = process.argv.slice(2);
@@ -22,11 +23,11 @@ const outDir = resolve(args[0] && !args[0].startsWith("--") ? args[0] : join(roo
 
 mkdirSync(outDir, { recursive: true });
 let count = 0;
-for (const slug of Object.keys(BUILDINGS)) {
+for (const slug of Object.keys(CLASSIC)) {
   writeFileSync(join(outDir, `${slug}.svg`), renderBuildingSvg(slug));
   count++;
   for (let i = 1; i <= variants; i++) {
-    const look = { c: randomSeed(), r: randomSeed(), d: randomSeed() };
+    const look = { v: 2, shape: randomSeed(), details: randomSeed(), colors: null };
     writeFileSync(join(outDir, `${slug}--v${i}.svg`), renderBuildingSvg(slug, look));
     count++;
   }
