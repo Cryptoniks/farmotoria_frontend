@@ -5,6 +5,31 @@ import "./FarmModals.css";
 
 const PLAN_TITLES = { 1: "1 день", 7: "7 дней", 30: "30 дней" };
 
+// Что даёт Премиум. Новая премиум-функция — ещё одна запись в этом списке.
+const PREMIUM_FEATURES = [
+  {
+    icon: "🌾",
+    title: "Множественный посев",
+    text: "Выберите семя один раз — и сажайте его на любые пустые поля кликом по карте, без окна. "
+      + "Поле под курсором подсвечивается: зелёным пустое, красным засеянное.",
+  },
+  {
+    icon: "🧺",
+    title: "Сбор со всех полей",
+    text: "Одной кнопкой собрать урожай со всех созревших полей — и сразу посадить в каждое то же семя.",
+  },
+  {
+    icon: "🗺️",
+    title: "Вдвое больше земли",
+    text: "За монеты — 2 новых участка на каждый уровень игрока вместо одного.",
+  },
+  {
+    icon: "👑",
+    title: "Корона у имени",
+    text: "Значок Премиума в профиле, пока подписка действует.",
+  },
+];
+
 /** Премиум-магазин: алмазы за реальные деньги (пока заглушка) и Премиум-подписка за алмазы. */
 export default function PremiumModal({ isOpen, onClose, onChanged }) {
   const [data, setData] = useState(null);
@@ -68,8 +93,7 @@ export default function PremiumModal({ isOpen, onClose, onChanged }) {
               {tab === "premium" && (
                 <>
                   <div className="farm-modal-sub">
-                    Премиум открывает особые возможности аккаунта — они будут добавляться. Если подписка уже действует,
-                    новые дни добавятся к её сроку.
+                    Если подписка уже действует, новые дни добавятся к её сроку.
                   </div>
                   <div className="premium-grid">
                     {data.plans.map((p) => (
@@ -85,6 +109,19 @@ export default function PremiumModal({ isOpen, onClose, onChanged }) {
                   </div>
                   <div className="farm-modal-sub" style={{ marginTop: 10 }}>
                     Алмазы можно купить в Банке за монеты или во вкладке «Алмазы».
+                  </div>
+
+                  <div className="profile-skills-title premium-features-title">Что даёт Премиум</div>
+                  <div className="premium-features">
+                    {PREMIUM_FEATURES.map((f) => (
+                      <div key={f.title} className="guide-card">
+                        <div className="guide-icon">{f.icon}</div>
+                        <div>
+                          <div className="guide-title">{f.title}</div>
+                          <div className="guide-text">{f.text}</div>
+                        </div>
+                      </div>
+                    ))}
                   </div>
                 </>
               )}

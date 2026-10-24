@@ -1246,3 +1246,19 @@
 .farm-modal-btn.premium {
   background: linear-gradient(135deg, #42a5f5, #1565c0);
 }
+
+.premium-features-title {
+  margin-top: 16px;
+}
+
+.premium-features {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+@media (max-width: 640px) {
+  .premium-features {
+    grid-template-columns: 1fr;
+  }
+}
