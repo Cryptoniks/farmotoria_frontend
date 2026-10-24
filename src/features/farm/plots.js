@@ -15,3 +15,24 @@ export function msUntilNextReady(plots, now = Date.now()) {
     .filter((ms) => ms > 0);
   return waits.length ? Math.min(...waits) : null;
 }
+
+/**
+ * Почему здание занято: посадка (растёт или не собрана), добыча, производство или кормление (продукция не забрана).
+ * Пока здание занято, улучшить его нельзя — то же правило проверяет сервер.
+ */
+export function buildingBusyReason(buildingId, { plots, extractionProcesses, processingProcesses }, now = Date.now()) {
+  if (buildingId == null) return null;
+  const plot = (plots || []).find((p) => p.building_id === buildingId);
+  if (plot) {
+    return isPlotReady(plot, now)
+      ? "На поле созрел урожай — сначала соберите его"
+      : "На поле растёт урожай — дождитесь и соберите его";
+  }
+  if ((extractionProcesses || []).some((p) => p.building_id === buildingId && p.status === "running")) {
+    return "Идёт добыча — сначала остановите её";
+  }
+  if ((processingProcesses || []).some((p) => p.building_id === buildingId && p.status === "running")) {
+    return "Идёт производство — дождитесь и заберите продукцию";
+  }
+  return null;
+}

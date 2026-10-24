@@ -24,6 +24,7 @@ export default function BuildingLevel({ building, coins, onUpgrade }) {
   if (!building || building.level == null || ["shop", "market"].includes(building.building_type)) return null;
 
   const isMax = building.level >= building.max_level;
+  const busyReason = building.busy_reason;
   const upgrading = Boolean(building.upgrade_finishes_at);
   const price = building.upgrade_price;
   const current = bonusLines(building, false);
@@ -62,11 +63,14 @@ export default function BuildingLevel({ building, coins, onUpgrade }) {
         <button
           className="upgrade-btn"
           onClick={handleUpgrade}
-          disabled={busy || coins < price}
-          title={coins < price ? "Недостаточно монет" : undefined}
+          disabled={busy || Boolean(busyReason) || coins < price}
+          title={busyReason || (coins < price ? "Недостаточно монет" : undefined)}
         >
           ⬆ Улучшить за 💰 {price}
         </button>
+      )}
+      {!isMax && !upgrading && price != null && busyReason && (
+        <div className="building-level-note">🔒 Улучшение недоступно: {busyReason.charAt(0).toLowerCase() + busyReason.slice(1)}</div>
       )}
       {error && <div className="farm-modal-error">{error}</div>}
     </div>

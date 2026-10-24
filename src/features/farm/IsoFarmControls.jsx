@@ -5,6 +5,7 @@
 
 import React from "react";
 import SeedSelectModal from "./SeedSelectModal";
+import { buildingBusyReason } from "./plots";
 import ExtractionModal from "./ExtractionModal";
 import BuildMenu from "./BuildMenu";
 
@@ -57,6 +58,9 @@ const IsoFarmControls = ({
   animate,
   onToggleAnimate,
 }) => {
+  // Здание с запущенным процессом не улучшается: окно получает причину вместе с данными здания
+  const withBusy = (b) => b && { ...b, busy_reason: buildingBusyReason(b.id, { plots, extractionProcesses, processingProcesses }) };
+
   const handleSaveMoves = async () => {
     const changes = Object.entries(moveChanges).map(([id, change]) => ({
       placement_id: parseInt(id),
@@ -322,7 +326,7 @@ const IsoFarmControls = ({
           setClickedBuilding(null);
         }}
         buildingId={clickedBuilding?.id}
-        building={buildings.find((b) => b.id === clickedBuilding?.id)}
+        building={withBusy(buildings.find((b) => b.id === clickedBuilding?.id))}
         coins={coins}
         onUpgrade={tryUpgradeBuilding}
         plots={plots}
@@ -338,7 +342,7 @@ const IsoFarmControls = ({
           setExtractionBuilding(null);
           setProcessingRecipes([]);
         }}
-        building={buildings.find((b) => b.id === extractionBuilding?.id) || extractionBuilding}
+        building={withBusy(buildings.find((b) => b.id === extractionBuilding?.id) || extractionBuilding)}
         coins={coins}
         onUpgrade={tryUpgradeBuilding}
         onCustomize={() => onCustomize?.(extractionBuilding)}
